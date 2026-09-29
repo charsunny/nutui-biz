@@ -40,6 +40,18 @@ scripts/generate.mjs        由 src/config.json 生成 src/index.ts 与 demo 页
   Toast `Toast.text()` → `Toast.show(id, { content })` 且需要渲染 `<Toast id=... />`。
   拿不准就读 `node_modules/@nutui/nutui-react-taro/dist/es/types/spec/<组件>/base.d.ts` 与 `taro.d.ts`。
 
+## 迁移中踩过的坑
+
+- **Taro API 用具名导入** (`import { createSelectorQuery, nextTick } from '@tarojs/taro'`)。
+  H5 端 `@tarojs/taro` 被换成 `@tarojs/taro-h5`; 业务方若没把本库放进 Taro 的 `compile.include`,
+  默认导出对象上的 API 在 H5 是 undefined。
+- **受控 `scrollTop` / `scrollLeft`**: Taro 4.2 H5 的 React 包装每次更新都把 props 直接赋给 DOM,
+  ScrollView 一重渲染就会把用户的滚动位置拉回受控值。见 category 的处理 (memo + 先同步真实位置)。
+- **NutUI 3 的 `--nutui-color-danger` 是浅粉 (#ffd6e1)**, 是浅底色不是错误文字色;
+  `type="danger"` 的 Button / Tag 会发白。错误文字用 `$nb-color-danger` (已不回落到它), 强调按钮用 `type="primary"`。
+- NutUI 图标颜色读 `--nut-icon-color`, 只设 `color` 不够。
+- NutUI 3 `Input` 的 `readOnly` 在 Taro 里挡不住输入, 需要禁止输入用 `disabled`。
+
 ## 样式
 
 - 每个 scss 第一行 `@import '../../styles/variables';`。
@@ -63,3 +75,12 @@ node -r ./scripts/taro-debug-hook.cjs node_modules/@tarojs/cli/bin/taro build --
 
 Taro 构建失败时默认只打印 `[object Array]`, 用 `taro-debug-hook.cjs` 看真正的 webpack 错误。
 输出目录可用 `OUT_DIR=dist-xxx` 覆盖 (并行构建时避免互相覆盖)。
+
+## 业务方接入
+
+- 源码接入 (如 git submodule): 把 `src/` 加进 Taro 的 `mini.compile.include` 与 `h5.compile.include`,
+  对该路径使用 designWidth 375, 并保证 `@nutui/nutui-react-taro` / `@nutui/icons-react-taro` /
+  `@tarojs/*` / `classnames` / `@bem-react/classname` 能从本库源码位置解析到 (只有一份 React)。
+- **按组件路径引入** `nutui-biz-taro/packages/<name>`: 每个组件的 `index.ts` 会引入自己的样式,
+  从 `src/index.ts` 整包引入会带上全部 30 个组件的样式。
+- 主题: `<ConfigProvider theme={{ nbColorPrimary: '#...' }}>` 或直接在外层节点设置 `--nb-*` CSS 变量。
