@@ -1,57 +1,56 @@
-import React, {
-    FunctionComponent,
-    ReactNode
-  } from 'react'
-  import { useConfig } from '@/packages/configprovider'
-  import {Price} from '@nutui/nutui-react'
-  
-  import { IComponent } from '@/utils/typings'
-  
-  export interface SkuHeaderProps extends IComponent {
-    goods: {
-      price: number
-      imagePath: string
-      skuId: string
-    }
-    skuHeaderPrice: ReactNode
-    skuHeaderExtra: ReactNode
-  }
-  
-  export const SkuHeader: FunctionComponent<
-    Partial<SkuHeaderProps> & Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'>
-  > = (props) => {
-    const { locale } = useConfig()
-    const {
-        goods = {
-          price: 0,
-          imagePath: '',
-          skuId: ''
-        },
-        skuHeaderPrice,
-        skuHeaderExtra
-    } = {
-      ...props,
-    }
+import type { FunctionComponent, ReactNode } from 'react'
+import { View, Text, Image } from '@tarojs/components'
+import { Price } from '@nutui/nutui-react-taro'
+import { useConfig } from '../configprovider'
+import bem from '../../utils/bem'
+import type { IComponent } from '../../utils/typings'
 
-    const renderSkuHeaderExtra = () => {
-        if(skuHeaderExtra) return skuHeaderExtra;
-        if(!skuHeaderExtra && goods.skuId) {
-            return <div className='nut-sku-header-right-extra'>{locale.skuheader.skuId}：{goods.skuId}</div>
-        } else {
-            return null;
-        }
-    }
-  
+export interface SkuGoods {
+  price: number | string
+  imagePath: string
+  skuId: string | number
+}
+
+export interface SkuHeaderProps extends IComponent {
+  goods: Partial<SkuGoods>
+  skuHeaderPrice: ReactNode
+  skuHeaderExtra: ReactNode
+}
+
+export const SkuHeader: FunctionComponent<Partial<SkuHeaderProps>> = ({
+  goods,
+  skuHeaderPrice,
+  skuHeaderExtra,
+}) => {
+  const { locale } = useConfig()
+  const b = bem('sku')
+  const { price = 0, imagePath = '', skuId = '' } = goods || {}
+
+  const renderExtra = () => {
+    if (skuHeaderExtra) return skuHeaderExtra
+    if (skuId === '' || skuId === undefined || skuId === null) return null
     return (
-        <div className='nut-sku-header'>
-            <img src={goods.imagePath} alt="" />
-            <div className='nut-sku-header-right'>
-                {skuHeaderPrice || <Price price={goods.price} needSymbol={true} thousands={false} />}
-                {renderSkuHeaderExtra()}
-            </div>
-        </div>
+      <Text className={b('header-extra')}>
+        {locale.skuheader.skuId}
+        {locale.skuheader.colon}
+        {skuId}
+      </Text>
     )
   }
-  
-  SkuHeader.displayName = 'NutSkuHeader'
-  
+
+  return (
+    <View className={b('header')}>
+      {imagePath ? (
+        <Image className={b('header-image')} src={imagePath} mode="aspectFill" />
+      ) : (
+        <View className={b('header-image')} />
+      )}
+      <View className={b('header-right')}>
+        {skuHeaderPrice || <Price price={price} symbol="¥" thousands={false} size="large" />}
+        {renderExtra()}
+      </View>
+    </View>
+  )
+}
+
+SkuHeader.displayName = 'NbSkuHeader'

@@ -1,89 +1,49 @@
-import React, {
-    FunctionComponent,
-    useEffect,
-    useState
-  } from 'react'
-import { useConfig } from '@/packages/configprovider'
-  
-import { IComponent } from '@/utils/typings'
-import classNames from 'classnames'
-  
+import type { FunctionComponent } from 'react'
+import { View, Text } from '@tarojs/components'
+import bem from '../../utils/bem'
+import type { IComponent } from '../../utils/typings'
+import { isSkuItemActive, isSkuItemSelectable } from './utils'
+import type { SkuItem, SkuSelectInfo, SkuSpec } from './utils'
+
 export interface SkuSelectProps extends IComponent {
-  sku: Array<any>
-  selectSku: (object: any) => void
+  sku: SkuSpec[]
+  selectSku: (info: SkuSelectInfo) => void
 }
 
-interface SkuInfo {
-  name: string;
-  id: number;
-  active: boolean;
-  disable: boolean;
-  [props: string]: any;
-}
-  
-export const SkuSelect: FunctionComponent<
-  Partial<SkuSelectProps> & Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'>
-> = (props) => {
-  const { locale } = useConfig()
-  const {
-    sku = [],
-    selectSku
-  } = {
-    ...props,
-  }
+export const SkuSelect: FunctionComponent<Partial<SkuSelectProps>> = ({
+  sku = [],
+  selectSku,
+}) => {
+  const b = bem('sku')
 
-  const [skuInfo, setSkuInfo] = useState<SkuInfo[]>([])
-
-  useEffect(() => {
-    if (sku.length > 0) {
-      setSkuInfo([].slice.call(sku))
-    }
-  }, [])
-
-  useEffect(() => {
-    if (sku.length > 0) {
-      setSkuInfo([].slice.call(sku))
-    }
-  }, [sku])
-
-  const changeSaleChild = (attrItem: SkuInfo, index: number, parentItem: SkuInfo, parentIndex: number) => {
-    if (attrItem.checkFlag || attrItem.disable) {
-      return;
-    }
-
-    selectSku && selectSku({
-      sku: attrItem,
-      skuIndex: index,
-      parentSku: parentItem,
-      parentIndex: parentIndex
-    })
+  const handleClick = (item: SkuItem, index: number, parent: SkuSpec, parentIndex: number) => {
+    if (!isSkuItemSelectable(item)) return
+    selectSku?.({ sku: item, skuIndex: index, parentSku: parent, parentIndex })
   }
 
   return (
-      <div className='nut-sku-select'>
-        {
-          skuInfo.map((item, index) => {
-            return <div className='nut-sku-select-item' key={item.id}>
-              <div className='nut-sku-select-item-title'>{item.name}</div>
-              <div className='nut-sku-select-item-skus'>
-                {
-                  item.list.map((itemAttr: SkuInfo, itemAttrIndex: number) => {
-                    return <div 
-                      className={classNames(['nut-sku-select-item-skus-sku', { active: !itemAttr.disable && itemAttr.active }, { disable: itemAttr.disable }])}
-                      key={itemAttr.name}
-                      onClick={()=>changeSaleChild(itemAttr, itemAttrIndex, item, index)}
-                    >
-                      {itemAttr.name}
-                    </div>
-                  })
-                }
-              </div>
-            </div>
-          })
-        }
-      </div>
+    <View className={b('select')}>
+      {sku.map((spec, parentIndex) => (
+        <View className={b('select-item')} key={spec.id ?? parentIndex}>
+          <View className={b('select-title')}>{spec.name}</View>
+          <View className={b('select-list')}>
+            {(spec.list || []).map((item, index) => (
+              <View
+                className={b('select-sku', {
+                  active: isSkuItemActive(item),
+                  disable: !!item.disable,
+                })}
+                key={item.id ?? item.name}
+                onClick={() => handleClick(item, index, spec, parentIndex)}
+              >
+                <Text>{item.name}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ))}
+    </View>
   )
 }
 
-SkuSelect.displayName = 'NutSkuSelect'
-  
+SkuSelect.displayName = 'NbSkuSelect'

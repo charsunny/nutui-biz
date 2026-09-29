@@ -1,445 +1,356 @@
-import React, {
-  FunctionComponent,
-  useEffect,
-  useState,
-  useRef,
-  ReactNode,
-} from "react";
-import { useConfig } from "@/packages/configprovider";
-import classNames from "classnames";
-import bem from "@/utils/bem";
-import { IComponent } from "@/utils/typings";
-import {
-  Input,
-  Button,
-  ButtonProps,
-  Icon,
-  Checkbox,
-  Toast,
-} from "@nutui/nutui-react";
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { FunctionComponent, ReactNode } from 'react'
+import { View, Image } from '@tarojs/components'
+import { Button, Checkbox, Input, Toast } from '@nutui/nutui-react-taro'
+import type { ButtonProps } from '@nutui/nutui-react-taro'
+import { Eye, Marshalling } from '@nutui/icons-react-taro'
+import classNames from 'classnames'
+import { useConfig } from '../configprovider'
+import bem from '../../utils/bem'
+import { useUuid } from '../../utils/use-uuid'
+import type { IComponent } from '../../utils/typings'
+import { createCountdown, isLoginReady, isTelOrMail } from './utils'
+import type { Countdown } from './utils'
 
-export type loginType = "verify" | "pwd";
-export type showErrorType = "toast" | "bottomMsg";
+export type LoginType = 'verify' | 'pwd'
+export type LoginShowErrorType = 'toast' | 'bottomMsg'
+export type LoginInputTag = 'account' | 'password' | 'telOrMail' | 'verify'
 
 export interface LoginParamsProps {
-  account?: string;
-  accountPlaceholder?: string;
-  accountErrorText?: string;
-  telOrMail?: string | undefined;
-  telOrMailPlaceholder?: string;
-  telOrMailErrorText?: string;
-  password?: string;
-  passwordPlaceholder?: string;
-  passwordErrorText?: string;
-  isShowPwdInput?: boolean;
-  verify?: string;
-  verifyPlaceholder?: string;
-  verifyButtonText?: string;
-  verifyErrorText?: string;
-  getCodeErrorToast?: string;
-  switchLoginText1?: string;
-  switchLoginText2?: string;
-  forgetPwdText?: string;
-
-  [key: string]: any;
+  account?: string
+  accountPlaceholder?: string
+  accountErrorText?: string
+  telOrMail?: string
+  telOrMailPlaceholder?: string
+  telOrMailErrorText?: string
+  password?: string
+  passwordPlaceholder?: string
+  passwordErrorText?: string
+  isShowPwdInput?: boolean
+  verify?: string
+  verifyPlaceholder?: string
+  verifyButtonText?: string
+  verifyErrorText?: string
+  getCodeErrorToast?: string
+  switchLoginText1?: string
+  switchLoginText2?: string
+  forgetPwdText?: string
+  [key: string]: any
 }
 
 export interface LoginFormProps {
-  account?: string;
-  password?: string;
-  telOrMail?: string;
-  verify?: string;
-  [key: string]: any;
+  account?: string
+  password?: string
+  telOrMail?: string
+  verify?: string
+  [key: string]: any
 }
+
 export interface LoginProps extends IComponent {
-  logo?: string;
-  title?: string;
-  formParams: LoginParamsProps;
-  loginType: loginType;
-  loginButtonDisable?: boolean;
-  loginButtonText?: string;
-  hasForgetPassWord?: boolean;
-  showErrorType?: showErrorType;
-  toastErrorText?: string;
-  hasHidePwd?: boolean;
-  isGetCode?: boolean;
-  countDownTime?: number | undefined;
-  isHideSwitchBtn?: boolean;
-  slotProtocolText?: ReactNode;
-  slotInput?: ReactNode;
-  slotBottom?: ReactNode;
-  buttonProps?: ButtonProps;
-  onInputChange?: (value: string, tag: string) => void;
-  onLoginBtnClick?: (
-    formData: LoginFormProps,
-    totalData: LoginParamsProps
-  ) => void;
-  onVerifyBtnClick?: (
-    formData: LoginFormProps,
-    totalData: LoginParamsProps
-  ) => void;
-  onForgetBtnClick?: () => void;
-  onInputClear?: (tag: string) => void;
-  onLoginTypeClick?: () => void;
+  logo: string
+  title: string
+  formParams: LoginParamsProps
+  loginType: LoginType
+  loginButtonDisable: boolean
+  loginButtonText: string
+  hasForgetPassWord: boolean
+  showErrorType: LoginShowErrorType
+  toastErrorText: string
+  hasHidePwd: boolean
+  isGetCode: boolean
+  countDownTime: number
+  isHideSwitchBtn: boolean
+  slotProtocolText: ReactNode
+  slotInput: ReactNode
+  slotBottom: ReactNode
+  buttonProps: Partial<ButtonProps>
+  /** 点击获取验证码前校验手机号/邮箱, 返回 false 时 toast `getCodeErrorToast` */
+  validateTelOrMail: (value: string) => boolean
+  onInputChange: (value: string, tag: LoginInputTag) => void
+  onLoginBtnClick: (formData: LoginFormProps, totalData: LoginParamsProps) => void
+  onVerifyBtnClick: (formData: LoginFormProps, totalData: LoginParamsProps) => void
+  onForgetBtnClick: () => void
+  onInputClear: (tag: LoginInputTag) => void
+  onLoginTypeClick: () => void
 }
 
-const defaultProps = {
-  logo: "",
-  title: "",
-  formParams: {},
-  loginType: "verify",
-  loginButtonDisable: true,
-  loginButtonText: "登录",
-  isGetCode: false,
-  hasForgetPassWord: true,
-  hasHidePwd: true,
-  isHideSwitchBtn: false,
-  showErrorType: "toast",
-  countDownTime: 60,
-} as LoginProps;
+const TAGS: LoginInputTag[] = ['account', 'password', 'telOrMail', 'verify']
+const EMPTY_PARAMS: LoginParamsProps = {}
 
-export const Login: FunctionComponent<Partial<LoginProps>> = (props) => {
-  const { locale } = useConfig();
-  const {
-    className,
-    style,
-    logo,
-    title,
-    formParams,
-    loginType,
-    loginButtonDisable,
-    loginButtonText,
-    hasForgetPassWord,
-    hasHidePwd,
-    isGetCode,
-    slotProtocolText,
-    slotBottom,
-    countDownTime,
-    isHideSwitchBtn,
-    showErrorType,
-    toastErrorText,
-    slotInput,
-    buttonProps,
-    onInputChange,
-    onLoginBtnClick,
-    onVerifyBtnClick,
-    onForgetBtnClick,
-    onInputClear,
-    onLoginTypeClick,
-  } = {
-    ...defaultProps,
-    ...props,
-  };
-  let [countTime, setCountTime] = useState(60);
-  const [inCountDown, setInCountDown] = useState(false);
-  const [isHidePwd, setIsHidePwd] = useState(true);
-  const [isLoginDisable, setIsLoginDisable] = useState(loginButtonDisable);
-  const [currLoginType, setCurrLoginType] = useState(loginType);
-  const [isProtocol, setIsPrtocal] = useState(false);
-  let timer: any = useRef(null);
-  const [loginForm, setLoginForm] = useState<LoginFormProps>({});
+const pickValues = (params: LoginParamsProps): LoginFormProps => ({
+  account: params.account ?? '',
+  password: params.password ?? '',
+  telOrMail: params.telOrMail ?? '',
+  verify: params.verify ?? '',
+})
+
+const pickErrors = (params: LoginParamsProps): Record<LoginInputTag, string> => ({
+  account: params.accountErrorText ?? '',
+  password: params.passwordErrorText ?? '',
+  telOrMail: params.telOrMailErrorText ?? '',
+  verify: params.verifyErrorText ?? '',
+})
+
+const EMPTY_ERRORS: Record<LoginInputTag, string> = {
+  account: '',
+  password: '',
+  telOrMail: '',
+  verify: '',
+}
+
+export const Login: FunctionComponent<Partial<LoginProps>> = ({
+  className,
+  style,
+  logo = '',
+  title = '',
+  formParams = EMPTY_PARAMS,
+  loginType = 'verify',
+  loginButtonDisable = true,
+  loginButtonText,
+  hasForgetPassWord = true,
+  hasHidePwd = true,
+  isGetCode = false,
+  countDownTime = 60,
+  isHideSwitchBtn = false,
+  showErrorType = 'toast',
+  toastErrorText = '',
+  slotProtocolText,
+  slotInput,
+  slotBottom,
+  buttonProps,
+  validateTelOrMail = isTelOrMail,
+  onInputChange,
+  onLoginBtnClick,
+  onVerifyBtnClick,
+  onForgetBtnClick,
+  onInputClear,
+  onLoginTypeClick,
+}) => {
+  const { locale } = useConfig()
+  const b = bem('login')
+  const toastId = useUuid('nb-login-toast')
+
+  // 文案: 语言包默认值 + formParams 里显式传入的值
+  const texts = useMemo(() => {
+    const merged: LoginParamsProps = {
+      accountPlaceholder: locale.login.accountPlaceholder,
+      telOrMailPlaceholder: locale.login.telOrMailPlaceholder,
+      passwordPlaceholder: locale.login.passwordPlaceholder,
+      verifyPlaceholder: locale.login.verifyPlaceholder,
+      verifyButtonText: locale.login.verifyButtonText,
+      getCodeErrorToast: locale.login.getCodeErrorToast,
+      switchLoginText1: locale.login.switchLoginText1,
+      switchLoginText2: locale.login.switchLoginText2,
+      forgetPwdText: locale.login.forgetPwdText,
+      isShowPwdInput: true,
+    }
+    Object.keys(formParams).forEach((key) => {
+      if (formParams[key] !== undefined) merged[key] = formParams[key]
+    })
+    return merged
+  }, [formParams, locale])
+
+  const [form, setForm] = useState<LoginFormProps>(() => pickValues(formParams))
+  const [errors, setErrors] = useState(() => pickErrors(formParams))
+  const [currLoginType, setCurrLoginType] = useState<LoginType>(loginType)
+  const [isHidePwd, setIsHidePwd] = useState(true)
+  const [isProtocol, setIsProtocol] = useState(false)
+  const [countTime, setCountTime] = useState(countDownTime)
+  const [inCountDown, setInCountDown] = useState(false)
+
+  // formParams 里的值 / 错误文案变化时同步 (按内容比较, 避免字面量对象每次渲染都重置)
+  const valuesKey = TAGS.map((t) => `${formParams[t] ?? ''}|${formParams[`${t}ErrorText`] ?? ''}`).join('\u0001')
+  const firstSync = useRef(true)
+  useEffect(() => {
+    if (firstSync.current) {
+      firstSync.current = false
+      return
+    }
+    setForm(pickValues(formParams))
+    setErrors(pickErrors(formParams))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valuesKey])
 
   useEffect(() => {
-    //初始化数据
-    setLoginParams({ ...loginParams, ...formParams });
+    setCurrLoginType(loginType)
+  }, [loginType])
 
-    setLoginForm({
-      account: formParams.account,
-      password: formParams.password,
-      telOrMail: formParams.telOrMail,
-      verify: formParams.verify,
-    });
-  }, [formParams]);
+  // 验证码倒计时
+  const countdownRef = useRef<Countdown | null>(null)
+  const countDownTimeRef = useRef(countDownTime)
+  countDownTimeRef.current = countDownTime
+
+  const startCountdown = () => {
+    countdownRef.current?.stop()
+    countdownRef.current = createCountdown({
+      duration: countDownTimeRef.current,
+      onTick: setCountTime,
+      onEnd: () => {
+        setInCountDown(false)
+        setCountTime(countDownTimeRef.current)
+      },
+    })
+    setInCountDown(true)
+    countdownRef.current.start()
+  }
+
+  const stopCountdown = () => {
+    countdownRef.current?.stop()
+    setInCountDown(false)
+    setCountTime(countDownTimeRef.current)
+  }
+
+  useEffect(() => () => countdownRef.current?.stop(), [])
 
   useEffect(() => {
-    countDownTime && !inCountDown && setCountTime(countDownTime);
-  }, [countDownTime]);
+    if (!inCountDown) setCountTime(countDownTime)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countDownTime])
 
-  //监听登录按钮是否禁用
+  // 父组件异步获取验证码成功后把 isGetCode 置为 true, 开始倒计时
   useEffect(() => {
-    setIsLoginDisable(loginButtonDisable);
-  }, [loginButtonDisable]);
+    if (isGetCode && countDownTime > 0 && !countdownRef.current?.isRunning()) {
+      startCountdown()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isGetCode])
 
-  const [loginParams, setLoginParams] = useState<LoginParamsProps>({
-    account: "",
-    accountPlaceholder: locale.login.accountPlaceholder,
-    accountErrorText: "",
-    telOrMail: "",
-    telOrMailPlaceholder: locale.login.telOrMailPlaceholder,
-    telOrMailErrorText: "",
-    password: "",
-    passwordPlaceholder: locale.login.passwordPlaceholder,
-    passwordErrorText: "",
-    isShowPwdInput: true,
-    verify: "",
-    verifyPlaceholder: locale.login.verifyPlaceholder,
-    verifyButtonText: locale.login.verifyButtonText,
-    verifyErrorText: "",
-    getCodeErrorToast: locale.login.getCodeErrorToast,
-    switchLoginText1: locale.login.switchLoginText1,
-    switchLoginText2: locale.login.switchLoginText2,
-    forgetPwdText: locale.login.forgetPwdText,
-  });
+  // toast 错误提示
+  const showToast = (content: string) => {
+    if (content) Toast.show(toastId, { content, duration: 2 })
+  }
+  useEffect(() => {
+    if (showErrorType === 'toast' && toastErrorText) showToast(toastErrorText)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toastErrorText])
+
+  const totalData = (): LoginParamsProps => ({ ...texts, ...form })
+
+  const isLoginDisable = slotInput
+    ? loginButtonDisable
+    : !isLoginReady({
+        loginType: currLoginType,
+        account: form.account,
+        password: form.password,
+        telOrMail: form.telOrMail,
+        verify: form.verify,
+        isShowPwdInput: texts.isShowPwdInput,
+        needProtocol: !!slotProtocolText,
+        protocolChecked: isProtocol,
+      })
+
+  const setValue = (tag: LoginInputTag, value: string) => {
+    setForm((prev) => ({ ...prev, [tag]: value }))
+  }
 
   const switchLogin = () => {
-    setCurrLoginType(currLoginType === "pwd" ? "verify" : "pwd");
-    resetParams();
-    onLoginTypeClick && onLoginTypeClick();
-  };
-  //重置
-  const resetParams = () => {
-    const clearObj = {
-      account: "",
-      accountErrorText: "",
-      telOrMail: "",
-      telOrMailErrorText: "",
-      password: "",
-      passwordErrorText: "",
-      verify: "",
-      verifyErrorText: "",
-    };
-    setLoginForm({
-      account: "",
-      password: "",
-      telOrMail: "",
-      verify: "",
-    });
-    setLoginParams({ ...loginParams, ...clearObj });
-    setIsPrtocal(false);
-    clearInterval(timer.current);
-    setInCountDown(false);
-    countDownTime && setCountTime(countDownTime);
-  };
-  useEffect(() => {
-    const { account, telOrMail, password, verify, isShowPwdInput } =
-      loginParams;
+    setCurrLoginType(currLoginType === 'pwd' ? 'verify' : 'pwd')
+    setForm({ account: '', password: '', telOrMail: '', verify: '' })
+    setErrors(EMPTY_ERRORS)
+    setIsProtocol(false)
+    stopCountdown()
+    onLoginTypeClick?.()
+  }
 
-    //登录状态可点击情况
-    let isPwdNotEmpty =
-      currLoginType === "pwd" &&
-      account != "" &&
-      password != "" &&
-      isShowPwdInput;
-    let isAccountNotEmpty =
-      currLoginType === "pwd" && account != "" && !isShowPwdInput;
-    let isVerfiyNotEmpty =
-      currLoginType === "verify" && telOrMail != "" && verify != "";
-    // 用户自定义输入框slotInput时，登录按钮是否可点击用户控制
-    if (!slotInput) {
-      if (slotProtocolText) {
-        if (
-          (isPwdNotEmpty || isAccountNotEmpty || isVerfiyNotEmpty) &&
-          isProtocol
-        ) {
-          setIsLoginDisable(false);
-          return;
-        }
-      } else {
-        if (isPwdNotEmpty || isAccountNotEmpty || isVerfiyNotEmpty) {
-          setIsLoginDisable(false);
-          return;
-        }
-      }
-    }
-
-    !slotInput && setIsLoginDisable(true);
-  }, [loginParams, slotProtocolText, isProtocol, slotInput]);
-  //toast 错误提示监听
-  useEffect(() => {
-    if (showErrorType === "toast" && toastErrorText?.length) {
-      Toast.text(toastErrorText);
-    }
-  }, [toastErrorText]);
-
-  const inputOnChange = (value: any, tag: string) => {
-    let params: LoginParamsProps = { ...loginParams };
-    let form: LoginFormProps = { ...loginForm };
-    params[tag] = value;
-    form[tag] = value;
-    setLoginParams({ ...loginParams, ...params });
-    setLoginForm({ ...loginForm, ...form });
-    onInputChange && onInputChange(value, tag);
-  };
-
-  // 获取验证码
   const getCode = () => {
-    const { telOrMail, getCodeErrorToast } = loginParams;
-    //校验手机号和邮箱
-    if (telOrMail?.length) {
-      onVerifyBtnClick && onVerifyBtnClick(loginForm, loginParams);
+    if (validateTelOrMail(form.telOrMail ?? '')) {
+      onVerifyBtnClick?.(form, totalData())
     } else {
-      Toast.text(getCodeErrorToast, { duration: 2 });
+      showToast(texts.getCodeErrorToast ?? '')
     }
-  };
-  //异步获取验证码，控制倒计时
-  useEffect(() => {
-    if (isGetCode && countDownTime && !inCountDown) {
-      setCountTime(countDownTime);
-      countDown(countDownTime);
-    }
-  }, [isGetCode]);
+  }
 
-  // 倒计时
-  const countDown = (time: number) => {
-    setCountTime(countTime--);
-    setInCountDown(true);
-    timer.current = setInterval(() => {
-      setCountTime(countTime--);
-      if (countTime < -1) {
-        clearInterval(timer.current);
-        setInCountDown(false);
-        setCountTime(time);
-      }
-    }, 1000);
-  };
-
-  const forgetClick = () => {
-    onForgetBtnClick && onForgetBtnClick();
-  };
-
-  const loginClick = () => {
-    onLoginBtnClick && onLoginBtnClick(loginForm, loginParams);
-  };
-  const inputClear = (tag: string) => {
-    let params: LoginParamsProps = loginParams;
-    let form: LoginFormProps = { ...loginForm };
-    params[tag] = "";
-    form[tag] = "";
-    onInputClear && onInputClear(tag);
-    setLoginParams({ ...loginParams, ...params });
-    setLoginForm({ ...loginForm, ...form });
-  };
-
-  const isError = (tag: string) => {
-    let name = tag + "ErrorText";
-    return loginParams[name] != "" && showErrorType === "bottomMsg";
-  };
-  //隐藏密码icon
-  const pwdEyesIcon = () => {
+  const renderInput = (tag: LoginInputTag) => {
+    const error = errors[tag]
+    const showError = showErrorType === 'bottomMsg' && !!error
     return (
-      <div
-        className={`${b("hide-icon")}`}
-        onClick={() => {
-          setIsHidePwd(!isHidePwd);
-        }}
-      >
-        <Icon
-          name={isHidePwd ? "marshalling" : "eye"}
-          size="14"
-          color={isHidePwd ? "#ccc" : "#666"}
-        />
-      </div>
-    );
-  };
-  //获取验证码倒计时按钮
-  const countDownTpl = () => {
-    return !inCountDown ? (
-      <div className={`${b("code-box")}`} onClick={getCode}>
-        {loginParams.verifyButtonText}
-      </div>
-    ) : (
-      <div className={classNames([b("code-box"), "disabled"])}>
-        <div className="counts">{countTime}s</div>
-      </div>
-    );
-  };
-  const inputTpl = (tag: string) => {
-    let placeholder = tag + "Placeholder";
-    let errorText = tag + "ErrorText";
-
-    return (
-      <div
-        className={classNames([b("input-wrap"), isError(tag) ? "error" : ""])}
-      >
-        <div className={`${b("input-item")}`}>
+      <View className={b('input-wrap', { error: showError })} key={tag}>
+        <View className={b('input-item')}>
           <Input
-            className="nut-input-text"
-            border={false}
-            defaultValue={loginParams[tag]}
+            className={b('input')}
             name={tag}
-            placeholder={loginParams[placeholder]}
-            type={isHidePwd && tag === "password" ? "password" : "text"}
+            value={form[tag] ?? ''}
+            placeholder={texts[`${tag}Placeholder`]}
+            type={tag === 'password' && isHidePwd ? 'password' : 'text'}
             clearable
-            onChange={(e) => {
-              inputOnChange(e, tag);
+            onChange={(value) => {
+              setValue(tag, value)
+              onInputChange?.(value, tag)
             }}
             onClear={() => {
-              inputClear(tag);
+              setValue(tag, '')
+              onInputClear?.(tag)
             }}
           />
-          {tag === "password" && hasHidePwd && pwdEyesIcon()}
-          {tag === "verify" && countDownTpl()}
-        </div>
-        {tag === "password" && hasForgetPassWord && (
-          <div className="forget-pwd" onClick={forgetClick}>
-            {loginParams.forgetPwdText}
-          </div>
-        )}
-        {loginParams[errorText] && (
-          <div className="error-msg">{loginParams[errorText]}</div>
-        )}
-      </div>
-    );
-  };
+          {tag === 'password' && hasHidePwd ? (
+            <View className={b('hide-icon')} onClick={() => setIsHidePwd(!isHidePwd)}>
+              {isHidePwd ? <Marshalling size={14} /> : <Eye size={14} />}
+            </View>
+          ) : null}
+          {tag === 'verify' ? (
+            inCountDown ? (
+              <View className={b('code-box', { disabled: true })}>
+                <View className={b('code-count')}>{countTime}s</View>
+              </View>
+            ) : (
+              <View className={b('code-box')} onClick={getCode}>
+                {texts.verifyButtonText}
+              </View>
+            )
+          ) : null}
+        </View>
+        {tag === 'password' && hasForgetPassWord ? (
+          <View className={b('forget-pwd')} onClick={() => onForgetBtnClick?.()}>
+            {texts.forgetPwdText}
+          </View>
+        ) : null}
+        {showError ? <View className={b('error-msg')}>{error}</View> : null}
+      </View>
+    )
+  }
 
-  const b = bem("login");
   return (
-    <div className={classNames([b(), className])} style={style}>
-      {logo && (
-        <div className={`${b("logo")}`}>
-          <img src={logo} />
-        </div>
-      )}
-      {title && <div className={`${b("title")}`}>{title}</div>}
-      <div className={`${b("content")}`}>
-        {currLoginType == "pwd" ? (
-          <>
-            {inputTpl("account")}
-            {loginParams.isShowPwdInput && inputTpl("password")}
-          </>
-        ) : (
-          <>
-            {inputTpl("telOrMail")}
-            {inputTpl("verify")}
-          </>
-        )}
+    <View className={classNames(b(), className)} style={style}>
+      {logo ? (
+        <View className={b('logo')}>
+          <Image className={b('logo-img')} src={logo} mode="aspectFit" />
+        </View>
+      ) : null}
+      {title ? <View className={b('title')}>{title}</View> : null}
+      <View className={b('content')}>
+        {currLoginType === 'pwd'
+          ? [renderInput('account'), texts.isShowPwdInput ? renderInput('password') : null]
+          : [renderInput('telOrMail'), renderInput('verify')]}
         {slotInput}
-        {slotProtocolText && (
-          <div className={`${b("protocal")}`}>
-            <Checkbox
-              iconSize={14}
-              checked={isProtocol}
-              onChange={(state) => {
-                setIsPrtocal(state);
-              }}
-            ></Checkbox>
-            <div className="customer-protocal">{slotProtocolText}</div>
-          </div>
-        )}
-      </div>
-      <div className={`${b("btn")}`}>
+        {slotProtocolText ? (
+          <View className={b('protocol')}>
+            <Checkbox checked={isProtocol} onChange={(state) => setIsProtocol(state)} />
+            <View className={b('protocol-text')}>{slotProtocolText}</View>
+          </View>
+        ) : null}
+      </View>
+      <View className={b('btn')}>
         <Button
           block
-          type="danger"
+          type="primary"
           shape="square"
+          size="large"
           disabled={isLoginDisable}
-          onClick={loginClick}
+          onClick={() => onLoginBtnClick?.(form, totalData())}
           {...buttonProps}
         >
-          {loginButtonText ? loginButtonText : locale.login.loginButtonText}
+          {loginButtonText || locale.login.loginButtonText}
         </Button>
-      </div>
-      {!isHideSwitchBtn && (
-        <div className={`${b("switch-type")}`} onClick={switchLogin}>
-          {currLoginType === "verify"
-            ? loginParams.switchLoginText1
-            : loginParams.switchLoginText2}
-        </div>
-      )}
-      {slotBottom && <div className="custom-slot">{slotBottom}</div>}
-    </div>
-  );
-};
+      </View>
+      {!isHideSwitchBtn ? (
+        <View className={b('switch-type')} onClick={switchLogin}>
+          {currLoginType === 'verify' ? texts.switchLoginText1 : texts.switchLoginText2}
+        </View>
+      ) : null}
+      {slotBottom ? <View className={b('bottom')}>{slotBottom}</View> : null}
+      <Toast id={toastId} />
+    </View>
+  )
+}
 
-Login.defaultProps = defaultProps;
-Login.displayName = "NutLogin";
+Login.displayName = 'NbLogin'

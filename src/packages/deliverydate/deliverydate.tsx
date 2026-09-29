@@ -1,82 +1,68 @@
-import React, {
-  FunctionComponent,
-  useState,
-  useEffect
-} from 'react'
-import classNames from "classnames";
-import bem from '@/utils/bem'
-
-import { IComponent } from '@/utils/typings'
-import { numericProp } from '@/utils/props';
-
-import { DateType, ACTIVEKEY } from '../delivery/type';
+import { useEffect, useState } from 'react'
+import type { FunctionComponent, ReactNode } from 'react'
+import { ScrollView, Text, View } from '@tarojs/components'
+import classNames from 'classnames'
+import bem from '../../utils/bem'
+import type { IComponent } from '../../utils/typings'
+import type { numericProp } from '../../utils/props'
+import type { DateType } from '../delivery/types'
+import { resolveDateItem } from '../delivery/utils'
 
 export interface DeliveryDateProps extends IComponent {
-  data: DateType[];
-  activeKey?: numericProp;
-  onSelect?: (item: DateType) => void;
+  data: DateType[]
+  /** 当前选中项的 label; 不传 / 9999 时取 selected 项, 否则第一个可选项 */
+  activeKey: numericProp
+  onSelect: (item: DateType) => void
 }
 
-const defaultProps = {
-  data: [],
-  activeKey: ACTIVEKEY,
-  onSelect: (item: DateType) => { }
-} as DeliveryDateProps
+/** 字符串文案包一层 Text 以便省略; ReactNode 原样渲染 */
+export const renderDeliveryText = (text: ReactNode, className: string) =>
+  typeof text === 'string' || typeof text === 'number' ? (
+    <Text className={className}>{text}</Text>
+  ) : (
+    text
+  )
 
-export const DeliveryDate: FunctionComponent<
-  Partial<DeliveryDateProps> & Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect'>
-> = (props) => {
+const EMPTY: DateType[] = []
 
-  const {
-    data,
-    activeKey,
-    className,
-    style,
-    onSelect
-  } = {
-    ...defaultProps,
-    ...props,
-  }
-
+export const DeliveryDate: FunctionComponent<Partial<DeliveryDateProps>> = ({
+  data = EMPTY,
+  activeKey,
+  className,
+  style,
+  onSelect,
+}) => {
   const b = bem('delivery-date')
-
-  const [date, setDate] = useState<DateType>({ label: activeKey as string, text: '' });
-
-  const handleDate = (item: DateType) => {
-    if(item.disabled) return;
-    setDate(item);
-    onSelect?.(item);
-  }
+  const [current, setCurrent] = useState(() => resolveDateItem(data, activeKey)?.label)
 
   useEffect(() => {
-    if (data && data.length) {
-      const item = data.find((item: DateType) => item.label == activeKey);
-      const currentItem = (activeKey == ACTIVEKEY || !item) ? data[0] : { ...item };
-      setDate(currentItem);
-    }
-  }, [data]);
+    setCurrent(resolveDateItem(data, activeKey)?.label)
+  }, [data, activeKey])
+
+  const handleSelect = (item: DateType) => {
+    if (item.disabled) return
+    setCurrent(item.label)
+    onSelect?.(item)
+  }
 
   return (
-    <div className={classNames([b(''), className])} style={style}>
-      {
-        data
-          ?
-          data.map((item: DateType) => (
-            <div
-              className={classNames([
-                `${b('item')}`,
-                `${item.label === date.label ? b('item--current') : ''}`,
-                `${item.disabled ? b('item--disable') : ''}`
-              ])}
-              key={item.label}
-              onClick={() => { handleDate(item) }}
-            >{item.text}</div>
-          ))
-          : null
-      }
-    </div>
+    <ScrollView scrollY className={classNames(b(), className)} style={style}>
+      <View className={b('list')}>
+        {data.map((item) => (
+          <View
+            key={item.label}
+            className={b('item', {
+              current: item.label === current,
+              disable: !!item.disabled,
+            })}
+            onClick={() => handleSelect(item)}
+          >
+            {renderDeliveryText(item.text, b('item-text'))}
+          </View>
+        ))}
+      </View>
+    </ScrollView>
   )
 }
 
-DeliveryDate.defaultProps = defaultProps
-DeliveryDate.displayName = 'NutDeliveryDate'
+DeliveryDate.displayName = 'NbDeliveryDate'

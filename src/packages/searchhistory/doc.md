@@ -1,629 +1,164 @@
-#  SearchHistory 搜索历史
+# SearchHistory 搜索历史
 
 ### 介绍
 
-常见于搜索页，包含最近搜索和搜索发现。
+搜索页: 搜索栏 + 最近搜索 + 搜索发现。依赖 NutUI 组件: SearchBar。
 
 ### 安装
 
-```javascript
-import { SearchHistory } from '@nutui/nutui-biz';
+```tsx
+import { SearchHistory } from 'nutui-biz-taro'
 ```
 
 ## 代码演示
 
 ### 基本用法
 
-:::demo
+组件只负责展示, 最近搜索数据由业务方维护。可以用组件导出的 `addSearchKeyword` / `removeSearchHistory`
+配合 `Taro.setStorageSync` 持久化。
 
-```ts
-import  React, {useState} from 'react';
-import { SearchHistory } from '@nutui/nutui-biz';
+```tsx
+import { useState } from 'react'
+import { getStorageSync, setStorageSync } from '@tarojs/taro'
+import { SearchHistory, addSearchKeyword } from 'nutui-biz-taro'
+import type { IsearchItem } from 'nutui-biz-taro'
 
 const App = () => {
-  const [recentSearchData, setRecentSearchData] = useState(JSON.parse(localStorage.getItem('recentSearchData') as string) || [])
-  const searchDiscoverData = [
-    {
-      key: '小米手环',
-      url: ''
-    },
-    {
-      key: '对讲机',
-      url: ''
-    }
-  ]
-
-  const handleClick = (val: string) => { 
-    if(val.trim() === '') return
-
-    let arr = JSON.parse(localStorage.getItem('recentSearchData') as string) || [];
-    let len = arr.filter((item: {
-      key: string,
-      url: string
-    }) => item.key === val).length
-
-    if(len > 0) {
-      arr = arr.filter((item: {
-        key: string,
-        url: string
-      }) => item.key !== val)
-    }
-
-    arr.unshift({
-      key: val,
-      url: ''
-    })
-
-    localStorage.setItem('recentSearchData', 
-      JSON.stringify(arr)
-    )
-    setRecentSearchData(arr)
+  const [recent, setRecent] = useState<IsearchItem[]>(() => getStorageSync('recentSearchData') || [])
+  const save = (list: IsearchItem[]) => {
+    setStorageSync('recentSearchData', list)
+    setRecent(list)
   }
-
-  const handleDelete = () => {
-    localStorage.removeItem('recentSearchData')
-    setRecentSearchData([])
-  }
-
   return (
-    <SearchHistory 
-        onClickSearchButton={handleClick}
-        onDelete={handleDelete}
-        recentSearchData={recentSearchData} 
-        searchDiscoverData={searchDiscoverData} 
+    <SearchHistory
+      recentSearchData={recent}
+      searchDiscoverData={[{ key: '小米手环', url: '' }, { key: '对讲机', url: '' }]}
+      onClickSearchButton={(val) => save(addSearchKeyword(recent, val))}
+      onDelete={() => save([])}
     />
-  );
-};
-export default App;
+  )
+}
 ```
-
-:::
 
 ### 单个删除
 
-点击最近搜索的删除图标，默认是全部删除。设置 `deleteType` 为 `single`，可实现搜索结果的单个删除。
+`deleteType="single"` 时点击删除图标进入删除状态, 点击最近搜索项触发 `onDeleteSingle`。
 
-:::demo
-
-```ts
-import  React, {useState} from 'react';
-import { SearchHistory } from '@nutui/nutui-biz';
-
-const App = () => {
-  const [recentSearchData, setRecentSearchData] = useState(JSON.parse(localStorage.getItem('recentSearchData') as string) || [])
-  const searchDiscoverData = [
-    {
-      key: '小米手环',
-      url: ''
-    },
-    {
-      key: '对讲机',
-      url: ''
-    }
-  ]
-
-  const handleClick = (val: string) => { 
-    if(val.trim() === '') return
-
-    let arr = JSON.parse(localStorage.getItem('recentSearchData') as string) || [];
-    let len = arr.filter((item: {
-      key: string,
-      url: string
-    }) => item.key === val).length
-
-    if(len > 0) {
-      arr = arr.filter((item: {
-        key: string,
-        url: string
-      }) => item.key !== val)
-    }
-
-    arr.unshift({
-      key: val,
-      url: ''
-    })
-
-    localStorage.setItem('recentSearchData', 
-      JSON.stringify(arr)
-    )
-    setRecentSearchData(arr)
-  }
-
-  const handleDelete = () => {
-    localStorage.removeItem('recentSearchData')
-    setRecentSearchData([])
-  }
-
-  const handleDeleteSingle = (val: {
-    key: string,
-    url: string
-  }) => {
-    if(localStorage.getItem('recentSearchData')) {
-      let recentSearchData = JSON.parse(localStorage.getItem('recentSearchData') as string)
-      let filterSearchHistoryData = recentSearchData.filter((item: {
-        key: string,
-        url: string
-      }) => item.key != val.key)
-      
-      localStorage.setItem('recentSearchData', JSON.stringify(filterSearchHistoryData))
-      setRecentSearchData(filterSearchHistoryData)
-    }
-  }
-
-  return (
-    <SearchHistory 
-        onClickSearchButton={handleClick}
-        deleteType="single"
-        onDelete={handleDelete}
-        onDeleteSingle={handleDeleteSingle}
-        recentSearchData={recentSearchData} 
-        searchDiscoverData={searchDiscoverData} 
-    />
-  );
-};
-export default App;
+```tsx
+<SearchHistory
+  deleteType="single"
+  recentSearchData={recent}
+  onDelete={() => save([])}
+  onDeleteSingle={(item) => save(removeSearchHistory(recent, item))}
+/>
 ```
-
-:::
 
 ### 自定义标题文案
 
-:::demo
-
-```ts
-import  React, {useState} from 'react';
-import { SearchHistory } from '@nutui/nutui-biz';
-
-const App = () => {
-  const [recentSearchData, setRecentSearchData] = useState(JSON.parse(localStorage.getItem('recentSearchData') as string) || [])
-  const searchDiscoverData = [
-    {
-      key: '小米手环',
-      url: ''
-    },
-    {
-      key: '对讲机',
-      url: ''
-    }
-  ]
-
-  const handleClick = (val: string) => { 
-    if(val.trim() === '') return
-
-    let arr = JSON.parse(localStorage.getItem('recentSearchData') as string) || [];
-    let len = arr.filter((item: {
-      key: string,
-      url: string
-    }) => item.key === val).length
-
-    if(len > 0) {
-      arr = arr.filter((item: {
-        key: string,
-        url: string
-      }) => item.key !== val)
-    }
-
-    arr.unshift({
-      key: val,
-      url: ''
-    })
-
-    localStorage.setItem('recentSearchData', 
-      JSON.stringify(arr)
-    )
-    setRecentSearchData(arr)
-  }
-
-  const handleDelete = () => {
-    localStorage.removeItem('recentSearchData')
-    setRecentSearchData([])
-  }
-
-  return (
-    <SearchHistory 
-        onClickSearchButton={handleClick}
-        onDelete={handleDelete}
-        recentSearchData={recentSearchData} 
-        searchDiscoverData={searchDiscoverData} 
-        recentSearchText="搜索历史"
-        searchDiscoverText="猜你想搜"
-    />
-  );
-};
-export default App;
+```tsx
+<SearchHistory recentSearchText="搜索历史" searchDiscoverText="猜你想搜" />
 ```
-
-:::
 
 ### 自定义返回和删除图标
 
-:::demo
+```tsx
+import { DelF, PlayDoubleBack } from '@nutui/icons-react-taro'
 
-```ts
-import  React, {useState} from 'react';
-import { SearchHistory } from '@nutui/nutui-biz';
-
-const App = () => {
-  const [recentSearchData, setRecentSearchData] = useState(JSON.parse(localStorage.getItem('recentSearchData') as string) || [])
-  const searchDiscoverData = [
-    {
-      key: '小米手环',
-      url: ''
-    },
-    {
-      key: '对讲机',
-      url: ''
-    }
-  ]
-
-  const handleClick = (val: string) => { 
-    if(val.trim() === '') return
-
-    let arr = JSON.parse(localStorage.getItem('recentSearchData') as string) || [];
-    let len = arr.filter((item: {
-      key: string,
-      url: string
-    }) => item.key === val).length
-
-    if(len > 0) {
-      arr = arr.filter((item: {
-        key: string,
-        url: string
-      }) => item.key !== val)
-    }
-
-    arr.unshift({
-      key: val,
-      url: ''
-    })
-
-    localStorage.setItem('recentSearchData', 
-      JSON.stringify(arr)
-    )
-    setRecentSearchData(arr)
-  }
-
-  const handleDelete = () => {
-    localStorage.removeItem('recentSearchData')
-    setRecentSearchData([])
-  }
-
-  return (
-    <SearchHistory 
-        onClickSearchButton={handleClick}
-        onDelete={handleDelete}
-        recentSearchData={recentSearchData} 
-        searchDiscoverData={searchDiscoverData} 
-        backIcon="play-double-back"
-        deleteIcon="del2"
-    />
-  );
-};
-export default App;
+<SearchHistory backIcon={<PlayDoubleBack size={16} />} deleteIcon={<DelF size={16} />} />
 ```
-
-:::
 
 ### 自定义 SearchBar
 
-:::demo
-
-```ts
-import  React, {useState} from 'react';
-import { SearchHistory } from '@nutui/nutui-biz';
-
-const App = () => {
-  const [recentSearchData, setRecentSearchData] = useState(JSON.parse(localStorage.getItem('recentSearchData') as string) || [])
-  const searchDiscoverData = [
-    {
-      key: '小米手环',
-      url: ''
-    },
-    {
-      key: '对讲机',
-      url: ''
-    }
-  ]
-
-  const handleClick = (val: string) => { 
-    if(val.trim() === '') return
-
-    let arr = JSON.parse(localStorage.getItem('recentSearchData') as string) || [];
-    let len = arr.filter((item: {
-      key: string,
-      url: string
-    }) => item.key === val).length
-
-    if(len > 0) {
-      arr = arr.filter((item: {
-        key: string,
-        url: string
-      }) => item.key !== val)
-    }
-
-    arr.unshift({
-      key: val,
-      url: ''
-    })
-
-    localStorage.setItem('recentSearchData', 
-      JSON.stringify(arr)
-    )
-    setRecentSearchData(arr)
-  }
-
-  const handleDelete = () => {
-    localStorage.removeItem('recentSearchData')
-    setRecentSearchData([])
-  }
-
-  return (
-    <SearchHistory 
-        onClickSearchButton={handleClick}
-        onDelete={handleDelete}
-        recentSearchData={recentSearchData} 
-        searchDiscoverData={searchDiscoverData} 
-        leftInIcon=""
-        rightInIcon=""
-        rightOutIcon={<div style={{background: '#e93b3d', padding: '6px', borderRadius: '4px', color: '#fff', fontSize: '14px'}}>搜索</div>}
-    />
-  );
-};
-export default App;
+```tsx
+<SearchHistory
+  leftInIcon={null}
+  rightInIcon={null}
+  rightOutIcon={<View style={{ background: '#ff0f23', padding: '6px', borderRadius: '4px', color: '#fff' }}>搜索</View>}
+/>
 ```
-
-:::
 
 ### 添加搜索发现额外信息
 
-:::demo
-
-```ts
-import  React, {useState} from 'react';
-import { SearchHistory } from '@nutui/nutui-biz';
-
-const App = () => {
-  const [recentSearchData, setRecentSearchData] = useState(JSON.parse(localStorage.getItem('recentSearchData') as string) || [])
-  const searchDiscoverData = [
-    {
-      key: '小米手环',
-      url: ''
-    },
-    {
-      key: '对讲机',
-      url: ''
-    }
-  ]
-
-  const handleClick = (val: string) => { 
-    if(val.trim() === '') return
-
-    let arr = JSON.parse(localStorage.getItem('recentSearchData') as string) || [];
-    let len = arr.filter((item: {
-      key: string,
-      url: string
-    }) => item.key === val).length
-
-    if(len > 0) {
-      arr = arr.filter((item: {
-        key: string,
-        url: string
-      }) => item.key !== val)
-    }
-
-    arr.unshift({
-      key: val,
-      url: ''
-    })
-
-    localStorage.setItem('recentSearchData', 
-      JSON.stringify(arr)
-    )
-    setRecentSearchData(arr)
-  }
-
-  const handleDelete = () => {
-    localStorage.removeItem('recentSearchData')
-    setRecentSearchData([])
-  }
-
-  return (
-    <SearchHistory 
-        onClickSearchButton={handleClick}
-        onDelete={handleDelete}
-        recentSearchData={recentSearchData} 
-        searchDiscoverData={searchDiscoverData} 
-        searchDiscoverExtra={<span style={{color: 'gray', fontSize: '12px', marginLeft: '10px'}}>十亿商品，搜啥都有</span>}
-    />
-  );
-};
-export default App;
+```tsx
+<SearchHistory searchDiscoverExtra={<Text style={{ fontSize: '12px', marginLeft: '10px' }}>十亿商品，搜啥都有</Text>} />
 ```
-
-:::
 
 ### 隐藏时不展示无数据文案
-点击隐藏图标，隐藏搜索发现数据时，默认无数据文案为“当前搜索发现已隐藏”，设置 `noDiscoverDataText` 为空不展示无数据模块。
 
-:::demo
-
-```ts
-import  React, {useState} from 'react';
-import { SearchHistory } from '@nutui/nutui-biz';
-
-const App = () => {
-  const [recentSearchData, setRecentSearchData] = useState(JSON.parse(localStorage.getItem('recentSearchData') as string) || [])
-  const searchDiscoverData = [
-    {
-      key: '小米手环',
-      url: ''
-    },
-    {
-      key: '对讲机',
-      url: ''
-    }
-  ]
-
-  const handleClick = (val: string) => { 
-    if(val.trim() === '') return
-
-    let arr = JSON.parse(localStorage.getItem('recentSearchData') as string) || [];
-    let len = arr.filter((item: {
-      key: string,
-      url: string
-    }) => item.key === val).length
-
-    if(len > 0) {
-      arr = arr.filter((item: {
-        key: string,
-        url: string
-      }) => item.key !== val)
-    }
-
-    arr.unshift({
-      key: val,
-      url: ''
-    })
-
-    localStorage.setItem('recentSearchData', 
-      JSON.stringify(arr)
-    )
-    setRecentSearchData(arr)
-  }
-
-  const handleDelete = () => {
-    localStorage.removeItem('recentSearchData')
-    setRecentSearchData([])
-  }
-
-  return (
-    <SearchHistory 
-        onClickSearchButton={handleClick}
-        onDelete={handleDelete}
-        recentSearchData={recentSearchData} 
-        searchDiscoverData={searchDiscoverData} 
-        noDiscoverDataText=""
-    />
-  );
-};
-export default App;
+```tsx
+<SearchHistory noDiscoverDataText="" />
 ```
-
-:::
 
 ### 刷新数据
 
-:::demo
-
-```ts
-import  React, {useState} from 'react';
-import { SearchHistory } from '@nutui/nutui-biz';
-import { Toast } from '@nutui/nutui-react';
-
-const App = () => {
-  const [recentSearchData, setRecentSearchData] = useState(JSON.parse(localStorage.getItem('recentSearchData') as string) || [])
-  const searchDiscoverData = [
-    {
-      key: '小米手环',
-      url: ''
-    },
-    {
-      key: '对讲机',
-      url: ''
-    }
-  ]
-
-  const handleClick = (val: string) => { 
-    if(val.trim() === '') return
-
-    let arr = JSON.parse(localStorage.getItem('recentSearchData') as string) || [];
-    let len = arr.filter((item: {
-      key: string,
-      url: string
-    }) => item.key === val).length
-
-    if(len > 0) {
-      arr = arr.filter((item: {
-        key: string,
-        url: string
-      }) => item.key !== val)
-    }
-
-    arr.unshift({
-      key: val,
-      url: ''
-    })
-
-    localStorage.setItem('recentSearchData', 
-      JSON.stringify(arr)
-    )
-    setRecentSearchData(arr)
-  }
-
-  const handleDelete = () => {
-    localStorage.removeItem('recentSearchData')
-    setRecentSearchData([])
-  }
-
-  return (
-    <SearchHistory 
-        onClickSearchButton={handleClick}
-        onDelete={handleDelete}
-        recentSearchData={recentSearchData} 
-        searchDiscoverData={searchDiscoverData} 
-        refreshIcon="refresh"
-        onRefresh={() => Toast.text('点击了刷新按钮')}
-    />
-  );
-};
-export default App;
+```tsx
+<SearchHistory onRefresh={() => Toast.show('toast', { content: '点击了刷新按钮' })} />
 ```
-
-:::
-
-
 
 ## API
 
 ### Props
 
-| 字段    | 说明                                       | 类型    | 默认值    |
-|---------|--------------------------------------------|---------|-----------|
-| recentSearchText   | 最近搜索文案                                     | string  | `最近搜索`         |
-| searchDiscoverText     | 搜索发现文案                   | string  | `搜索发现`    |
-| recentSearchData      | 最近搜索数据                               |  Array<IsearchItem>  | []      |
-| searchDiscoverData | 搜索发现数据                        | Array<IsearchItem>  | []      |
-| keyword  | 传入文本框内的搜索词                                  | string | ''    |
-| backIcon     | 左上角返回按钮图标，设置为空则无返回按钮，类型为字符串时，等同于 Icon 组件的 [name 属性](https://nutui.jd.com/h5/react/1x/#/zh-CN/component/icon) | ReactNode  | `left`     |
-| deleteIcon   | 最近搜索删除图标，类型为字符串时，等同于 Icon 组件的 [name 属性](https://nutui.jd.com/h5/react/1x/#/zh-CN/component/icon)| ReactNode  | `del`      |
-| searchDiscoverExtra   | 搜索发现额外信息| string  | -      |
-| refreshIcon   | 最近搜索刷新图标，等同于 Icon 组件的 [name 属性](https://nutui.jd.com/h5/react/1x/#/zh-CN/component/icon) | string  | `refresh`      |
-| recentSearchCollapse   | 最近搜索数据超过两行出现下拉箭头                                 | boolean  | `true`          |
-| leftInIcon | 文本框内左侧自定义，默认是放大图标 | ReactNode  | -          |
-| rightInIcon | 文本框内右侧自定义，默认是拍照图标 | ReactNode  | -          |
-| rightOutIcon | 文本框外右侧自定义，默认是“搜索” | ReactNode  | -          |
-| openEyeIcon | 显示搜索发现图标 | ReactNode  | `<Icon name="eye" />`          |
-| closeEyeIcon | 隐藏搜索发现图标  | ReactNode  | `<Icon name="marshalling" />`          |
-| noDiscoverDataText | 无搜索发现数据文案 | string  | `当前搜索发现已隐藏`          |
-| deleteType | 删除类型，可选值：`all`、`single` | string  | `all`          |
+| 字段                 | 说明                                                   | 类型          | 默认值                       |
+| -------------------- | ------------------------------------------------------ | ------------- | ---------------------------- |
+| recentSearchText     | 最近搜索文案                                           | string        | `最近搜索` (随语言包)        |
+| searchDiscoverText   | 搜索发现文案                                           | string        | `搜索发现` (随语言包)        |
+| recentSearchData     | 最近搜索数据                                           | IsearchItem[] | `[]`                         |
+| searchDiscoverData   | 搜索发现数据                                           | IsearchItem[] | `[]`                         |
+| keyword              | 搜索框内的搜索词                                       | string        | `''`                         |
+| placeholder          | 搜索框占位文字                                         | string        | `请输入搜索关键词` (随语言包) |
+| backIcon             | 搜索框左侧返回按钮，传空 (`null` / `''`) 不展示         | ReactNode     | `<ArrowLeft />`              |
+| deleteIcon           | 最近搜索删除图标                                       | ReactNode     | `<Del />`                    |
+| refreshIcon          | 搜索发现刷新图标，传空不展示                           | ReactNode     | `<Refresh />`                |
+| searchDiscoverExtra  | 搜索发现标题后的额外信息                               | ReactNode     | -                            |
+| leftInIcon           | 输入框内左侧内容，传空不展示                           | ReactNode     | `<Search />`                 |
+| rightInIcon          | 输入框内右侧内容，传空不展示                           | ReactNode     | `<Photograph />`             |
+| rightOutIcon         | 搜索框右侧内容 (点击触发搜索)                          | ReactNode     | `搜索` (随语言包)            |
+| openEyeIcon          | 搜索发现展示中的图标                                   | ReactNode     | `<Eye />`                    |
+| closeEyeIcon         | 搜索发现隐藏中的图标                                   | ReactNode     | `<Marshalling />`            |
+| noDiscoverDataText   | 搜索发现隐藏时的文案，为空时在图标旁展示 `已隐藏`      | string        | `当前搜索发现已隐藏`         |
+| deleteType           | 删除类型，可选 `all` `single`                          | string        | `all`                        |
+| recentSearchCollapse | 保留字段，暂无效果                                     | boolean       | -                            |
+| className            | 根节点类名                                             | string        | -                            |
+| style                | 根节点样式                                             | CSSProperties | -                            |
 
+图标均来自 `@nutui/icons-react-taro`。
 
 ### Events
-| 字段 | 说明 | 回调参数 |
-|----- | ----- | -----  |
-| onClickSearchItem | 搜索项点击事件 |  searchItem: IsearchItem |
-| onClickSearchButton | 搜索按钮点击事件 |  value: string |
-| onSearchBarChange | 搜索栏 change 事件，可展示搜索建议 |  value: string, event: Event |
-| onClickRightInIcon | 照相机图标点击事件 |  - |
-| onClickBackIcon | 左上角返回图标点击事件 |  - |
-| onRefresh | 搜索发现刷新图标点击事件 |  - |
-| onDelete | 删除全部搜索项事件 |  - |
-| onDeleteSingle | 删除单个搜索项事件 |  item: IsearchItem |
 
+| 字段                | 说明                                             | 回调参数                    |
+| ------------------- | ------------------------------------------------ | --------------------------- |
+| onClickSearchItem   | 点击搜索项 (单个删除状态下点击最近搜索项不触发)  | `searchItem: IsearchItem`   |
+| onClickSearchButton | 点击搜索按钮或键盘确认搜索，之后清空输入框       | `value: string`             |
+| onSearchBarChange   | 搜索框输入，可用于展示搜索建议                   | `value: string`, `event`    |
+| onClickRightInIcon  | 点击输入框内右侧图标                             | -                           |
+| onClickBackIcon     | 点击返回图标                                     | -                           |
+| onRefresh           | 点击搜索发现刷新图标                             | -                           |
+| onDelete            | 删除全部                                         | -                           |
+| onDeleteSingle      | 删除单个最近搜索项                               | `item: IsearchItem`         |
 
-### IsearchItem 
+### IsearchItem
 
-| 字段    | 说明                                       | 类型    | 
-|---------|--------------------------------------------|---------|
-| key   | 搜索关键词                                | ReactNode |
-| url   | 搜索关键词跳转链接            | string  | 
+| 字段 | 说明             | 类型      |
+| ---- | ---------------- | --------- |
+| key  | 搜索关键词       | ReactNode |
+| url  | 关键词跳转链接   | string    |
+
+### 工具函数
+
+| 名称                | 说明                                                                    |
+| ------------------- | ----------------------------------------------------------------------- |
+| addSearchKeyword    | `(list, keyword, max?) => IsearchItem[]`，去空白、去重后放到最前面，空关键词不添加 |
+| addSearchHistory    | `(list, item, max?) => IsearchItem[]`，按 `key` 去重后放到最前面          |
+| removeSearchHistory | `(list, item) => IsearchItem[]`，删除相同 `key` 的记录                    |
+
+## 主题定制
+
+| 名称                                 | 默认值                   |
+| ------------------------------------ | ------------------------ |
+| --nb-search-history-background       | `$nb-color-surface`      |
+| --nb-search-history-title-color      | `$nb-color-title`        |
+| --nb-search-history-tag-color        | `$nb-color-text`         |
+| --nb-search-history-tag-background   | `$nb-color-background`   |
+| --nb-search-history-tag-radius       | `3px`                    |
+| --nb-search-history-help-color       | `$nb-color-text-help`    |

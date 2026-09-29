@@ -1,334 +1,244 @@
-import React, {
-  FunctionComponent,
-  ReactNode,
-  CSSProperties,
-  useState,
-  useEffect,
-  useRef
-} from 'react'
-import bem from '@/utils/bem'
-import { Popup, Radio, Button } from '@nutui/nutui-react'
-import classNames from 'classnames';
+import { useEffect, useState } from 'react'
+import type { CSSProperties, FunctionComponent, ReactNode } from 'react'
+import { View } from '@tarojs/components'
+import { Button, Popup, Radio } from '@nutui/nutui-react-taro'
+import classNames from 'classnames'
+import bem from '../../utils/bem'
+import type { IComponent } from '../../utils/typings'
+import { useConfig } from '../configprovider'
+import { DeliveryDate, renderDeliveryText } from '../deliverydate/deliverydate'
+import { DeliveryDateTime } from '../deliverydatetime/deliverydatetime'
+import { DeliveryDateTimeAccurate } from '../deliverydatetimeaccurate/deliverydatetimeaccurate'
+import type {
+  DateTimeAccurateType,
+  DateTimesType,
+  DateTimeType,
+  DateType,
+  DeliveryData,
+  DeliveryTypes,
+} from './types'
+import { DEFAULT_DELIVERY_TYPE, initDeliveryTime, initDeliveryType, MAX_COUNT } from './utils'
+import type { DeliveryTimeState } from './utils'
 
-import DeliveryDate from '@/packages/deliverydate'
-import DeliveryDateTime from '@/packages/deliverydatetime'
-import DeliveryDateTimeAccurate from '@/packages/deliverydatetimeaccurate'
-
-import { IComponent } from '@/utils/typings'
-
-import { numericProp } from '@/utils/props';
-
-import { DateType, DateTimeType, DateTimeAccurateType, DateTimesType, DeliveryTypes, DeliveryData } from './type';
 export interface DeliveryProps extends IComponent {
-  visible: boolean;
-  title?: ReactNode;
-  deliveryTypes?: Array<DeliveryTypes>;
-  deliveryTimeTitle?: ReactNode;
-  deliveryDateData?: DeliveryData[];
-  popStyle?: CSSProperties;
-  popClassName?: string;
-  duration: number;
-  buttonText?: ReactNode;
-  onCloseMask?: () => void;
-  onClose?: () => void;
-  onSure?: (item: DateTimesType | null, type: string) => void;
-  onDeliveryTypeChange?: (label: numericProp | boolean) => void;
+  visible: boolean
+  title: ReactNode
+  /** 配送方式, 最多展示 3 个; label 为 `jd` 的配送方式下展示配送时间选择 */
+  deliveryTypes: DeliveryTypes[]
+  deliveryTimeTitle: ReactNode
+  /** 配送时间数据, 最多展示 3 个 */
+  deliveryDateData: DeliveryData[]
+  buttonText: ReactNode
+  /** Popup 的样式 */
+  popStyle: CSSProperties
+  /** Popup 的类名 */
+  popClassName: string
+  /** Popup 动画时长, 单位 ms */
+  duration: number
+  /** 点击遮罩或关闭图标时触发 */
+  onCloseMask: () => void
+  onClose: () => void
+  /**
+   * 点击确定按钮时触发。
+   * item: 当前配送时间 tab 下选中的时间 (非 `jd` 配送方式时为 null);
+   * type: 配送方式 label; deliveryTime: 配送时间 tab 的 label
+   */
+  onSure: (item: DateTimesType | null, type: string, deliveryTime: string) => void
+  onDeliveryTypeChange: (label: string) => void
 }
 
-const defaultProps = {
-  visible: false,
-  title: '配送',
-  deliveryTimeTitle: '送货时间',
-  deliveryTypes: [{
-    label: 'jd',
-    text: '京东快递',
-    disabled: false,
-    desc: ''
-  }],
-  buttonText: '确定',
-  deliveryDateData: [],
-  popStyle: { "height": '80%' },
-  popClassName: '',
-  duration: 0.1,
-  onCloseMask: () => { },
-  onClose: () => { },
-  onSure: (item: DateTimesType | null, type: string) => { },
-  onDeliveryTypeChange: (label: numericProp | boolean) => { }
-} as DeliveryProps
+const EMPTY_DATA: DeliveryData[] = []
+const DEFAULT_POP_STYLE: CSSProperties = { height: '80%' }
 
-export const Delivery: FunctionComponent<
-  Partial<DeliveryProps> & Omit<React.HTMLAttributes<HTMLDivElement>, 'title'>
-> = (props) => {
-
-  const defaultDeliveryType = 'jd'; // 默认的配送方式key
-  const maxCount = 3; // 标签（配送方式、配送时间）的最大数量
-
-  const {
-    visible,
-    title,
-    deliveryTimeTitle,
-    deliveryTypes,
-    buttonText,
-    deliveryDateData,
-    popStyle,
-    popClassName,
-    duration,
-    className,
-    style,
-    children,
-    onCloseMask,
-    onClose,
-    onSure,
-    onDeliveryTypeChange,
-    ...rest
-  } = {
-    ...defaultProps,
-    ...props,
-  }
-
+export const Delivery: FunctionComponent<Partial<DeliveryProps>> = ({
+  visible = false,
+  title,
+  deliveryTypes,
+  deliveryTimeTitle,
+  deliveryDateData = EMPTY_DATA,
+  buttonText,
+  popStyle = DEFAULT_POP_STYLE,
+  popClassName,
+  duration = 300,
+  className,
+  style,
+  children,
+  onCloseMask,
+  onClose,
+  onSure,
+  onDeliveryTypeChange,
+}) => {
+  const { locale } = useConfig()
   const b = bem('delivery')
 
-  const [deliveryType, setDeliveryType] = useState(defaultDeliveryType);
-  const [deliveryTime, setDeliveryTime] = useState(''); // 送货/安装/其他时间的默认选中
-  const [date, setDate] = useState("");
-  const [timeDate, setTimeDate] = useState("");
-  const [accurateTimeDate, setAccurateTimeDate] = useState("");
-  const selectRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLDivElement>(null);
-  const [selectedItem, setSelectedItem] = useState<DateTimesType | null>(null);
+  const types: DeliveryTypes[] = (
+    deliveryTypes ?? [{ label: DEFAULT_DELIVERY_TYPE, text: locale.delivery.jdExpress }]
+  ).slice(0, MAX_COUNT)
+  const timeList = deliveryDateData.slice(0, MAX_COUNT)
 
-  const clickOverlay = () => {
-    onCloseMask?.();
-  }
-
-  const closeFun = () => {
-    onClose?.();
-  }
-
-  const initDeliveryTime = () => {
-    if (!deliveryDateData || !deliveryDateData.length) return;
-    const dataLen = deliveryDateData.length;
-    for (let i = 0; i < dataLen; i++) {
-      const type = deliveryDateData[i].type;
-      const times = deliveryDateData[i].times;
-      let currentDeliveryTime = null;
-      switch (type) {
-        case 'date':
-          currentDeliveryTime = times.find((item: DateTimesType) => (item as DateType).selected);
-          if (currentDeliveryTime) {
-            setDeliveryTime(deliveryDateData[i].label);
-            setDate(currentDeliveryTime.label);
-            setSelectedItem(currentDeliveryTime);
-          }
-          break;
-        case 'date-time':
-          if (times.length) {
-            setTimeDate((times[0] as DateTimeType).label);
-            for (let j = 0; j < times.length; j++) {
-              let item = times[j];
-              const children = (item as DateTimeType).children || [];
-              currentDeliveryTime = children.find((subitem: DateTimesType) => (subitem as DateType).selected);
-              if (currentDeliveryTime) {
-                setTimeDate((item as DateTimeType).label);
-                setDeliveryTime(deliveryDateData[i].label);
-                setSelectedItem({ ...item as DateTimeType, children: [currentDeliveryTime] });
-                break;
-              }
-            }
-          }
-          break;
-        case 'date-time-accurate':
-          if (times.length) {
-            setAccurateTimeDate((times[0] as DateTimeAccurateType).label);
-            for (let j = 0; j < times.length; j++) {
-              let item = times[j];
-              const children = (item as DateTimeType).children || [];
-              for (let k = 0; k < children.length; k++) {
-                let subitem = children[k] as DateTimesType;
-                const subChildren = (subitem as DateTimeType).children || [];
-                currentDeliveryTime = subChildren.find((item: DateTimesType) => (item as DateType).selected);
-                if (currentDeliveryTime) {
-                  setAccurateTimeDate((item as DateTimeAccurateType).label);
-                  setDeliveryTime(deliveryDateData[i].label);
-                  setSelectedItem({ ...item as DateTimeType, children: [{ ...{ ...(item as DateTimeType)?.children[k], children: [{ ...currentDeliveryTime }] } }] });
-                  break;
-                }
-              }
-            }
-          }
-          break;
-        default:
-          break;
-      }
-    }
-  }
-
-  const handleTypeChange = (label: numericProp | boolean) => {
-    setDeliveryType(label as string);
-    setSelectedItem(null);
-    if (label == defaultDeliveryType) {
-      getSelectContainerHeight();
-      initDeliveryTime();
-    }
-    onDeliveryTypeChange?.(label);
-  }
-
-  const getSelectContainerHeight = () => {
-    // 基础组件问题：https://github.com/jdf2e/nutui-react/issues/763，使用setTimeout处理下
-    setTimeout(() => {
-      if (selectRef.current && deliveryDateData && deliveryDateData.length) {
-        (selectRef.current as HTMLDivElement).style.height =
-          `calc(100% - ${titleRef.current?.offsetHeight}px - ${contentRef.current?.offsetHeight}px - ${buttonRef.current?.offsetHeight}px)`;
-      }
-    }, 0);
-  }
-
-  const getDeliveryTypeItem = (label: string) => {
-    return deliveryTypes?.find((item: DeliveryTypes) => item.label === label)
-  }
-
-  const getDeliveryTimeItem = (label: string) => {
-    return deliveryDateData?.find((item: DeliveryData) => item.label === label)
-  }
-
-  const handleDeliveryDate = (item: DateTimesType) => {
-    setSelectedItem(item);
-  }
-
-  const onHandleSure = (selectedItem: DateTimesType | null, deliveryType: string) => {
-    onSure?.(deliveryType === defaultDeliveryType ? selectedItem : null, deliveryType);
-    onClose?.();
-  }
+  const [deliveryType, setDeliveryType] = useState(() => initDeliveryType(types))
+  const [timeState, setTimeState] = useState<DeliveryTimeState>(() =>
+    initDeliveryTime(deliveryDateData)
+  )
 
   useEffect(() => {
-    if (visible && deliveryDateData) {
-      initDeliveryTime();
-    }
-  }, [visible, deliveryDateData]);
+    if (visible) setTimeState(initDeliveryTime(deliveryDateData))
+  }, [visible, deliveryDateData])
 
-  useEffect(() => {
-    if (visible) {
-      getSelectContainerHeight();
+  const typeItem = types.find((item) => item.label === deliveryType)
+  const timeItem = timeList.find((item) => item.label === timeState.deliveryTime)
+  const isTimeType = deliveryType === DEFAULT_DELIVERY_TYPE
+  const showTimeSelect = isTimeType && !typeItem?.children
+
+  const handleTypeChange = (value: string | number) => {
+    const label = String(value)
+    setDeliveryType(label)
+    onDeliveryTypeChange?.(label)
+  }
+
+  const handleTimeChange = (value: string | number) => {
+    setTimeState((prev) => ({ ...prev, deliveryTime: String(value) }))
+  }
+
+  const handleSelect = (item: DateTimesType) => {
+    setTimeState((prev) => ({
+      ...prev,
+      selections: { ...prev.selections, [prev.deliveryTime]: item },
+    }))
+  }
+
+  const handleSure = () => {
+    const item = isTimeType ? timeState.selections[timeState.deliveryTime] ?? null : null
+    onSure?.(item, deliveryType, timeState.deliveryTime)
+    onClose?.()
+  }
+
+  // Popup 的 onClose 在 "内部关闭 (遮罩/关闭图标)" 和 "visible 置为 false" 时都会触发,
+  // 后者由使用方主动关闭 (确定按钮已调用过 onClose), 不再重复通知。
+  const handlePopupClose = () => {
+    if (visible) onClose?.()
+  }
+
+  const handleMask = () => {
+    onCloseMask?.()
+    return true
+  }
+
+  const activeKey = timeItem ? timeState.activeKeys[timeItem.label] : undefined
+
+  const renderTimeSelect = () => {
+    if (!timeItem) return null
+    switch (timeItem.type) {
+      case 'date':
+        return (
+          <DeliveryDate
+            data={timeItem.times as DateType[]}
+            activeKey={activeKey}
+            onSelect={handleSelect}
+          />
+        )
+      case 'date-time':
+        return (
+          <DeliveryDateTime
+            data={timeItem.times as DateTimeType[]}
+            activeKey={activeKey}
+            onSelect={handleSelect}
+          />
+        )
+      case 'date-time-accurate':
+        return (
+          <DeliveryDateTimeAccurate
+            data={timeItem.times as DateTimeAccurateType[]}
+            activeKey={activeKey}
+            onSelect={handleSelect}
+          />
+        )
+      default:
+        return null
     }
-  }, [visible]);
+  }
 
   return (
-    <>
-      <Popup
-        visible={visible}
-        position="bottom"
-        style={popStyle}
-        className={popClassName}
-        closeable
-        round
-        duration={duration}
-        onClickOverlay={clickOverlay}
-        onClickCloseIcon={clickOverlay}
-        onClose={closeFun}
-      >
-        <div className={classNames([b(), className])} style={style} {...rest}>
-          <div className={`${b('title')}`} ref={titleRef}>{title}</div>
-          <div className={`${b('content')}`} ref={contentRef}>
-            <div className={`${b('content-type')}`}>
-              <Radio.RadioGroup value={deliveryType} onChange={handleTypeChange}>
-                {
-                  deliveryTypes && deliveryTypes.slice(0, maxCount).map((item: DeliveryTypes) => (
+    <Popup
+      visible={visible}
+      position="bottom"
+      round
+      closeable
+      duration={duration}
+      style={popStyle}
+      className={classNames(b('popup'), popClassName)}
+      onOverlayClick={handleMask}
+      onCloseIconClick={handleMask}
+      onClose={handlePopupClose}
+    >
+      <View className={classNames(b(), className)} style={style}>
+        <View className={b('title')}>{title ?? locale.delivery.title}</View>
+        <View className={b('content')}>
+          <View className={b('content-type')}>
+            <Radio.Group
+              value={deliveryType}
+              shape="button"
+              direction="horizontal"
+              onChange={handleTypeChange}
+            >
+              {types.map((item) => (
+                <Radio
+                  key={item.label}
+                  value={item.label}
+                  shape="button"
+                  disabled={!!item.disabled}
+                >
+                  {renderDeliveryText(item.text, b('radio-text'))}
+                </Radio>
+              ))}
+            </Radio.Group>
+            {typeItem?.desc ? <View className={b('content-type-tips')}>{typeItem.desc}</View> : null}
+          </View>
+          {showTimeSelect ? (
+            <View className={b('content-deliverytime')}>
+              <View className={b('content-deliverytime-title')}>
+                {deliveryTimeTitle ?? locale.delivery.deliveryTimeTitle}
+              </View>
+              <View className={b('content-deliverytime-tabs')}>
+                <Radio.Group
+                  value={timeState.deliveryTime}
+                  shape="button"
+                  direction="horizontal"
+                  onChange={handleTimeChange}
+                >
+                  {timeList.map((item) => (
                     <Radio
                       key={item.label}
-                      shape="button"
                       value={item.label}
-                      disabled={typeof item.disabled !== 'undefined' ? item.disabled : false}
-                    >{item.text}</Radio>
-                  ))
-                }
-              </Radio.RadioGroup>
-              {
-                getDeliveryTypeItem(deliveryType) && <div className={`${b('content-type-tips')}`}>
-                  {getDeliveryTypeItem(deliveryType)?.desc}
-                </div>
-              }
-            </div>
-            {
-              deliveryType === defaultDeliveryType
-                ?
-                <div className={`${b('content-deliverytime')}`}>
-                  {
-                    !getDeliveryTypeItem(deliveryType)?.children
-                      ?
-                      <>
-                        <div className={`${b('content-deliverytime-title')}`}>{deliveryTimeTitle}</div>
-                        <div className={`${b('content-deliverytime-tabs')}`}>
-                          <Radio.RadioGroup value={deliveryTime} onChange={(label: numericProp | boolean) => { setDeliveryTime(label as string); }}>
-                            {
-                              deliveryDateData && deliveryDateData.slice(0, maxCount).map((item: DeliveryData) => (
-                                <Radio
-                                  shape="button"
-                                  value={item.label}
-                                  key={item.label}
-                                  disabled={typeof item.disabled !== 'undefined' ? item.disabled : false}
-                                >{item.text}</Radio>
-                              ))
-                            }
-                          </Radio.RadioGroup>
-                        </div>
-                        <div className={`${b('content-deliverytime-tips')}`}>
-                          {getDeliveryTimeItem(deliveryTime)?.desc}
-                        </div>
-                      </>
-                      :
-                      getDeliveryTypeItem(deliveryType)?.children
-                  }
-                </div>
-                :
-                <div className={`${b('content-deliverytime')}`}>
-                  {getDeliveryTypeItem(deliveryType)?.children}
-                </div>
-            }
-          </div>
-          {
-            deliveryType === defaultDeliveryType && !getDeliveryTypeItem(deliveryType)?.children
-              ?
-              <div className={`${b('select')}`} ref={selectRef}>
-                {
-                  getDeliveryTimeItem(deliveryTime)?.type === 'date' &&
-                  <DeliveryDate
-                    data={getDeliveryTimeItem(deliveryTime)?.times as DateType[]}
-                    activeKey={date}
-                    onSelect={(item: DateType) => { handleDeliveryDate(item) }}
-                  ></DeliveryDate>
-                }
-                {
-                  getDeliveryTimeItem(deliveryTime)?.type === 'date-time' &&
-                  <DeliveryDateTime
-                    data={getDeliveryTimeItem(deliveryTime)?.times as DateTimeType[]}
-                    activeKey={timeDate}
-                    onSelect={(item: DateTimeType) => { handleDeliveryDate(item) }}
-                  ></DeliveryDateTime>
-                }
-                {
-                  getDeliveryTimeItem(deliveryTime)?.type === 'date-time-accurate' &&
-                  <DeliveryDateTimeAccurate
-                    data={getDeliveryTimeItem(deliveryTime)?.times as DateTimeAccurateType[]}
-                    activeKey={accurateTimeDate}
-                    onSelect={(item: DateTimeAccurateType) => { handleDeliveryDate(item) }}
-                  ></DeliveryDateTimeAccurate>
-                }
-              </div>
-              : null
-          }
-          {children}
-          <div className={b('btn')} ref={buttonRef}>
-            <Button onClick={() => { onHandleSure(selectedItem as (DateTimesType | null), deliveryType) }} type="primary">
-              {buttonText}
-            </Button>
-          </div>
-        </div>
-      </Popup>
-    </>
+                      shape="button"
+                      disabled={!!item.disabled}
+                    >
+                      {renderDeliveryText(item.text, b('radio-text'))}
+                    </Radio>
+                  ))}
+                </Radio.Group>
+              </View>
+              {timeItem?.desc ? (
+                <View className={b('content-deliverytime-tips')}>{timeItem.desc}</View>
+              ) : null}
+            </View>
+          ) : typeItem?.children ? (
+            <View className={b('content-deliverytime')}>{typeItem.children}</View>
+          ) : null}
+        </View>
+        {showTimeSelect && timeItem ? (
+          <View className={b('select')}>{renderTimeSelect()}</View>
+        ) : null}
+        {children}
+        {showTimeSelect && timeItem ? null : <View className={b('spacer')} />}
+        <View className={b('btn')}>
+          <Button type="primary" block onClick={handleSure}>
+            {buttonText ?? locale.delivery.buttonText}
+          </Button>
+        </View>
+      </View>
+    </Popup>
   )
 }
 
-Delivery.defaultProps = defaultProps
-Delivery.displayName = 'NutDelivery'
+Delivery.displayName = 'NbDelivery'

@@ -1,55 +1,74 @@
-import React, { FunctionComponent, createContext, useContext } from 'react'
-import { BaseLang } from '@/locales/base'
-import zhCN from '@/locales/zh-CN'
+import { createContext, useContext, useMemo } from 'react'
+import type { CSSProperties, FunctionComponent, ReactNode } from 'react'
+import { View } from '@tarojs/components'
+import classNames from 'classnames'
+import type { BaseLang } from '../../locales/base'
+import zhCN from '../../locales/zh-CN'
+
+/**
+ * 主题变量, camelCase 键会转成 CSS 变量:
+ *   nbColorPrimary → --nb-color-primary
+ *   nutuiColorPrimary → --nutui-color-primary (顺带也能主题化 NutUI)
+ */
+export type ConfigProviderTheme = Record<string, string>
 
 export interface ConfigProviderProps {
   locale: BaseLang
+  theme?: ConfigProviderTheme
+  className?: string
+  style?: CSSProperties
+  children?: ReactNode
 }
 
-const defaultProps = {
-  locale: zhCN,
-} as ConfigProviderProps
+type ConfigValue = { locale: BaseLang }
 
-export const defaultConfigRef: {
-  current: ConfigProviderProps
-} = {
-  current: {
-    locale: zhCN,
-  },
+export const defaultConfigRef: { current: ConfigValue } = {
+  current: { locale: zhCN },
 }
 
-export const setDefaultConfig = (config: ConfigProviderProps) => {
+export const setDefaultConfig = (config: ConfigValue) => {
   defaultConfigRef.current = config
 }
 
-export const getDefaultConfig = () => {
-  return defaultConfigRef.current
-}
+export const getDefaultConfig = () => defaultConfigRef.current
 
-export const useConfig = () => {
-  return useContext(ConfigContext) ?? getDefaultConfig()
-}
+const ConfigContext = createContext<ConfigValue | null>(null)
 
-// 创建一个 Context 对象
-const ConfigContext = createContext<ConfigProviderProps | null>(null)
+export const useConfig = (): ConfigValue =>
+  useContext(ConfigContext) ?? getDefaultConfig()
+
+const toKebab = (key: string) =>
+  key.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
+
+export const themeToCssVars = (theme?: ConfigProviderTheme) => {
+  const vars: Record<string, string> = {}
+  if (!theme) return vars
+  Object.keys(theme).forEach((key) => {
+    vars[`--${toKebab(key)}`] = theme[key]
+  })
+  return vars
+}
 
 export const ConfigProvider: FunctionComponent<
-  Partial<ConfigProviderProps> & React.HTMLAttributes<HTMLDivElement>
-> = (props) => {
-  const { children, ...config } = { ...defaultProps, ...props }
-  const parentConfig = useConfig()
+  Partial<ConfigProviderProps>
+> = ({ locale, theme, className, style, children }) => {
+  const parent = useConfig()
+  const value = useMemo(
+    () => ({ ...parent, ...(locale ? { locale } : {}) }),
+    [parent, locale]
+  )
+  const cssVars = useMemo(() => themeToCssVars(theme), [theme])
 
   return (
-    <ConfigContext.Provider
-      value={{
-        ...parentConfig,
-        ...config,
-      }}
-    >
-      {children}
+    <ConfigContext.Provider value={value}>
+      <View
+        className={classNames('nb-configprovider', className)}
+        style={{ ...cssVars, ...style }}
+      >
+        {children}
+      </View>
     </ConfigContext.Provider>
   )
 }
 
-ConfigProvider.defaultProps = defaultProps
-ConfigProvider.displayName = 'NutConfigProvider'
+ConfigProvider.displayName = 'NbConfigProvider'

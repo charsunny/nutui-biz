@@ -1,248 +1,195 @@
-import React, {
-  CSSProperties,
-  FunctionComponent,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { IComponent } from "@/utils/typings";
-import classNames from "classnames";
-import bem from "@/utils/bem";
-import { throttle } from "@/utils/throttle";
-import { numericProp } from "@/utils/props";
-import { Swiper, SwiperItem } from "@nutui/nutui-react";
-export interface IDataItem {
-  displayName: string; // 展示名称
-  imageUrl: React.ReactNode; // icon 图片链接或html标签
+import { useEffect, useMemo, useState } from 'react'
+import type { CSSProperties, FunctionComponent, ReactNode } from 'react'
+import { View, Text, Image, ScrollView } from '@tarojs/components'
+import type { BaseEventOrig, ScrollViewProps } from '@tarojs/components'
+import { Swiper, SwiperItem } from '@nutui/nutui-react-taro'
+import classNames from 'classnames'
+import bem from '../../utils/bem'
+import Unit from '../../utils/unit'
+import { getRect } from '../../utils/rect'
+import { useUuid } from '../../utils/use-uuid'
+import type { numericProp } from '../../utils/props'
+import type { IComponent } from '../../utils/typings'
+import { chunkPages, getItemWidth, getRowCount, getSlideBarOffset } from './utils'
+
+export interface QuickEnterData {
+  /** 展示名称 */
+  displayName: string
+  /** 图标: 图片链接, 或自定义节点 */
+  imageUrl: ReactNode
+  [key: string]: any
 }
+
 export interface QuickEnterProps extends IComponent {
-  className: string;
-  style: CSSProperties;
-  columns: numericProp; // 一行展示几个
-  rows: numericProp; // 展示几行
-  data: Array<IDataItem>; // 数据展示
-  slideMode: "swiper" | "slide"; // 数据展示
-  iconSize: Array<numericProp>; // 图标大小
-  indicatorVisible: boolean; // 指示器是否展示
-  indicatorBgColor: string; // 指示器背景颜色
-  indicatorActiveColor: string; // 指示器选中颜色
-  onClickItem: (val: IDataItem) => void; //回调函数
+  /** 每行展示几个 */
+  columns: numericProp
+  /** 每屏展示几行 */
+  rows: numericProp
+  data: QuickEnterData[]
+  /** 多屏展示方式: swiper 轮播翻页 / slide 横向滑动 */
+  slideMode: 'swiper' | 'slide'
+  /** 图标宽高, 单位 px */
+  iconSize: numericProp[]
+  /** swiper 模式是否展示指示器 */
+  indicatorVisible: boolean
+  /** 指示器 (slide 模式为滚动条轨道) 背景色, 默认跟随主题 */
+  indicatorBgColor: string
+  /** 指示器 (slide 模式为滚动条滑块) 选中色, 默认跟随主题主色 */
+  indicatorActiveColor: string
+  onClickItem: (item: QuickEnterData) => void
 }
 
-const defaultProps = {
-  iconSize: [30, 30],
-  columns: "5",
-  rows: "2",
-  slideMode: "swiper",
-  indicatorVisible: false,
-  indicatorBgColor: "rgba(0, 0, 0, 0.2)",
-  indicatorActiveColor: "#fa2c19",
-} as QuickEnterProps;
+type ScrollEvent = BaseEventOrig<ScrollViewProps.onScrollDetail>
 
-export const QuickEnter: FunctionComponent<Partial<QuickEnterProps>> = (
-  props
-) => {
-  const b = bem("quick-enter");
+/** 一个图标项除图标外的高度: margin-top 5 + 文字间距 10 + 文字 18 + margin-bottom 13 */
+const ITEM_EXTRA_HEIGHT = 46
+/** slide 模式滚动条滑块占轨道的百分比 */
+const THUMB_PERCENT = 50
 
-  const {
-    className,
-    style,
-    columns,
-    rows,
-    slideMode,
-    data,
-    indicatorVisible,
-    indicatorBgColor,
-    indicatorActiveColor,
-    iconSize,
-    onClickItem,
-    ...rest
-  } = {
-    ...defaultProps,
-    ...props,
-  };
-  const iconStyle = {
-    width: `${iconSize?.[0]}px`,
-    height: `${iconSize?.[1]}px`,
-  };
-  const formatIcons = () => {
-    const screenNumber = Number(columns) * Number(rows);
-    let quicks: IDataItem[][] = [];
-    let index = 0;
-    while (data && index < data.length) {
-      quicks.push(data.slice(index, (index += screenNumber)));
-    }
-    return quicks;
-  };
+export const QuickEnter: FunctionComponent<Partial<QuickEnterProps>> = ({
+  className,
+  style,
+  columns = 5,
+  rows = 2,
+  data = [],
+  slideMode = 'swiper',
+  iconSize = [30, 30],
+  indicatorVisible = false,
+  indicatorBgColor,
+  indicatorActiveColor,
+  onClickItem,
+}) => {
+  const b = bem('quick-enter')
+  const uid = useUuid('nb-quick-enter')
 
-  const [contentWidth, setContentWidth] = useState(
-    document.body.clientWidth || document.documentElement.clientWidth
-  );
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const pages = useMemo(
+    () => chunkPages(data, Number(columns) * Number(rows)),
+    [data, columns, rows]
+  )
+  const itemWidth = getItemWidth(columns)
+  const iconStyle: CSSProperties = {
+    width: Unit.pxAdd(iconSize[0] ?? 30),
+    height: Unit.pxAdd(iconSize[1] ?? iconSize[0] ?? 30),
+  }
+
+  // ---- swiper 模式: Taro Swiper 需要显式高度, 先估算, 渲染后按首屏实际高度校正 ----
+  const estimatedHeight =
+    getRowCount(pages[0]?.length || 0, columns, rows) *
+    (Number(iconSize[1] ?? iconSize[0] ?? 30) + ITEM_EXTRA_HEIGHT)
+  const [swiperHeight, setSwiperHeight] = useState(0)
+  const [current, setCurrent] = useState(0)
+
   useEffect(() => {
-    const w = (wrapperRef?.current as HTMLDivElement).clientWidth;
-    setContentWidth(w);
-  }, [wrapperRef.current]);
+    if (slideMode !== 'swiper' || !pages.length) return undefined
+    const timer = setTimeout(async () => {
+      const rect = await getRect(`#${uid}-page-0`)
+      if (rect.height) setSwiperHeight(Math.ceil(rect.height))
+    }, 50)
+    return () => clearTimeout(timer)
+  }, [slideMode, pages, uid, iconSize[0], iconSize[1]])
 
-  const [init, setInit] = useState(false);
   useEffect(() => {
-    setInit(true);
-  }, [contentWidth]);
+    if (current >= pages.length && current !== 0) setCurrent(0)
+  }, [pages.length, current])
 
-  const scrollviewRef = useRef<HTMLDivElement>(null);
-  const barbg = useRef<HTMLDivElement>(null);
-  const barslide = useRef<HTMLDivElement>(null);
-  const [barStyle, setBarStyle] = useState({}); // 滚动条样式
-  const scrollChange = throttle(() => {
-    const scrollContentW =
-      (scrollviewRef?.current as HTMLDivElement).offsetWidth *
-      formatIcons().length;
-    const bgBarW = (barbg?.current as HTMLDivElement).offsetWidth; // 滚动条的背景长度
-    const barXWidth = (barslide?.current as HTMLDivElement).offsetWidth; // 滚动条的长度
-    let moveWidth = (scrollviewRef?.current as HTMLDivElement).scrollLeft;
-    let barMoveDistance = 0; // 移动的位置
-    barMoveDistance = (bgBarW / scrollContentW) * moveWidth;
-    if (barMoveDistance >= bgBarW - barXWidth) {
-      barMoveDistance = bgBarW - barXWidth;
-    }
-    if (barMoveDistance <= 0) {
-      barMoveDistance = 0;
-    }
-    getInnerStyle(barMoveDistance);
-  }, 50);
-  const renderQuickScroll = () => {
-    return (
-      <div className={`${b("")}-wrapper`}>
-        <div
-          ref={scrollviewRef}
-          className={classNames([
-            `${b("")}-wrapper-content`,
-            `${b("")}-scroll`,
-          ])}
-        >
-          {formatIcons().map((item, index) => {
-            return (
-              <div
-                className={`${b("")}-content-slide scroll-slide`}
-                key={"scroll" + index}
-              >
-                {renderScrollItem(item)}
-              </div>
-            );
-          })}
-        </div>
+  // ---- slide 模式: 自定义滚动条 ----
+  const [barOffset, setBarOffset] = useState(0)
+  const onSlideScroll = (e: ScrollEvent) => {
+    const { scrollLeft, scrollWidth } = e.detail
+    setBarOffset(getSlideBarOffset(scrollLeft, scrollWidth, THUMB_PERCENT))
+  }
 
-        <div className="swiper-custom-pagination">
-          <div className="swiper-custom-pagination-bg" ref={barbg}>
-            <div
-              className="swiper-custom-pagination-slide"
-              ref={barslide}
-              style={barStyle}
-            ></div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-  const renderScrollItem = (content: IDataItem[]) => {
-    return content.map((citem, _idx) => {
-      return (
-        <div
-          className={classNames([`${b("")}-item`])}
-          key={"c" + citem.imageUrl}
-          style={{ width: (100 / Number(columns)).toFixed(2) + "%" }}
-          onClick={() => clickCback(citem)}
-        >
-          {typeof citem.imageUrl === "string" ? (
-            <img
-              className={classNames([`${b("")}-icon`])}
-              src={citem.imageUrl}
-              style={iconStyle}
-            />
-          ) : (
-            <div style={iconStyle}>{citem.imageUrl}</div>
-          )}
-          <p className="desc">{citem.displayName}</p>
-        </div>
-      );
-    });
-  };
-  useEffect(() => {
-    if (slideMode == "slide") {
-      setTimeout(() => {
-        const _ref = scrollviewRef.current;
-        if (_ref) {
-          _ref.addEventListener("scroll", scrollChange);
-        }
-      }, 500);
-    }
-  }, [scrollviewRef.current]);
-
-  const getInnerStyle = (barMoveWidth: number) => {
-    setBarStyle({
-      left: `${barMoveWidth}px`,
-      background: `${indicatorActiveColor}`,
-    });
-  };
-
-  const renderQuickEnter = () => {
-    return (
-      <Swiper
-        width={contentWidth}
-        autoPlay="0"
-        loop={false}
-        paginationVisible={indicatorVisible}
-        paginationBgColor={indicatorBgColor}
-        paginationColor={indicatorActiveColor}
+  const renderItems = (items: QuickEnterData[]) =>
+    items.map((item, index) => (
+      <View
+        key={`${item.displayName}-${index}`}
+        className={b('item')}
+        style={{ width: itemWidth }}
+        onClick={() => onClickItem?.(item)}
       >
-        {formatIcons().map((item, idx) => {
-          return (
-            <SwiperItem
-              className={classNames([`${b("")}-content-slide`])}
-              key={"swiper-item-" + item}
-            >
-              {renderSwiperItem(item)}
-            </SwiperItem>
-          );
-        })}
-      </Swiper>
-    );
-  };
-  const renderSwiperItem = (content: IDataItem[]) => {
-    return content.map((item, _index) => {
-      return (
-        <div
-          className={classNames([`${b("")}-item`])}
-          style={{ width: (100 / Number(columns)).toFixed(2) + "%" }}
-          key={"quick-enter-item" + item.imageUrl}
-          onClick={() => clickCback(item)}
+        {typeof item.imageUrl === 'string' ? (
+          <Image className={b('icon')} src={item.imageUrl} style={iconStyle} mode="aspectFit" />
+        ) : (
+          <View className={b('icon')} style={iconStyle}>
+            {item.imageUrl}
+          </View>
+        )}
+        <Text className={b('desc')}>{item.displayName}</Text>
+      </View>
+    ))
+
+  const renderSwiper = () => {
+    const height = `${swiperHeight || estimatedHeight}px`
+    return (
+      <View className={b('swiper')}>
+        <Swiper
+          height={height}
+          autoplay={false}
+          loop={false}
+          indicator={false}
+          onChange={(e) => setCurrent(e.detail.current)}
         >
-          {typeof item.imageUrl === "string" ? (
-            <img className="enter-icon" src={item.imageUrl} style={iconStyle} />
-          ) : (
-            <div style={iconStyle}>{item.imageUrl}</div>
-          )}
-          <p className="desc">{item.displayName}</p>
-        </div>
-      );
-    });
-  };
-  const clickCback = (item: IDataItem) => {
-    onClickItem(item);
-  };
+          {pages.map((page, index) => (
+            <SwiperItem key={`page-${index}`}>
+              <View id={`${uid}-page-${index}`} className={b('page')}>
+                {renderItems(page)}
+              </View>
+            </SwiperItem>
+          ))}
+        </Swiper>
+        {indicatorVisible && pages.length > 1 && (
+          <View className={b('indicator')}>
+            {pages.map((_, index) => (
+              <View
+                key={`dot-${index}`}
+                className={b('indicator-dot', { active: index === current })}
+                style={{
+                  background:
+                    index === current ? indicatorActiveColor : indicatorBgColor,
+                }}
+              />
+            ))}
+          </View>
+        )}
+      </View>
+    )
+  }
+
+  const renderSlide = () => (
+    <View className={b('slide')}>
+      <ScrollView
+        className={b('scroll')}
+        scrollX
+        enhanced
+        showScrollbar={false}
+        onScroll={onSlideScroll}
+      >
+        {pages.map((page, index) => (
+          <View key={`page-${index}`} className={b('page', { slide: true })}>
+            {renderItems(page)}
+          </View>
+        ))}
+      </ScrollView>
+      {pages.length > 1 && (
+        <View className={b('bar')} style={{ background: indicatorBgColor }}>
+          <View
+            className={b('bar-thumb')}
+            style={{
+              left: `${barOffset}%`,
+              width: `${THUMB_PERCENT}%`,
+              background: indicatorActiveColor,
+            }}
+          />
+        </View>
+      )}
+    </View>
+  )
 
   return (
-    <div
-      ref={wrapperRef}
-      className={classNames([b(), className, `${b("")}`])}
-      style={style}
-      {...rest}
-    >
-      {init &&
-        (slideMode == "swiper" ? renderQuickEnter() : renderQuickScroll())}
-    </div>
-  );
-};
+    <View className={classNames(b(), className)} style={style}>
+      {pages.length > 0 && (slideMode === 'slide' ? renderSlide() : renderSwiper())}
+    </View>
+  )
+}
 
-QuickEnter.defaultProps = defaultProps;
-QuickEnter.displayName = "NutQuickEnter";
+QuickEnter.displayName = 'NbQuickEnter'

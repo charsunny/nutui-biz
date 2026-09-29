@@ -1,225 +1,139 @@
-import React from 'react'
-import { useTranslate } from '../../sites/assets/locale'
-import { HorizontalScrolling } from './horizontalscrolling'
-import { Cell } from '@nutui/nutui-react'
-import '../../styles/demo.css'
+import { useState } from 'react'
+import type { CSSProperties } from 'react'
+import { View, Text, Image } from '@tarojs/components'
+import { More } from '@nutui/icons-react-taro'
+import { HorizontalScrolling } from './index'
+import { DemoBlock, DemoPage } from '../../../demo/components/DemoBlock'
 
-interface T {
-  [props: string]: string
-}
+const imgUrl =
+  'https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg'
+
+const rowStyle: CSSProperties = { padding: '12px 0 12px 12px' }
+const rowLeftStyle: CSSProperties = { padding: '12px 12px 12px 0' }
+
+const Items = () => (
+  <>
+    {[1, 2, 3, 4, 5, 6].map((item) => (
+      <View className="nb-horizontalscrolling__contain-item" key={item}>
+        <Image src={imgUrl} style={{ width: '83px', height: '83px', display: 'block' }} />
+      </View>
+    ))}
+  </>
+)
 
 const HorizontalScrollingDemo = () => {
-  const [translated] = useTranslate<T>({
-    'zh-CN': {
-      title1: '基本用法',
-      title2: '遮罩层位置',
-      title3: '遮罩层阴影样式',
-      title4: '遮罩层半透明阴影样式',
-      title5: '自定义遮罩内容',
-      title6: '无遮罩',
-      title7: '事件演示',
-      symbol: '￥',
-      demo4: '共3件',
-      more: '查看更多'
-    },
-    'en-US': {
-      title1: 'Basic Usage',
-      title2: 'Mask Position',
-      title3: 'Overlay Shadow Style',
-      title4: 'Overlay Translucent Shadow Style',
-      title5: 'Custom Mask Content',
-      title6: 'No Mask',
-      title7: 'Event Demo',
-      symbol: '$',
-      demo4: 'Total 3 pieces',
-      more: 'More'
-    },
-  })
-
-  const iconProps: any = () => {
-    return {
-      name: "more-x",
-      color: "#fa2c19",
-      size: "26"
-    }
-  }
-
-  const onChange = () => {
-    console.log('change')
-  }
-
-  const onScroll = () => {
-    console.log('scroll right')
-  }
+  const [events, setEvents] = useState({ mask: 0, right: 0, left: 0 })
 
   return (
-    <div className="demo">
-      <h2>{translated.title1}</h2>
-      <Cell
-        className="nut-cell-right-zero"
-      >
-        <HorizontalScrolling>
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
-              >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-      <h2>{translated.title2}</h2>
-      <Cell
-        className="nut-cell-left-zero"
-      >
-        <HorizontalScrolling maskPosition="left">
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
-              >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-      <h2>{translated.title3}</h2>
-      <Cell
-        className="nut-cell-left-zero"
-      >
-        <HorizontalScrolling
-          maskPosition="left"
-          maskShadowType="shadow"
-          iconProps={{
-            name: "more-x",
-            color: "#fa2c19",
-            size: "26"
-          }}
-        >
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
-              >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-      <h2>{translated.title4}</h2>
-      <Cell
-        className="nut-cell-right-zero"
-      >
-        <HorizontalScrolling
-          maskShadowType="transparent"  
-          maskWidth="50px"
-          maskDistance="10px"
-          maskContent={
-            <div className="nb-horizontalscrolling__mask-box buy-price">
-              <div><i>{translated.symbol}</i>199</div>
-              <div>共3件</div>
-            </div>}
+    <DemoPage>
+      <DemoBlock title="基本用法">
+        <View style={rowStyle}>
+          <HorizontalScrolling className="hs-demo-basic">
+            <Items />
+          </HorizontalScrolling>
+        </View>
+      </DemoBlock>
+
+      <DemoBlock title="遮罩层位置">
+        <View style={rowLeftStyle}>
+          <HorizontalScrolling maskPosition="left">
+            <Items />
+          </HorizontalScrolling>
+        </View>
+      </DemoBlock>
+
+      <DemoBlock title="遮罩层阴影样式">
+        <View style={rowLeftStyle}>
+          <HorizontalScrolling
+            maskPosition="left"
+            maskShadowType="shadow"
+            icon={<More size={26} color="#fa2c19" />}
           >
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
+            <Items />
+          </HorizontalScrolling>
+        </View>
+      </DemoBlock>
+
+      <DemoBlock title="遮罩层半透明阴影样式">
+        <View style={rowStyle}>
+          <HorizontalScrolling
+            maskShadowType="transparent"
+            maskWidth="50px"
+            maskDistance="10px"
+            maskContent={
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                }}
               >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-      <h2>{translated.title5}</h2>
-      <Cell
-        className="nut-cell-left-zero"
-      >
-        <HorizontalScrolling 
-          maskShadowType="shadow" 
-          maskPosition="left" 
-          maskWidth="40px" 
-          className="custom-float"
-          maskContent={
-            <div className="more-box">
-              {translated.more}
-            </div>
-          }
-        >
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
+                <View style={{ fontSize: '16px', color: '#000' }}>
+                  <Text style={{ fontSize: '12px' }}>￥</Text>199
+                </View>
+                <Text style={{ fontSize: '12px', color: '#4e4e4f' }}>共3件</Text>
+              </View>
+            }
+          >
+            <Items />
+          </HorizontalScrolling>
+        </View>
+      </DemoBlock>
+
+      <DemoBlock title="自定义遮罩内容">
+        <View style={rowLeftStyle}>
+          <HorizontalScrolling
+            maskShadowType="shadow"
+            maskPosition="left"
+            maskWidth="40px"
+            maskContent={
+              <View
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  fontSize: '14px',
+                }}
               >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-      <h2>{translated.title6}</h2>
-      <Cell>
-        <HorizontalScrolling 
-          showMask={false} 
-          maskPosition="left"
-        >
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
-              >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-      <h2>{translated.title7}</h2>
-      <Cell
-        className="nut-cell-right-zero"
-      >
-        <HorizontalScrolling 
-          maskShadowType="shadow" 
-          onClickMask={onChange}
-          onScrollRight={onScroll}
-        >
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
-              >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-    </div>
+                查看更多
+              </View>
+            }
+          >
+            <Items />
+          </HorizontalScrolling>
+        </View>
+      </DemoBlock>
+
+      <DemoBlock title="无遮罩">
+        <View style={{ padding: '12px' }}>
+          <HorizontalScrolling showMask={false} maskPosition="left">
+            <Items />
+          </HorizontalScrolling>
+        </View>
+      </DemoBlock>
+
+      <DemoBlock title="事件演示">
+        <View style={rowStyle}>
+          <HorizontalScrolling
+            className="hs-demo-events"
+            maskShadowType="shadow"
+            onClickMask={() => setEvents((e) => ({ ...e, mask: e.mask + 1 }))}
+            onScrollRight={() => setEvents((e) => ({ ...e, right: e.right + 1 }))}
+            onScrollChange={(left) => setEvents((e) => ({ ...e, left: Math.round(left) }))}
+          >
+            <Items />
+          </HorizontalScrolling>
+        </View>
+        <View style={{ padding: '0 12px 12px' }}>
+          <Text className="hs-demo-log" style={{ fontSize: '12px', color: '#999' }}>
+            {`点击遮罩 ${events.mask} 次 / 滚动到右侧 ${events.right} 次 / scrollLeft ${events.left}`}
+          </Text>
+        </View>
+      </DemoBlock>
+    </DemoPage>
   )
 }
 

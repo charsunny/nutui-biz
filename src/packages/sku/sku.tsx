@@ -1,24 +1,28 @@
-import React, {
-  FunctionComponent,
-  CSSProperties,
-  ReactNode,
-  useState,
-  useEffect
-} from 'react'
-import { useConfig } from '@/packages/configprovider'
-import {Popup} from '@nutui/nutui-react'
-import {SkuHeader} from './skuHeader'
-import {SkuSelect} from './skuSelect'
-import {SkuStepper} from './skuStepper'
-import {SkuOperate} from './skuOperate'
+import { useEffect, useState } from 'react'
+import type { FunctionComponent, ReactNode } from 'react'
+import { View, ScrollView } from '@tarojs/components'
+import { Popup } from '@nutui/nutui-react-taro'
+import type { PopupProps } from '@nutui/nutui-react-taro'
 import classNames from 'classnames'
-import bem from '@/utils/bem'
+import { useConfig } from '../configprovider'
+import bem from '../../utils/bem'
+import type { IComponent } from '../../utils/typings'
+import { SkuHeader } from './skuHeader'
+import type { SkuGoods } from './skuHeader'
+import { SkuSelect } from './skuSelect'
+import { SkuStepper } from './skuStepper'
+import { SkuOperate } from './skuOperate'
+import type { SkuOperateType } from './skuOperate'
+import type { SkuSelectInfo, SkuSpec } from './utils'
 
-import { IComponent } from '@/utils/typings'
+export interface SkuOperateInfo {
+  /** 按钮类型: confirm / buy / cart */
+  type: SkuOperateType | string
+  /** 当前购买数量 */
+  value: number
+}
 
 export interface SkuProps extends IComponent {
-  className: string
-  style: CSSProperties
   visible: boolean
   skuHeaderPrice: ReactNode
   skuHeaderExtra: ReactNode
@@ -29,174 +33,135 @@ export interface SkuProps extends IComponent {
   skuStepperBottom: ReactNode
   skuOperate: ReactNode
   operateBtn: ReactNode
-  goods: {
-    price: number
-    imagePath: string
-    skuId: string
-  }
-  sku: Array<any>
+  goods: Partial<SkuGoods>
+  sku: SkuSpec[]
   stepperMax: string | number
   stepperMin: string | number
   stepperExtraText: (() => ReactNode) | boolean
   stepperTitle: string
-  btnOptions: Array<string>
+  btnOptions: Array<SkuOperateType | string>
   btnExtraText: string
   buyText: string
   addCartText: string
   confirmText: string
-  onClickBtnOperate: (btn: string) => void
+  /** 透传给 NutUI Popup 的 props (3.x) */
+  popupProps: Partial<PopupProps>
+  onClickBtnOperate: (info: SkuOperateInfo) => void
   onClose: () => void
   onClickCloseIcon: () => void
   onClickOverlay: () => void
-  onSelectSku: (skus: any) => void
+  onSelectSku: (info: SkuSelectInfo) => void
   onAdd: (value: number) => void
   onReduce: (value: number) => void
   onChangeStepper: (value: number) => void
   onOverLimit: () => void
 }
 
-export const Sku: FunctionComponent<
-  Partial<SkuProps>
-> = (props) => {
+export const Sku: FunctionComponent<Partial<SkuProps>> = ({
+  visible = false,
+  className,
+  style,
+  skuHeader,
+  skuHeaderPrice,
+  skuHeaderExtra,
+  skuSelectTop,
+  skuSelect,
+  skuStepper,
+  skuStepperBottom,
+  skuOperate,
+  goods,
+  sku = [],
+  stepperMax = 99999,
+  stepperMin = 1,
+  stepperExtraText = false,
+  stepperTitle,
+  btnOptions = ['confirm'],
+  btnExtraText = '',
+  buyText,
+  addCartText,
+  confirmText,
+  operateBtn,
+  popupProps,
+  onClose,
+  onClickOverlay,
+  onClickCloseIcon,
+  onSelectSku,
+  onAdd,
+  onReduce,
+  onOverLimit,
+  onChangeStepper,
+  onClickBtnOperate,
+}) => {
   const { locale } = useConfig()
-  const {
-    visible = false,
-    className,
-    style,
-    skuHeader,
-    skuHeaderPrice,
-    skuHeaderExtra,
-    skuSelectTop,
-    skuSelect,
-    skuStepper,
-    skuStepperBottom,
-    skuOperate,
-    goods,
-    sku = [],
-    stepperMax = 99999,
-    stepperMin = 1,
-    stepperExtraText = false,
-    stepperTitle = locale.sku.buyNumber,
-    btnOptions = ['confirm'],
-    btnExtraText = '',
-    buyText = locale.sku.buyNow,
-    addCartText = locale.sku.addToCard,
-    confirmText = locale.sku.confirm,
-    operateBtn,
-    onClose,
-    onClickOverlay,
-    onClickCloseIcon,
-    onSelectSku,
-    onAdd,
-    onReduce,
-    onOverLimit,
-    onChangeStepper,
-    onClickBtnOperate
-  } = {
-    ...props,
-  }
-
-  const [goodsCount, setGoodsCount] = useState(stepperMin)
-  const [showPopup, setShowPopup] = useState(visible)
-
-  const close = () => {
-    onClose && onClose();
-  }
-
-  useEffect(() => {
-    setShowPopup(visible)
-  }, [visible])
-
-  useEffect(() => {
-    if(!showPopup) close()
-  }, [showPopup])
-
-  const closePopup = (type: string) => {
-    if (type == 'icon') {
-      onClickCloseIcon && onClickCloseIcon();
-    }
-
-    if (type == 'overlay') {
-      onClickOverlay && onClickOverlay();
-    }
-
-    if (type == 'close') {
-      onClose && onClose();
-    }
-  }
-
-  const handleClickBtnOperate = (btn: string) => {
-    onClickBtnOperate && onClickBtnOperate(String(goodsCount))
-  }
-
-  const handleAdd = (value: number) => {
-    onAdd && onAdd(value)
-  }
-
-  const handleReduce = (value: number) => {
-    onReduce && onReduce(value)
-  }
-
-  const handleOverLimit = () => {
-    onOverLimit && onOverLimit()
-  }
-
-  const handleChangeFuc = (value: number) => {
-    setGoodsCount(value)
-    onChangeStepper && onChangeStepper(value)
-  }
-
   const b = bem('sku')
+  const [goodsCount, setGoodsCount] = useState(Number(stepperMin))
 
-  const renderSkuHeader = () => {
-    return skuHeader || <SkuHeader goods={goods} skuHeaderPrice={skuHeaderPrice} skuHeaderExtra={skuHeaderExtra} />
-  }
+  useEffect(() => {
+    const min = Number(stepperMin)
+    const max = Number(stepperMax)
+    setGoodsCount((count) => Math.min(Math.max(count, min), max))
+  }, [stepperMin, stepperMax])
 
-  const handleSelectSku = (skus: any) => {
-    onSelectSku && onSelectSku(skus)
+  const handleChangeStepper = (value: number) => {
+    setGoodsCount(value)
+    onChangeStepper?.(value)
   }
 
   return (
     <Popup
-      visible={visible}
       position="bottom"
       closeable
       round
-      onClose={()=>closePopup('close')}
-      onClickCloseIcon={()=>closePopup('icon')}
-      onClickOverlay={()=>closePopup('overlay')}
-      {...props}
+      {...popupProps}
+      visible={visible}
+      onClose={() => {
+        popupProps?.onClose?.()
+        onClose?.()
+      }}
+      onCloseIconClick={(e) => {
+        onClickCloseIcon?.()
+        return popupProps?.onCloseIconClick ? popupProps.onCloseIconClick(e) : true
+      }}
+      onOverlayClick={(e) => {
+        onClickOverlay?.()
+        return popupProps?.onOverlayClick ? popupProps.onOverlayClick(e) : true
+      }}
     >
-      <div className={classNames([b(),className])} style={style}>
-        {renderSkuHeader()}
-        <div className='nut-sku-content'>
+      <View className={classNames(b(), className)} style={style}>
+        {skuHeader || (
+          <SkuHeader goods={goods} skuHeaderPrice={skuHeaderPrice} skuHeaderExtra={skuHeaderExtra} />
+        )}
+        <ScrollView className={b('content')} scrollY>
           {skuSelectTop}
-          {skuSelect || <SkuSelect sku={sku} selectSku={handleSelectSku} />}
-          {skuStepper || <SkuStepper 
-            goods={goods}
-            stepperTitle={stepperTitle}
-            stepperMax={stepperMax}
-            stepperMin={stepperMin}
-            stepperExtraText={stepperExtraText} 
-            onAdd={() => handleAdd}
-            onReduce={() => handleReduce}
-            onOverLimit={handleOverLimit}
-            handleStepper={handleChangeFuc}
-          />}
+          {skuSelect || <SkuSelect sku={sku} selectSku={(info) => onSelectSku?.(info)} />}
+          {skuStepper || (
+            <SkuStepper
+              value={goodsCount}
+              stepperTitle={stepperTitle ?? locale.sku.buyNumber}
+              stepperMax={stepperMax}
+              stepperMin={stepperMin}
+              stepperExtraText={stepperExtraText}
+              onAdd={onAdd}
+              onReduce={onReduce}
+              onOverLimit={onOverLimit}
+              onChange={handleChangeStepper}
+            />
+          )}
           {skuStepperBottom}
-        </div>
+        </ScrollView>
         <SkuOperate
-          btnOptions = {btnOptions}
-          btnExtraText = {btnExtraText}
-          buyText = {buyText}
-          addCartText = {addCartText}
-          confirmText = {confirmText}
+          btnOptions={btnOptions}
+          btnExtraText={btnExtraText}
+          buyText={buyText ?? locale.sku.buyNow}
+          addCartText={addCartText ?? locale.sku.addToCard}
+          confirmText={confirmText ?? locale.sku.confirm}
           operateBtn={operateBtn}
-          skuOperate = {skuOperate}
-          onClickBtnOperate = {handleClickBtnOperate} />
-      </div>
+          skuOperate={skuOperate}
+          onClickBtnOperate={(type) => onClickBtnOperate?.({ type, value: goodsCount })}
+        />
+      </View>
     </Popup>
   )
 }
 
-Sku.displayName = 'NutSku'
+Sku.displayName = 'NbSku'

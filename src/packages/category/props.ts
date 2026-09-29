@@ -1,24 +1,23 @@
-export interface Category {
-    catId: string | number,
-    catName: string,
-    children?: Array<CategoryPane>,
-    [props: string]: any
-}
-
+/** 三级分类 */
 export interface CategoryPaneItem {
-    backImg?: string,
-    catId: string,
-    catName: string,
-    [props: string]: any
+  backImg?: string
+  catId: string | number
+  catName: string
+  [key: string]: any
 }
 
-export interface CategoryPane {
-    catId: string | number,
-    catName: string,
-    children?: Array<CategoryPaneItem>,
-    [props: string]: any
+/** 二级分类 (右侧的一个分区) */
+export interface CategoryPaneData {
+  catId: string | number
+  catName: string
+  children?: CategoryPaneItem[]
+  [key: string]: any
 }
 
-export interface CategoryPaneHandler {
-    reset: () => void;
-  }
+/** 一级分类 (左侧导航项) */
+export interface CategoryData {
+  catId: string | number
+  catName: string
+  children?: CategoryPaneData[]
+  [key: string]: any
+}

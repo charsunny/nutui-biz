@@ -1,34 +1,85 @@
+@import '../../styles/variables';
+
+$nb-productfeed-gap: var(--nb-productfeed-gap, 4px);
+$nb-productfeed-item-background: var(--nb-productfeed-item-background, $nb-color-surface);
+$nb-productfeed-item-margin: var(--nb-productfeed-item-margin, 8px);
+
 .nb-productfeed {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  box-sizing: border-box;
+  width: 100%;
+
+  // 开启上拉加载时, InfiniteLoading 是一个高度 100% 的 ScrollView, 由外部给定高度
+  &--infinite {
+    height: 100%;
+  }
+
   &__main {
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
-  }
-  &__left, &__right {
-    width: 50%;
-    padding: 0 0.25rem;
-  }
-}
-.nb-productfeedItem {
-  position: relative;
-  background: #fff;
-  &__single {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-  }
-  &__image {
-    margin: 0 auto;
-    &-tag {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
+    align-items: flex-start;
+
+    &--single {
+      flex-direction: column;
+      align-items: stretch;
     }
   }
-  &__content {
+
+  &__left,
+  &__right {
+    box-sizing: border-box;
+    width: 50%;
+    padding: 0 $nb-productfeed-gap;
+  }
+}
+
+.nb-productfeedItem {
+  position: relative;
+  box-sizing: border-box;
+  margin-bottom: $nb-productfeed-item-margin;
+  background: $nb-productfeed-item-background;
+  overflow: hidden;
+
+  &--single {
+    display: flex;
+    align-items: flex-start;
+
+    .nb-productfeedItem__image {
+      flex-shrink: 0;
+      margin: 0 10px 0 0;
+    }
+
+    .nb-productfeedItem__content {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  &__image {
+    position: relative;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  &__img,
+  &__img-image {
+    display: block;
+    max-width: 100%;
+  }
+
+  &__placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  &__image-tag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+
+  &--multiple .nb-productfeedItem__content {
+    margin-top: 8px;
   }
 }

@@ -1,34 +1,35 @@
-import React, {
-  FunctionComponent,
-  CSSProperties,
-  useRef,
-  useState,
-  useEffect,
-  ReactNode
-} from 'react'
-import { useConfig } from '@/packages/configprovider'
-import classNames from 'classnames';
-import { Icon, Checkbox } from '@nutui/nutui-react';
-import bem from '@/utils/bem'
-import {getRect} from '@/utils/useClientRect'
-import { numericProp } from '@/utils/props'
-
-import { IComponent } from '@/utils/typings'
+import { useEffect, useState } from 'react'
+import type { FunctionComponent, ReactNode } from 'react'
+import { nextTick } from '@tarojs/taro'
+import { View, Text } from '@tarojs/components'
+import { Checkbox } from '@nutui/nutui-react-taro'
+import { Loading } from '@nutui/icons-react-taro'
+import classNames from 'classnames'
+import { useConfig } from '../configprovider'
+import bem from '../../utils/bem'
+import { getRect } from '../../utils/rect'
+import { useUuid } from '../../utils/use-uuid'
+import type { numericProp } from '../../utils/props'
+import type { IComponent } from '../../utils/typings'
 
 export interface SettleBarProps extends IComponent {
   total: numericProp
   totalText: string
-  totalAlign: string
+  totalAlign: 'left' | 'right'
   settleButtonText: string
   disabled: boolean
   loading: boolean
   safeAreaInsetBottom: boolean
+  /** fixed 时, 是否在原位置生成等高占位 */
   placeholder: boolean
+  /** 是否固定在页面底部; false 时按普通块级元素渲染 */
+  fixed: boolean
   settleCount: ReactNode
   showZero: boolean
   noCount: boolean
   customWarning: ReactNode
   customTotal: ReactNode
+  /** 传 null / '' / false 隐藏全选; 传节点替换全选 */
   customSelectAll: ReactNode
   customTotalPrice: ReactNode
   customTotalExtra: ReactNode
@@ -38,11 +39,15 @@ export interface SettleBarProps extends IComponent {
   onSelectAll: (checked: boolean) => void
 }
 
-export const SettleBar: FunctionComponent<
-  Partial<SettleBarProps>
-> = (props) => {
+/** 结算按钮上是否展示数量 */
+const shouldShowSettleCount = (
+  noCount: boolean,
+  showZero: boolean,
+  settleCount: ReactNode
+) => !noCount && (showZero || (settleCount !== 0 && settleCount !== '0'))
+
+export const SettleBar: FunctionComponent<Partial<SettleBarProps>> = (props) => {
   const { locale } = useConfig()
-  const root = useRef(null)
   const {
     total = 0,
     totalText = locale.settleBar.totalText,
@@ -56,103 +61,120 @@ export const SettleBar: FunctionComponent<
     customWarning,
     safeAreaInsetBottom = true,
     placeholder = false,
+    fixed = true,
     showZero = true,
     noCount = false,
     customTotal,
     customSelectAll,
     customTotalPrice,
     customButton,
-    customTotalExtra = '',
+    customTotalExtra,
     isCheckedAll = false,
-    onClickButton = () => {},
-    onSelectAll = (checked: boolean) => {},
-    ...rest
-  } = {
-    ...props,
-  }
-
-  const handleSettle = () => {
-    !disabled && !loading && onClickButton()
-  }
-
-  let totalStyle = {
-    alignItems: totalAlign === 'left' ? 'flex-start' : 'flex-end',
-    textAlign: totalAlign
-  } as CSSProperties
-
-  const handleSelectAll = (checked: boolean) => {
-    onSelectAll(checked)
-  }
+    onClickButton,
+    onSelectAll,
+  } = props
 
   const b = bem('settle-bar')
-
-  const [height,setHeight] = useState(0)
+  const id = useUuid('nb-settle-bar')
+  const [height, setHeight] = useState(0)
+  const needPlaceholder = fixed && placeholder
 
   useEffect(() => {
-    if(root.current) {
-      setHeight(getRect(root.current).height)
+    if (!needPlaceholder) return
+    let alive = true
+    nextTick(() => {
+      getRect(`#${id}`).then((rect) => {
+        if (alive) setHeight(rect.height)
+      })
+    })
+    return () => {
+      alive = false
     }
-  }, ['height'])
+  }, [needPlaceholder, id, customWarning])
 
-  const renderCountAndUnit = () => {
-    if(showZero || settleCount !== 0) {
-      return <span className={b('main-num')}>({settleCount})</span>
-    }
-  }
+  const inactive = disabled || loading
 
-  const renderButton = () => {
-    return customButton || <div 
-      className={classNames(`${b('main-buy')} ${(disabled || loading) ? 'disabled' : ''}`)}
-      onClick={handleSettle}
-    >
-      {loading && <Icon name='loading' />}{settleButtonText}{!noCount && renderCountAndUnit()}
-    </div>
+  const handleSettle = () => {
+    if (!inactive) onClickButton?.()
   }
 
   const renderSelectAll = () => {
-    if(!customSelectAll && customSelectAll !== undefined) return null;
-
-    return <div className={b('main-select-all')}>{customSelectAll ? customSelectAll : <Checkbox checked={isCheckedAll} label={locale.settleBar.selectAll} onChange={handleSelectAll} />}</div>
+    // 显式传了假值 (''/null/false) 时隐藏全选
+    if (customSelectAll !== undefined && !customSelectAll) return null
+    return (
+      <View className={b('select-all')}>
+        {customSelectAll || (
+          <Checkbox
+            checked={isCheckedAll}
+            label={locale.settleBar.selectAll}
+            onChange={(checked) => onSelectAll?.(checked)}
+          />
+        )}
+      </View>
+    )
   }
 
-  const renderSettleBar = () => {
-    return <div ref={root} className={classNames([b(),className,{'nut-biz-safe-area-bottom':safeAreaInsetBottom}])} style={style} {...rest}>
-      {
-        customWarning && 
-        <div className={b('warning')}>
-          <div className={b('warning-mask')}></div>
-          <div className={b('warning-content')}>{customWarning}</div>
-        </div>
-      }
-      <div className={b('main')}>
+  const renderTotal = () => {
+    if (customTotal) return customTotal
+    return (
+      <>
+        {customTotalPrice || (
+          <View className={b('total-inner')}>
+            <Text className={b('total-text')}>
+              {totalText}
+              {locale.settleBar.colon}
+            </Text>
+            <Text className={b('total-price')}>¥{total}</Text>
+          </View>
+        )}
+        {customTotalExtra}
+      </>
+    )
+  }
+
+  const renderButton = () => {
+    if (customButton) return customButton
+    return (
+      <View className={b('button', { disabled: inactive })} onClick={handleSettle}>
+        {loading && <Loading className={b('button-loading')} size={14} />}
+        <Text>{settleButtonText}</Text>
+        {shouldShowSettleCount(noCount, showZero, settleCount) && (
+          <Text className={b('button-count')}>({settleCount})</Text>
+        )}
+      </View>
+    )
+  }
+
+  const bar = (
+    <View
+      id={id}
+      className={classNames(
+        b({ fixed, 'safe-area': safeAreaInsetBottom }),
+        className
+      )}
+      style={style}
+    >
+      {customWarning && (
+        <View className={b('warning')}>
+          <View className={b('warning-mask')} />
+          <View className={b('warning-content')}>{customWarning}</View>
+        </View>
+      )}
+      <View className={b('main')}>
         {renderSelectAll()}
-        <div className={b('main-total')} style={totalStyle}>
-          {
-            customTotal ? customTotal : <>
-              {
-                customTotalPrice ? customTotalPrice : <div className={b('main-total-inner')}>
-                  <span>{totalText}：</span>
-                  <span>¥{total}</span>
-                </div>
-              }
-              {customTotalExtra}
-            </>
-          }
-        </div>
+        <View className={b('total', { [totalAlign]: true })}>{renderTotal()}</View>
         {renderButton()}
-      </div>
-    </div>
-  }
+      </View>
+    </View>
+  )
 
-  const renderSettleBarWithPlaceholder = () => {
-    return <div style={{height}} className={`${b('')}--placeholder`}>
-      {renderSettleBar()}
-    </div>
-  }
+  if (!needPlaceholder) return bar
 
   return (
-    placeholder ? renderSettleBarWithPlaceholder() : renderSettleBar()
+    <View className={b('placeholder')} style={{ height: `${height}px` }}>
+      {bar}
+    </View>
   )
 }
 
-SettleBar.displayName = 'NutSettleBar'
+SettleBar.displayName = 'NbSettleBar'

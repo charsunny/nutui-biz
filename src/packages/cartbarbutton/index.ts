@@ -1,3 +1,6 @@
-import { CartBarButton } from './cartbarbutton'
+import '@nutui/nutui-react-taro/dist/es/packages/button/style/css'
+import './cartbarbutton.scss'
 
-export default CartBarButton
+export { CartBarButton } from './cartbarbutton'
+export type { CartBarButtonProps, CartBarCapsulePosition } from './cartbarbutton'
+export { CartBarButton as default } from './cartbarbutton'

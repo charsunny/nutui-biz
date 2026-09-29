@@ -1,348 +1,159 @@
-#  HorizontalScrolling 横向滚动
+# HorizontalScrolling 横向滚动
 
 ### 介绍
 
-适用于横向滚动展示，适用场景有订单列表等
+适用于横向滚动展示内容, 如订单商品列表等, 可在一侧展示"更多"遮罩。
 
 ### 安装
-``` javascript
-import { Icon } from '@nutui/nutui-react';
-import { HorizontalScrolling } from '@nutui/nutui-biz';
+
+```ts
+import { HorizontalScrolling } from 'nutui-biz-taro'
 ```
 
 ## 代码演示
 
+子节点横向排列, 需要自带宽度并且不收缩 (`flex-shrink: 0`), 可直接使用内置的 `nb-horizontalscrolling__contain-item` 类。
+
 ### 基本用法
 
-:::demo
 ```tsx
-import  React from 'react';
-import { Cell, Icon } from '@nutui/nutui-react';
-import { HorizontalScrolling } from '@nutui/nutui-biz';
-import "@nutui/nutui-biz/dist/styles/demo.css";
+import { View, Image } from '@tarojs/components'
+import { HorizontalScrolling } from 'nutui-biz-taro'
 
-const App = () => {
+const imgUrl =
+  'https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg'
 
-  return (
-    <div className="demo">
-      <Cell
-        className="nut-cell-right-zero"
-      >
-        <HorizontalScrolling>
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
-              >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-    </div>
-  );
-};
-export default App;
+const Items = () => (
+  <>
+    {[1, 2, 3, 4, 5, 6].map((item) => (
+      <View className="nb-horizontalscrolling__contain-item" key={item}>
+        <Image src={imgUrl} style={{ width: '83px', height: '83px' }} />
+      </View>
+    ))}
+  </>
+)
+
+const App = () => (
+  <HorizontalScrolling>
+    <Items />
+  </HorizontalScrolling>
+)
+export default App
 ```
-:::
 
 ### 遮罩层位置
 
-可通过 `maskPosition` 控制遮罩层的位置
-
-:::demo
 ```tsx
-import  React from 'react';
-import { Cell, Icon } from '@nutui/nutui-react';
-import { HorizontalScrolling } from '@nutui/nutui-biz';
-import "@nutui/nutui-biz/dist/styles/demo.css";
-
-const App = () => {
-
-  return (
-    <div className="demo">
-      <Cell
-        className="nut-cell-left-zero"
-      >
-        <HorizontalScrolling maskPosition="left">
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
-              >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-    </div>
-  );
-};
-export default App;
+<HorizontalScrolling maskPosition="left">
+  <Items />
+</HorizontalScrolling>
 ```
-:::
 
-### 遮罩层阴影样式
+### 遮罩层阴影样式 / 自定义图标
 
-遮罩层阴影样式 `maskShadowType` 有 4 种类型：shadow（阴影）、triangle（有三角箭头阴影）、transparent（半透明阴影）、none（无）
-
-:::demo
 ```tsx
-import  React from 'react';
-import { Cell, Icon } from '@nutui/nutui-react';
-import { HorizontalScrolling } from '@nutui/nutui-biz';
-import "@nutui/nutui-biz/dist/styles/demo.css";
+import { More } from '@nutui/icons-react-taro'
 
-const App = () => {
-
-  return (
-    <div className="demo">
-      <Cell
-        className="nut-cell-left-zero"
-      >
-        <HorizontalScrolling
-          maskPosition="left"
-          maskShadowType="shadow"
-          iconProps={{
-            name: "more-x",
-            color: "#fa2c19",
-            size: "26"
-          }}
-        >
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
-              >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-    </div>
-  );
-};
-export default App;
+<HorizontalScrolling
+  maskPosition="left"
+  maskShadowType="shadow"
+  icon={<More size={26} color="#fa2c19" />}
+>
+  <Items />
+</HorizontalScrolling>
 ```
-:::
 
 ### 遮罩层半透明阴影样式
 
-滚动内容和容器的遮罩层侧之间的距离默认为 `maskWidth` 宽度，也可以通过 `maskDistance` 设置
+`maskShadowType="transparent"` 时遮罩浮在内容之上。
 
-:::demo
 ```tsx
-import  React from 'react';
-import { Cell } from '@nutui/nutui-react';
-import { HorizontalScrolling } from '@nutui/nutui-biz';
-import "@nutui/nutui-biz/dist/styles/demo.css";
-
-const App = () => {
-
-  return (
-    <div className="demo">
-      <Cell
-        className="nut-cell-right-zero"
-      >
-        <HorizontalScrolling        
-          maskShadowType="transparent"  
-          maskWidth={50}
-          maskDistance={10}
-          maskContent={
-          <div className="nb-horizontalscrolling__mask-box buy-price">
-            <div><i>￥</i>199</div>
-            <div>共3件</div>
-          </div>
-        }
-        >
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
-              >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-    </div>
-  );
-};
-export default App;
+<HorizontalScrolling
+  maskShadowType="transparent"
+  maskWidth="50px"
+  maskDistance="10px"
+  maskContent={
+    <View>
+      <View>￥199</View>
+      <Text>共3件</Text>
+    </View>
+  }
+>
+  <Items />
+</HorizontalScrolling>
 ```
-:::
 
 ### 自定义遮罩内容
 
-可以通过 `maskContent` 自定义遮罩内容
-
-:::demo
 ```tsx
-import  React from 'react';
-import { Cell } from '@nutui/nutui-react';
-import { HorizontalScrolling } from '@nutui/nutui-biz';
-import "@nutui/nutui-biz/dist/styles/demo.css";
-
-const App = () => {
-
-  return (
-    <div className="demo">
-      <Cell
-        className="nut-cell-left-zero"
-      >
-        <HorizontalScrolling 
-          maskShadowType="shadow" 
-          maskPosition="left" 
-          maskWidth={40}
-          className="custom-float"
-          maskContent={
-            <div className="more-box">
-              查看更多
-            </div>
-          }
-        >
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
-              >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-    </div>
-  );
-};
-export default App;
+<HorizontalScrolling
+  maskShadowType="shadow"
+  maskPosition="left"
+  maskWidth="40px"
+  maskContent={<View>查看更多</View>}
+>
+  <Items />
+</HorizontalScrolling>
 ```
-:::
 
 ### 无遮罩
 
-:::demo
 ```tsx
-import  React from 'react';
-import { Cell } from '@nutui/nutui-react';
-import { HorizontalScrolling } from '@nutui/nutui-biz';
-import "@nutui/nutui-biz/dist/styles/demo.css";
-
-const App = () => {
-
-  return (
-    <Cell>
-      <HorizontalScrolling 
-        showMask={false} 
-        maskPosition="left"
-      >
-        {[1, 2, 3, 4, 5, 6].map((item) => {
-          return (
-            <div   
-              className="nb-horizontalscrolling__contain-item"
-              key={item}
-            >
-              <img
-                src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-              />
-            </div>
-          )
-        })}
-      </HorizontalScrolling>
-    </Cell>
-  );
-};
-export default App;
+<HorizontalScrolling showMask={false}>
+  <Items />
+</HorizontalScrolling>
 ```
-:::
-
 
 ### 事件演示
 
-:::demo
 ```tsx
-import  React from 'react';
-import { Cell, Icon } from '@nutui/nutui-react';
-import { HorizontalScrolling } from '@nutui/nutui-biz';
-import "@nutui/nutui-biz/dist/styles/demo.css";
-
-const App = () => {
-
-  const onChange = () => {
-    console.log('change')
-  };
-
-  const onScroll = () => {
-    console.log('scroll right')
-  }
-
-  return (
-    <div className="demo">
-      <Cell>
-        <HorizontalScrolling 
-          maskShadowType="shadow" 
-          onClickMask={onChange}
-          onScrollRight={onScroll}
-        >
-          {[1, 2, 3, 4, 5, 6].map((item) => {
-            return (
-              <div   
-                className="nb-horizontalscrolling__contain-item"
-                key={item}
-              >
-                <img
-                  src="https://img13.360buyimg.com/imagetools/s140x140_jfs/t1/209493/27/20842/369749/6260d2eeE02eb253c/97386232ecf1c1ef.jpg"
-                />
-              </div>
-            )
-          })}
-        </HorizontalScrolling>
-      </Cell>
-    </div>
-  );
-};
-export default App;
+<HorizontalScrolling
+  maskShadowType="shadow"
+  onClickMask={() => console.log('click mask')}
+  onScrollRight={() => console.log('scroll right')}
+  onScrollChange={(scrollLeft) => console.log(scrollLeft)}
+>
+  <Items />
+</HorizontalScrolling>
 ```
-:::
 
 ## API
 
 ### Props
 
-| 参数            | 说明                                 | 类型     | 默认值           |
-|----------------|--------------------------------------|---------|-----------------|
-| showMask       | 是否需要遮罩层                         | boolean | `true`     |
-| maskPosition   | 遮罩层展示位置（可选值：`left`、`right`）| string   | `right`   |
-| maskShadowType | 遮罩阴影形式（可选值 `none`: 无、`triangle`: 有三角的、`shadow`: 阴影、`transparent`: 半透明） | string | `triangle`               |
-| maskWidth      | 遮罩层宽度，默认单位为 `px`             | string \| number | `100px`     |
-| maskDistance   | 滚动内容和容器的遮罩层侧之间的距离，默认单位为 `px`   | string \| number | `0`        |
-| iconProps       | [Icon 组件的 props](https://nutui.jd.com/h5/react/1x/#/zh-CN/component/icon)    | iconProps | - |
-| maskContent    | 自定义遮罩内容                         | ReactNode | `''` |
+| 参数 | 说明 | 类型 | 默认值 |
+| --- | --- | --- | --- |
+| showMask | 是否展示遮罩层 | boolean | `true` |
+| maskPosition | 遮罩层位置, 可选值: `left`、`right` | string | `right` |
+| maskShadowType | 遮罩阴影样式, 可选值: `none` 无、`triangle` 带三角、`shadow` 阴影、`transparent` 半透明 | string | `triangle` |
+| maskWidth | 遮罩层宽度, 数字默认单位 px | string \| number | `100px` |
+| maskDistance | 滚动内容与遮罩一侧容器边缘的距离, 数字默认单位 px | string \| number | `0` |
+| maskContent | 自定义遮罩内容; 为空字符串时展示默认的 图标 + "更多" (字符串时作为文字替换"更多") | ReactNode | `''` |
+| icon | 默认遮罩内容里的图标 | ReactNode | `<Category size={16} />` (`@nutui/icons-react-taro`) |
+| className | 自定义类名 | string | - |
+| style | 自定义样式 | CSSProperties | - |
 
 ### Events
 
-| 事件名          | 说明             | 回调参数  |
-|----------------|-----------------|------------|
-| onClickMask    | 点击遮罩层时触发   | - |
-| onScrollRight  | 滑动到右边时会触发 | - |
-| onScrollChange | 滑动时获取滚动距离  | val |
+| 事件名 | 说明 | 回调参数 |
+| --- | --- | --- |
+| onClickMask | 点击遮罩层时触发 | - |
+| onScrollRight | 滚动到最右侧时触发; 停留在最右侧不会重复触发, 离开后再次到达会再次触发 | - |
+| onScrollChange | 滚动时触发 | `scrollLeft: number` |
 
+### 与 1.x 的差异
+
+- 移除 `iconProps` (NutUI 3 已没有字符串名的 `Icon` 组件), 改为 `icon: ReactNode`, 直接传入 `@nutui/icons-react-taro` 的图标。
+- `onScrollRight` 由"在最右侧时每次滚动都触发"改为"每次到达最右侧触发一次"。
+- 内容区基于 `ScrollView scrollX`, 滚动条通过 `enhanced` + `showScrollbar={false}` 隐藏。
+
+## 主题定制
+
+| 名称 | 说明 | 默认值 |
+| --- | --- | --- |
+| --nb-horizontalscrolling-mask-gap | 遮罩与内容之间的间距 | `10px` |
+| --nb-horizontalscrolling-mask-color | 遮罩文字色 | `var(--nb-color-title)` |
+| --nb-horizontalscrolling-mask-font-size | 遮罩文字字号 | `var(--nb-font-size-base)` |
+| --nb-horizontalscrolling-shadow-color | 三角与阴影颜色 | `rgba(0, 0, 0, 0.18)` |
+| --nb-horizontalscrolling-shadow-transparent | 阴影渐变起始色 | `rgba(0, 0, 0, 0)` |
+| --nb-horizontalscrolling-mask-transparent-background | 半透明遮罩背景色 | `rgba(255, 255, 255, 0.7)` |

@@ -1,18 +1,19 @@
-import React, { FunctionComponent, ReactNode, CSSProperties, HTMLAttributes } from 'react'
-import { Price, Tag, Image, ImageProps } from '@nutui/nutui-react'
+import type { CSSProperties, FunctionComponent, ReactNode } from 'react'
+import { View, Text } from '@tarojs/components'
+import { Image, Price } from '@nutui/nutui-react-taro'
+import type { ImageProps } from '@nutui/nutui-react-taro'
 import classNames from 'classnames'
-import { errorImg } from '@/utils'
-import { numericProp } from '@/utils/props'
+import { errorImg } from '../../utils'
+import type { numericProp } from '../../utils/props'
+import type { IComponent } from '../../utils/typings'
+import bem from '../../utils/bem'
 
-import bem from '@/utils/bem'
-
-export interface CardProps {
+export interface CardProps extends IComponent {
   title: string
   price: ReactNode
   shopName: string
-  className: string
-  showType: string
-  style: CSSProperties
+  /** full-line: 左图右文; half-line: 上图下文 (双列) */
+  showType: 'full-line' | 'half-line'
   titleLine: numericProp
   prolistTpl: ReactNode
   productTagsTpl: ReactNode
@@ -22,114 +23,114 @@ export interface CardProps {
   imgTag: ReactNode
   titleTag: ReactNode
   isNeedPrice: boolean
-  imgTagDirection: string
+  imgTagDirection: 'top-left' | 'top-right'
   imageProps: Partial<ImageProps>
   onClick: () => void
   onClickShop: () => void
 }
-const defaultProps = {
-  showType: 'full-line',
-  titleLine: '2',
-  imgTagDirection: 'top-left',
-  imageProps: {
-    isLazy: false,
-    errorImg
-  },
-  isNeedPrice: true,
-  onClick: () => {},
-  onClickShop: () => {}
-} as CardProps
-export const Card: FunctionComponent<
-  Partial<CardProps> & HTMLAttributes<HTMLDivElement>
-> = (props) => {
-  const {
-    className,
-    style,
-    titleLine,
-    title,
-    price,
-    shopName,
-    imgTag,
-    titleTag,
-    imageProps,
-    isNeedPrice,
-    productTagsTpl,
-    priceAfterTpl,
-    prolistTpl,
-    bottomTpl,
-    infoTpl,
-    imgTagDirection,
-    showType,
-    onClick,
-    onClickShop,
-    ...rest
-  } = {
-    ...defaultProps,
-    ...props,
-  }
-  const b = bem('card')
 
-  const clampStyle = () => {
-    if(titleLine > 1) return {'WebkitLineClamp': String(titleLine)} as CSSProperties
-  }
+const defaultImageProps: Partial<ImageProps> = {
+  lazy: false,
+  mode: 'aspectFill',
+  error: <Image src={errorImg} width="100%" height="100%" />,
+}
+
+export const Card: FunctionComponent<Partial<CardProps>> = ({
+  className,
+  style,
+  titleLine = 2,
+  title,
+  price,
+  shopName,
+  imgTag,
+  titleTag,
+  imageProps,
+  isNeedPrice = true,
+  productTagsTpl,
+  priceAfterTpl,
+  prolistTpl,
+  bottomTpl,
+  infoTpl,
+  imgTagDirection = 'top-left',
+  showType = 'full-line',
+  onClick,
+  onClickShop,
+}) => {
+  const b = bem('card')
+  const lines = Number(titleLine)
+  const isFullLine = showType !== 'half-line'
+
+  const titleStyle: CSSProperties | undefined =
+    lines > 1 ? ({ WebkitLineClamp: String(lines) } as CSSProperties) : undefined
 
   return (
-    <div className={classNames([b(),className, {'half-line': showType === 'half-line'}])} style={style} {...rest} onClick={() => onClick()}>
-      {
-        showType === 'full-line' ?
-        <div className={b('main')}>
-          <a className={b('left')}>
-            {imgTag && <div className={classNames(['img-tag', {'top-right': imgTagDirection === 'top-right'}])}>{imgTag}</div>}
-            <Image {...imageProps} />
-          </a>
-          <div className={b('right')}>
-            {infoTpl || <>
-              {title && <div
-                className={classNames([b('right__title'), {'one-line': titleLine == 1}, {'multiple-lines': titleLine > 1}])}
-                style={clampStyle()}
-              >{titleTag || ''}{title}</div>}
-              {prolistTpl}
-              {isNeedPrice && <div className={b('right__price')}>
-                {(typeof price === 'number' || typeof price === 'string') ? <Price price={price} size="normal" /> : price}
-                {priceAfterTpl}
-              </div>}
+    <View
+      className={classNames(b({ 'half-line': !isFullLine }), className)}
+      style={style}
+      onClick={() => onClick?.()}
+    >
+      <View className={b('main')}>
+        <View className={b('left')}>
+          {imgTag && (
+            <View className={b('img-tag', { [imgTagDirection]: true })}>
+              {imgTag}
+            </View>
+          )}
+          <Image
+            className={b('image')}
+            width="100%"
+            height="100%"
+            {...defaultImageProps}
+            {...imageProps}
+          />
+        </View>
+        <View className={b('right')}>
+          {infoTpl || (
+            <>
+              {title && (
+                <View
+                  className={b('title', {
+                    'one-line': lines === 1,
+                    'multiple-lines': lines > 1,
+                  })}
+                  style={titleStyle}
+                >
+                  {titleTag}
+                  <Text>{title}</Text>
+                </View>
+              )}
+              {isFullLine && prolistTpl}
+              {isNeedPrice && (
+                <View className={b('price')}>
+                  {typeof price === 'number' || typeof price === 'string' ? (
+                    <Price price={price} size="normal" />
+                  ) : (
+                    price
+                  )}
+                  {priceAfterTpl}
+                </View>
+              )}
               {productTagsTpl}
-              <div className={b('right__shop')} onClick={ e => {
-                e.stopPropagation()
-                onClickShop()
-              }}>
-                {shopName && <div className={b('right__shop__name')}><span>{shopName}</span>&gt;</div>}
-              </div>
-            </>}
-          </div>
-        </div> : 
-        <div className={b('main')}>
-          <a className={b('left')}>
-            {imgTag && <div className={classNames(['img-tag', {'top-right': imgTagDirection === 'top-right'}])}>{imgTag}</div>}
-            <Image {...imageProps} />
-          </a>
-          <div className={b('right')}>
-            {infoTpl || <>
-              {title && <div 
-                className={classNames([b('right__title'), {'one-line': titleLine == 1}, {'multiple-lines': titleLine > 1}])}
-                style={clampStyle()}
-              >{titleTag || ''}{title}</div>}
-              {isNeedPrice && <div className={b('right__price')}>
-                {(typeof price === 'number' || typeof price === 'string') ? <Price price={price} size="normal" /> : price}
-                {priceAfterTpl}
-              </div>}
-              {productTagsTpl}
-              <div className={b('right__shop')}>
-                {shopName && <div className={b('right__shop__name')}><span>{shopName}</span>&gt;</div>}
-              </div>
-            </>}
-          </div>
-        </div>
-      }
+              {shopName && (
+                <View
+                  className={b('shop')}
+                  onClick={(e) => {
+                    if (!isFullLine) return
+                    e.stopPropagation()
+                    onClickShop?.()
+                  }}
+                >
+                  <Text className={b('shop-name')}>{shopName}</Text>
+                  <Text className={b('shop-arrow')}>&gt;</Text>
+                </View>
+              )}
+            </>
+          )}
+        </View>
+      </View>
       {bottomTpl}
-    </div>
+    </View>
   )
 }
 
-Card.defaultProps = defaultProps
-Card.displayName = 'NutCard'
+Card.displayName = 'NbCard'

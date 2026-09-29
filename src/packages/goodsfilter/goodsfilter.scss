@@ -1,347 +1,287 @@
-@import '../../styles/mixins/text-ellipsis.scss';
+@import '../../styles/variables';
+
+$nb-goods-filter-background: var(--nb-goods-filter-background, $nb-color-surface);
+$nb-goods-filter-padding: var(--nb-goods-filter-padding, 18px);
+$nb-goods-filter-title-color: var(--nb-goods-filter-title-color, $nb-color-title);
+$nb-goods-filter-text-color: var(--nb-goods-filter-text-color, $nb-color-text);
+$nb-goods-filter-help-color: var(--nb-goods-filter-help-color, $nb-color-text-help);
+$nb-goods-filter-option-background: var(--nb-goods-filter-option-background, $nb-color-background);
+$nb-goods-filter-active-color: var(--nb-goods-filter-active-color, $nb-color-primary);
+$nb-goods-filter-active-background: var(--nb-goods-filter-active-background, $nb-color-primary-light);
+$nb-goods-filter-gap-background: var(--nb-goods-filter-gap-background, $nb-color-background);
+$nb-goods-filter-border-color: var(--nb-goods-filter-border-color, $nb-color-border);
+$nb-goods-filter-confirm-background: var(--nb-goods-filter-confirm-background, $nb-color-primary);
+$nb-goods-filter-confirm-color: var(--nb-goods-filter-confirm-color, $nb-color-primary-text);
 
 .nb-goods-filter {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
   height: 100%;
-  padding: 0px 0px 60px;
-  border-radius: 12px;
-  background: #fff;
-  font-size: 12px;
-  overflow: auto;
+  background: $nb-goods-filter-background;
+  font-size: $nb-font-size-s;
+  color: $nb-goods-filter-text-color;
+
+  &__body {
+    flex: 1;
+    height: 0;
+  }
 
   &__chunk {
-    padding: 0 18px;
     margin-top: 24px;
+    padding: 0 $nb-goods-filter-padding;
 
     &--address {
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-
-    &__label {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-right: 10px;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    &__group {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-
-      &__address {
-        max-width: 150px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      &__modify {
-        margin-left: 8px;
-        color: $primary-color;
-      }
-
-
-    }
   }
 
-  &__chunk__type {
-    margin-top: 18px;
+  &__label {
+    flex-shrink: 0;
+    margin-right: 10px;
+    font-size: $nb-font-size-base;
+    font-weight: $nb-font-weight-bold;
+    color: $nb-goods-filter-title-color;
+  }
+
+  // ---- 地址 ----
+  &__address {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  &__address-icon {
+    display: flex;
+    flex-shrink: 0;
+    margin-right: 4px;
+  }
+
+  &__address-text {
+    @include text-ellipsis;
+    max-width: 150px;
+  }
+
+  &__address-modify {
+    flex-shrink: 0;
+    margin-left: 8px;
+    color: $nb-goods-filter-active-color;
+  }
+
+  // ---- 选项网格 (每行 3 个) ----
+  &__options {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
-
-    div {
-      margin-bottom: 8px;
-      width: 84px;
-      height: 30px;
-      line-height: 30px;
-      text-align: center;
-      background: rgba(242, 243, 243, 1);
-      border: 1px solid rgba(242, 243, 243, 1);
-      border-radius: 16px;
-      font-size: 12px;
-
-      &.active {
-        background: rgba(240, 37, 15, 0.05);
-        border: 1px solid rgba(242, 39, 12, 1);
-        color: rgba(242, 39, 12, 1);
-      }
-    }
-
-  }
-
-  &__chunk__price {
-    &--range {
-      display: flex;
-      width: 100%;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 18px;
-
-      &__item {
-        position: relative;
-        flex: 1;
-        height: 30px;
-        line-height: 30px;
-        background: rgba(246, 246, 246, 1);
-        border-radius: 16px;
-        text-align: center;
-
-        &--placeholder {
-          display: inline-block;
-          width: 40px;
-          text-align: center;
-          color: #999;
-        }
-
-        .input-num {
-          position: absolute;
-          left: 0;
-          width: 100%;
-          padding: 0 20%;
-          text-align: center;
-          height: 30px;
-          border: 0;
-          background: transparent;
-          font-size: 12px;
-          font-weight: bold;
-          color: #1a1a1a;
-        }
-      }
-
-      &__cable {
-        margin: 0 5px;
-        width: 10px;
-        height: 1px;
-        border: 1px solid rgba(151, 151, 151, 1);
-      }
-    }
+    margin: 18px -4px 0;
 
     &--recommend {
       margin-top: 8px;
-      display: flex;
-      justify-content: space-between;
+    }
 
-      &__item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 84px;
-        height: 40px;
-        line-height: 14px;
-        padding: 0 12px;
-        text-align: center;
-        background: rgba(242, 243, 243, 1);
-        border: 1px solid rgba(242, 243, 243, 1);
-        border-radius: 18px;
-        font-size: 12px;
-        &.active {
-          background: rgba(240, 37, 15, 0.05);
-          border: 1px solid rgba(242, 39, 12, 1);
-          color: rgba(242, 39, 12, 1);
-        }
-
-        div {
-          &:first-child {
-            @include oneline-ellipsis()
-          }
-
-          &:last-child {
-            transform: scale(90%);
-            color: $text-color;
-          }
-        }
-      }
-
+    &--values {
+      margin-top: 12px;
     }
   }
 
-  &__chunk__groups {
-    padding-top: 18px;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    justify-items: center;
+  &__option-cell {
+    box-sizing: border-box;
+    width: 33.33%;
+    padding: 0 4px;
+    margin-bottom: 8px;
+  }
 
-    &.PT0 {
-      padding-top: 0;
-    }
+  &__option {
+    @include text-ellipsis;
+    box-sizing: border-box;
+    height: 30px;
+    padding: 0 8px;
+    line-height: 28px;
+    text-align: center;
+    font-size: $nb-font-size-s;
+    color: $nb-goods-filter-title-color;
+    background: $nb-goods-filter-option-background;
+    border: 1px solid transparent;
+    border-radius: 16px;
 
-    &--item {
-      padding: 0 8px;
-      width: 84px;
-      margin-bottom: 8px;
-      height: 30px;
-      line-height: 30px;
-      background: rgba(246, 246, 246, 1);
-      border: 1px solid rgba(246, 246, 246, 1);
-      border-radius: 16px;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 12px;
-      color: $title-color;
-
-      &.active {
-        background: rgba(240, 37, 15, 0.05);
-        border: 1px solid rgba(242, 39, 12, 1);
-        color: rgba(242, 39, 12, 1);
-      }
-
-    }
-
-    &--itemmore {
-      width: 84px;
-      height: 30px;
-      line-height: 30px;
-      margin-bottom: 8px;
-      text-align: center;
-      font-size: 12px;
-      background: rgba(246, 246, 246, 1);
-      border: 1px solid rgba(246, 246, 246, 1);
-      border-radius: 16px;
-      color: $title-color;
-
-      svg {
-        margin-left: 5px;
-        width: 9px;
-        height: 9px;
-      }
-    }
-
-    &:after {
-      content: "";
-      display: block;
-      width: 84px;
+    &--active {
+      color: $nb-goods-filter-active-color;
+      background: $nb-goods-filter-active-background;
+      border-color: $nb-goods-filter-active-color;
     }
   }
 
-
-  &__chunk__gap {
-    margin-top: 24px;
-    height: 10px;
-    width: 100%;
-    background-color: #f2f3f3;
-  }
-
-  &__chunk__list {
-    margin: 24px 0;
-    padding: 0 18px;
-    &--item {
-      margin: 12px 0;
-      &__top {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-      }
-      &__title {
-        font-size: 14px;
-        font-weight: bold;
-        color: #1a1a1a;
-      }
-      &__subTitle {
-        flex: 1;
-        font-size: 12px;
-        padding: 0 8px 0 20px;
-        color: #fa2c19;
-        overflow: hidden;
-        text-align: right;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      &__icon {
-        font-size: 8px;
-        &.expand {
-          transform: rotate(-180deg);
-        }
-      }
-    }
-  }
-
-  &__operate {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 50px;
+  // ---- 价格 ----
+  &__price-range {
     display: flex;
-    justify-content: space-around;
     align-items: center;
-    border-top: 1px solid rgba(243, 243, 243, 1);
-    border-radius: 0 0 12px 12px;
-    background: #fff;
+    margin-top: 18px;
+  }
 
-    &__btn {
-      width: 130px;
-      height: 38px;
-      border-radius: 25px;
-      font-size: 15px;
-      color: rgba(51, 51, 51, 1);
-      text-align: center;
-      line-height: 38px;
+  &__price-input-box {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    height: 30px;
+    border-radius: 16px;
+    background: $nb-goods-filter-option-background;
+    overflow: hidden;
+  }
 
-      &--reset {
-        border: 1px solid rgba(155, 155, 155, 1);
-      }
+  &__price-input {
+    flex: 1;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0 12px;
+    text-align: center;
+    font-size: $nb-font-size-s;
+    font-weight: $nb-font-weight-bold;
+    color: $nb-goods-filter-title-color;
+    background: transparent;
+    border: 0;
+  }
 
-      &--confirm {
-        color: rgba(255, 255, 255, 1);
-        background: rgba(242, 39, 12, 1);
-      }
+  &__price-placeholder {
+    font-weight: $nb-font-weight;
+    color: $nb-goods-filter-help-color;
+  }
+
+  &__price-cable {
+    flex-shrink: 0;
+    width: 10px;
+    height: 1px;
+    margin: 0 6px;
+    background: $nb-goods-filter-help-color;
+  }
+
+  &__recommend {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: 40px;
+    padding: 0 6px;
+    background: $nb-goods-filter-option-background;
+    border: 1px solid transparent;
+    border-radius: 18px;
+
+    &--active {
+      color: $nb-goods-filter-active-color;
+      background: $nb-goods-filter-active-background;
+      border-color: $nb-goods-filter-active-color;
     }
   }
 
-
-  .nut-icon-location2 {
-    margin-right: 8px;
+  &__recommend-range {
+    @include text-ellipsis;
+    display: block;
+    width: 100%;
+    line-height: 14px;
+    text-align: center;
+    font-size: $nb-font-size-s;
   }
 
-  .nut-collapse-item {
-    .collapse-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0;
-      color: $title-color;
-      line-height: normal;
-      font-size: 14px;
+  &__recommend-desc {
+    display: block;
+    line-height: 14px;
+    font-size: $nb-font-size-xxs;
+    color: $nb-goods-filter-help-color;
+  }
 
-      .collapse-title {
-        font-size: 14px;
-        font-weight: bold;
-      }
+  &__recommend--active &__recommend-desc {
+    color: $nb-goods-filter-active-color;
+  }
 
-      .subTitle {
-        flex: 1;
-        padding: 0 8px 0 20px;
-        position: initial;
-        margin: 0;
-        font-size: 12px;
-        color: $primary-color;
-        text-align: right;
-        @include oneline-ellipsis()
-      }
+  // ---- 分隔 ----
+  &__gap {
+    width: 100%;
+    height: 10px;
+    margin-top: 16px;
+    background: $nb-goods-filter-gap-background;
+  }
 
-      .collapse-icon {
-        position: initial;
-        margin: 0 !important;
-      }
+  // ---- 商品属性 ----
+  &__list {
+    margin: 12px 0 24px;
+    padding: 0 $nb-goods-filter-padding;
+  }
 
-      &::after {
-        display: none;
-      }
-    }
+  &__list-item {
+    margin: 12px 0;
+  }
 
-    .collapse-wrapper {
-      .collapse-content {
-        padding: 0;
-      }
+  &__list-item-top {
+    display: flex;
+    align-items: center;
+  }
+
+  &__list-item-title {
+    flex-shrink: 0;
+    font-size: $nb-font-size-base;
+    font-weight: $nb-font-weight-bold;
+    color: $nb-goods-filter-title-color;
+  }
+
+  &__list-item-subtitle {
+    @include text-ellipsis;
+    flex: 1;
+    min-width: 0;
+    padding: 0 8px 0 20px;
+    text-align: right;
+    font-size: $nb-font-size-s;
+    color: $nb-goods-filter-active-color;
+  }
+
+  &__list-item-icon {
+    display: flex;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+
+    &--expand {
+      transform: rotate(-180deg);
     }
   }
 
+  // ---- 底部操作 ----
+  &__operate {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-around;
+    height: 50px;
+    border-top: 1px solid $nb-goods-filter-border-color;
+    background: $nb-goods-filter-background;
+  }
+
+  &__btn {
+    box-sizing: border-box;
+    width: 130px;
+    height: 38px;
+    line-height: 36px;
+    text-align: center;
+    font-size: 15px;
+    color: $nb-goods-filter-title-color;
+    border: 1px solid transparent;
+    border-radius: 25px;
+
+    &--reset {
+      border-color: $nb-goods-filter-help-color;
+    }
+
+    &--disabled {
+      color: $nb-color-text-disabled;
+      border-color: $nb-color-text-disabled;
+    }
+
+    &--confirm {
+      color: $nb-goods-filter-confirm-color;
+      background: $nb-goods-filter-confirm-background;
+      border-color: $nb-goods-filter-confirm-background;
+    }
+  }
 }

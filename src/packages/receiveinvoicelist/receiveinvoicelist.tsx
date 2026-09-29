@@ -1,113 +1,147 @@
-import React, { Children, FunctionComponent, ReactNode, useState } from 'react'
-import { useConfig } from '@/packages/configprovider'
-import { Checkbox, Icon, Tag, Cell, CellGroup, Swipe, Button } from '@nutui/nutui-react';
-import { IComponent } from '@/utils/typings'
-import bem from '@/utils/bem'
-import classNames from 'classnames';
-import { numericProp } from '@/utils/props';
+import { Fragment, useEffect, useState } from 'react'
+import type { FunctionComponent, ReactNode } from 'react'
+import { View, Text } from '@tarojs/components'
+import { Button, Cell, Checkbox, Swipe, Tag } from '@nutui/nutui-react-taro'
+import { Edit } from '@nutui/icons-react-taro'
+import classNames from 'classnames'
+import bem from '../../utils/bem'
+import type { numericProp } from '../../utils/props'
+import type { IComponent } from '../../utils/typings'
+import { useConfig } from '../configprovider'
+
 export interface ReceiveInvoiceItemExt {
-  label: string;
-  value: string;
-  [x: string]: any;
+  label: string
+  value: string
+  [x: string]: any
 }
+
 export interface ReceiveInvoiceItem {
-  id: numericProp;
-  name: string;
-  tel: string;
-  addres: string;
-  isDefault: boolean;
-  extends?: Array<ReceiveInvoiceItemExt>;
-  [x: string]: any;
+  id: numericProp
+  name: string
+  tel: string
+  addres: string
+  isDefault: boolean
+  extends?: Array<ReceiveInvoiceItemExt>
+  [x: string]: any
 }
+
 export interface ReceiveInvoiceListProps extends IComponent {
-  defaultValue: numericProp;
-  list: Array<ReceiveInvoiceItem>;
-  enableDelete: boolean;
-  customEdit?: ReactNode;
-  onEdit?: (item: ReceiveInvoiceItem, index: number) => void;
-  onSelected?: (item: ReceiveInvoiceItem, index: number) => void;
-  onDelete?: (item: ReceiveInvoiceItem, index: number) => void;
+  /** 当前选中联系人的 id */
+  defaultValue: numericProp
+  list: Array<ReceiveInvoiceItem>
+  enableDelete: boolean
+  customEdit?: ReactNode
+  onEdit?: (item: ReceiveInvoiceItem, index: number) => void
+  onSelected?: (item: ReceiveInvoiceItem, index: number) => void
+  onDelete?: (item: ReceiveInvoiceItem, index: number) => void
 }
-const defaultProps = {
-  defaultValue: "",
-  list: new Array<ReceiveInvoiceItem>,
-  enableDelete: false
-} as ReceiveInvoiceListProps;
-export const ReceiveInvoiceList: FunctionComponent<Partial<ReceiveInvoiceListProps>> = (props) => {
-  const { locale } = useConfig();
-  const [defaultValue, setDefaultValue] = useState(props.defaultValue);
-  const b = bem('receive-invoice-list');
-  const {
-    style,
-    className,
-    list,
-    onSelected,
-    onEdit,
-    onDelete,
-    enableDelete,
-    customEdit,
-    ...rest
-  } = {
-    ...defaultProps,
-    ...props,
-  }
-  const onSelect = (item: ReceiveInvoiceItem, index: number) => {
-    if (item.id == defaultValue) {
-      setDefaultValue("")
+
+const EMPTY: ReceiveInvoiceItem[] = []
+
+// eslint-disable-next-line eqeqeq
+const sameId = (a: numericProp, b: numericProp) => a !== '' && a == b
+
+export const ReceiveInvoiceList: FunctionComponent<Partial<ReceiveInvoiceListProps>> = ({
+  className,
+  style,
+  defaultValue = '',
+  list = EMPTY,
+  enableDelete = false,
+  customEdit,
+  onSelected,
+  onEdit,
+  onDelete,
+}) => {
+  const { locale } = useConfig()
+  const b = bem('receive-invoice-list')
+  const [current, setCurrent] = useState<numericProp>(defaultValue)
+
+  useEffect(() => setCurrent(defaultValue), [defaultValue])
+
+  const handleSelect = (item: ReceiveInvoiceItem, index: number) => {
+    if (sameId(current, item.id)) {
+      setCurrent('')
       return
     }
-    setDefaultValue(item.id);
-    onSelected?.(item, index);
+    setCurrent(item.id)
+    onSelected?.(item, index)
   }
-  function RenderRowInfo(label: string, value: string) {
-    return (
-      <div className={b('item-footer-info')} key={label}>
-        <span>{label}</span>
-        <p>{value}</p>
-      </div>
-    );
-  }
-  const RenderItem = (item: ReceiveInvoiceItem, index: number) => {
-    return (<CellGroup className={b('item')}>
-      <Cell className={b('item-header')}
-        onClick={() => onSelect(item, index)}
+
+  const renderRow = (label: string, value: string, key: string) => (
+    <View className={b('row')} key={key}>
+      <Text className={b('row-label')}>{label}</Text>
+      <Text className={b('row-value')}>{value}</Text>
+    </View>
+  )
+
+  const renderItem = (item: ReceiveInvoiceItem, index: number) => (
+    <Cell.Group className={b('item')}>
+      <Cell
+        className={b('header')}
+        align="center"
+        onClick={() => handleSelect(item, index)}
         title={
-          <div className={b('item-header-title')}>{item.isDefault && <><Tag type="danger">{locale.default}</Tag>&nbsp;</>}<p>{item.name}</p></div>
+          <View className={b('title')}>
+            {item.isDefault && (
+              <Tag className={b('tag')} type="primary">
+                {locale.default}
+              </Tag>
+            )}
+            <Text className={b('name')}>{item.name}</Text>
+          </View>
         }
-        linkSlot={
-          <div className={b('item-header-edit')} onClick={(e) => { e.stopPropagation(); onEdit?.(item, index) }}>
-            {customEdit ? customEdit : <Icon name="edit" color='#666' ></Icon>}
-          </div>
-        } />
-      <Cell className={b('item-footer')} onClick={() => onSelect(item, index)}>
-        <Checkbox textPosition="right" label="" checked={item.id == defaultValue} />
-        <div className={b('item-footer infobox')}>
-          {RenderRowInfo(locale.tel, item.tel)}
-          {RenderRowInfo(locale.addres, item.addres)}
-          {item?.extends?.map((i) => {
-            return RenderRowInfo(i.label, i.value);
-          })}
-        </div>
+        extra={
+          <View
+            className={b('edit')}
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit?.(item, index)
+            }}
+          >
+            {customEdit || <Edit size={16} />}
+          </View>
+        }
+      />
+      <Cell className={b('footer')} onClick={() => handleSelect(item, index)}>
+        <View className={b('check')}>
+          <Checkbox checked={sameId(current, item.id)} />
+        </View>
+        <View className={b('info')}>
+          {renderRow(locale.tel, item.tel, 'tel')}
+          {renderRow(locale.addres, item.addres, 'addres')}
+          {item.extends?.map((ext, i) => renderRow(ext.label, ext.value, `ext-${i}`))}
+        </View>
       </Cell>
-    </CellGroup>);
-  }
+    </Cell.Group>
+  )
+
   return (
-    <div className={classNames([b(), className])} style={style} {...rest}>
-      {list?.map((item, index) => {
-        return (
-          <React.Fragment key={item.id.toString()}>
-            {enableDelete ?
-              <Swipe rightAction={
-                <Button type="primary" shape="square" onClick={() => onDelete?.(item, index)}>{locale.swipeShell.delete}</Button>
-              }>
-                {RenderItem(item, index)}
-              </Swipe>
-              : RenderItem(item, index)}
-          </React.Fragment>
-        )
-      })}
-    </div>
+    <View className={classNames(b(), className)} style={style}>
+      {list.map((item, index) => (
+        <Fragment key={String(item.id)}>
+          {enableDelete ? (
+            <Swipe
+              className={b('swipe')}
+              rightAction={
+                <Button
+                  className={b('delete')}
+                  type="primary"
+                  shape="square"
+                  onClick={() => onDelete?.(item, index)}
+                >
+                  {locale.swipeShell.delete}
+                </Button>
+              }
+            >
+              {renderItem(item, index)}
+            </Swipe>
+          ) : (
+            renderItem(item, index)
+          )}
+        </Fragment>
+      ))}
+    </View>
   )
 }
-ReceiveInvoiceList.defaultProps = defaultProps;
-ReceiveInvoiceList.displayName = 'NutReceiveInvoiceList'
+
+ReceiveInvoiceList.displayName = 'NbReceiveInvoiceList'

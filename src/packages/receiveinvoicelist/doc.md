@@ -1,205 +1,107 @@
-#  ReceiveInvoiceList 收票人列表
+# ReceiveInvoiceList 收票人列表
 
 ### 介绍
 
-常见于展示联系人列表信息等。
+展示收票人列表信息，支持单选、编辑与左滑删除。
 
 ### 安装
 
-```javascript
-import { ReceiveInvoiceList } from '@nutui/nutui-biz';
+```tsx
+import { ReceiveInvoiceList } from 'nutui-biz-taro'
 ```
 
 ## 代码演示
 
 ### 基本用法
 
-:::demo
+```tsx
+import { ReceiveInvoiceList } from 'nutui-biz-taro'
+import type { ReceiveInvoiceItem } from 'nutui-biz-taro'
 
-```ts
-import  React from 'react';
-import { ReceiveInvoiceList } from '@nutui/nutui-biz';
-import { Toast } from '@nutui/nutui-react';
+const list: ReceiveInvoiceItem[] = [
+  { id: 1, name: '张三', tel: '15088888888', addres: '北京市大兴京东大厦1号楼', isDefault: true },
+  {
+    id: 2,
+    name: '李四',
+    tel: '15088888888',
+    addres: '北京市大兴京东大厦2号楼',
+    isDefault: false,
+    extends: [
+      { label: '扩展1', value: '扩展信息展示' },
+      { label: '扩展2', value: '扩展信息展示' },
+    ],
+  },
+]
 
-export interface ReceiveInvoiceItemExt {
-  label: string;
-  value: string;
-  [x: string]: any;
-}
-export interface ReceiveInvoiceItem {
-  id: number | string;
-  name: string;
-  tel: string;
-  addres: string;
-  isDefault: boolean;
-  extends?: Array<ReceiveInvoiceItemExt>;
-  [x: string]: any;
-}
-
-const App = () => {
-  
-  const state = {
-    defaultValue: 1,
-    list: [
-      {
-        id: 1,
-        name: '张三',
-        tel: '15088888888',
-        addres: '北京市大兴京东大厦1号楼',
-        isDefault: true,
-      },
-      {
-        id: 2,
-        name: '李四',
-        tel: '15088888888',
-        addres: '北京市大兴京东大厦2号楼',
-        isDefault: false,
-        extends: [
-          { label: '扩展1', value: '扩展信息展示' },
-          { label: '扩展2', value: '扩展信息展示' }
-        ]
-      }
-    ]
-  };
-
-  const event = {
-    onEdit: (item: ReceiveInvoiceItem,index:number) => { 
-      Toast.text('onEdit ' + item.name);
-      console.log('onEdit', item,index);
-    },
-    onSelected: (item: ReceiveInvoiceItem,index:number) => { 
-      Toast.text('onSelected ' + item.name);
-      console.log('onSelected', item,index) 
-    }
-  }
-
-  return (
-     <ReceiveInvoiceList 
-      list={state.list} 
-      defaultValue={state.defaultValue} 
-      onSelected={event.onSelected} 
-      onEdit={event.onEdit} 
-    />
-  );
-};
-export default App;
+const App = () => (
+  <ReceiveInvoiceList
+    list={list}
+    defaultValue={1}
+    onSelected={(item, index) => console.log('onSelected', item, index)}
+    onEdit={(item, index) => console.log('onEdit', item, index)}
+  />
+)
+export default App
 ```
 
-:::
 ### 使用左滑删除
 
-:::demo
-
-```ts
-import  React from 'react';
-import { ReceiveInvoiceList } from '@nutui/nutui-biz';
-import { Toast } from '@nutui/nutui-react';
-
-export interface ReceiveInvoiceItemExt {
-  label: string;
-  value: string;
-  [x: string]: any;
-}
-export interface ReceiveInvoiceItem {
-  id: number | string;
-  name: string;
-  tel: string;
-  addres: string;
-  isDefault: boolean;
-  extends?: Array<ReceiveInvoiceItemExt>;
-  [x: string]: any;
-}
-
-const App = () => {
-  
-  const state = {
-    defaultValue: 1,
-    list: [
-      {
-        id: 1,
-        name: '张三',
-        tel: '15088888888',
-        addres: '北京市大兴京东大厦1号楼',
-        isDefault: true,
-      },
-      {
-        id: 2,
-        name: '李四',
-        tel: '15088888888',
-        addres: '北京市大兴京东大厦2号楼',
-        isDefault: false,
-        extends: [
-          { label: '扩展1', value: '扩展信息展示' },
-          { label: '扩展2', value: '扩展信息展示' }
-        ]
-      }
-    ]
-  };
-
-  const event = {
-    onEdit: (item: ReceiveInvoiceItem,index:number) => { 
-      Toast.text('onEdit ' + item.name);
-      console.log('onEdit', item,index);
-    },
-    onSelected: (item: ReceiveInvoiceItem,index:number) => { 
-      Toast.text('onSelected ' + item.name);
-      console.log('onSelected', item,index);
-    },
-    onDelete: (item: ReceiveInvoiceItem,index:number) => { 
-      Toast.text('onDelete ' + item.name);
-      console.log('onDelete', item,index);
-    },
-  }
-
-  return (
-     <ReceiveInvoiceList 
-      enableDelete={true} 
-      list={state.list} 
-      defaultValue={state.defaultValue} 
-      onSelected={event.onSelected} 
-      onEdit={event.onEdit} 
-      onDelete={event.onDelete} 
-    />
-  );
-};
-export default App;
+```tsx
+<ReceiveInvoiceList
+  enableDelete
+  list={list}
+  defaultValue={1}
+  onSelected={(item, index) => console.log('onSelected', item, index)}
+  onEdit={(item, index) => console.log('onEdit', item, index)}
+  onDelete={(item, index) => console.log('onDelete', item, index)}
+/>
 ```
-
-:::
 
 ## API
 
 ### Props
 
+| 字段 | 说明 | 类型 | 默认值 |
+| --- | --- | --- | --- |
+| defaultValue | 当前选中联系人的 id, 变化时同步 | number \| string | `''` |
+| list | 联系人列表 | ReceiveInvoiceItem[] | `[]` |
+| enableDelete | 是否启用左滑删除 | boolean | `false` |
+| customEdit | 自定义编辑按钮 | ReactNode | `<Edit />` |
 
-| 字段         | 说明                | 类型                      | 默认值  |
-|--------------|---------------------|---------------------------|---------|
-| defaultValue | 当前选中联系人的 id | number \| string          | ""      |
-| list         | 联系人列表          | Array<ReceiveInvoiceItem> | []      |
-| enableDelete | 是否启用删除功能    | boolean                   | `false` |
-| customEdit   | 自定义编辑按钮      | ReactNode                 |         |
+### ReceiveInvoiceItem
 
-### ReceiveInvoiceItem 数据结构
+| 键名 | 说明 | 类型 |
+| --- | --- | --- |
+| id | 联系人 id | number \| string |
+| name | 联系人姓名 | string |
+| tel | 联系人手机号 | string |
+| addres | 联系人地址 | string |
+| isDefault | 是否为默认地址 | boolean |
+| extends | 扩展信息 | ReceiveInvoiceItemExt[] |
 
-| 键名      | 说明           | 类型                         |
-|-----------|----------------|------------------------------|
-| id        | 联系人的 id    | number \| string             |
-| name      | 联系人姓名     | string                       |
-| tel       | 联系人手机号   | string                       |
-| addres    | 联系人地址信息 | string                       |
-| isDefault | 是否为默认地址 | boolean                      |
-| extends   | 扩展自定义数组 | Array<ReceiveInvoiceItemExt> |
-### ReceiveInvoiceItemExt 数据结构
+### ReceiveInvoiceItemExt
 
-| 键名  | 说明           | 类型   |
-|-------|----------------|--------|
-| label | 自定义字段名称 | string |
-| value | 自定义值       | string |
-
+| 键名 | 说明 | 类型 |
+| --- | --- | --- |
+| label | 字段名称 | string |
+| value | 字段值 | string |
 
 ### Events
-| 字段       | 说明     | 回调参数                               |
-|------------|----------|----------------------------------------|
-| onEdit     | 编辑事件 | item\:ReceiveInvoiceItem,index\:number |
-| onSelected | 选中事件 | item\:ReceiveInvoiceItem,index\:number |
-| onDelete   | 删除事件 | item\:ReceiveInvoiceItem,index\:number |
+
+| 字段 | 说明 | 回调参数 |
+| --- | --- | --- |
+| onEdit | 点击编辑按钮 | `(item: ReceiveInvoiceItem, index: number)` |
+| onSelected | 选中某一项 (再次点击已选中项会取消选中, 不触发该事件) | `(item: ReceiveInvoiceItem, index: number)` |
+| onDelete | 左滑后点击删除 | `(item: ReceiveInvoiceItem, index: number)` |
+
+### 主题定制
+
+| 名称 | 默认值 |
+| --- | --- |
+| --nb-receive-invoice-list-name-color | `$nb-color-title` |
+| --nb-receive-invoice-list-name-font-size | `$nb-font-size-base` |
+| --nb-receive-invoice-list-label-color | `$nb-color-text-help` |
+| --nb-receive-invoice-list-value-color | `$nb-color-title` |
+| --nb-receive-invoice-list-row-font-size | `$nb-font-size-s` |
+| --nb-receive-invoice-list-edit-color | `$nb-color-text` |
+| --nb-receive-invoice-list-gap | `$nb-spacing-s` |

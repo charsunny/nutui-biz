@@ -1,133 +1,49 @@
+# nutui-biz-taro
 
-<p align="center">
-    <img alt="logo" src="https://storage.360buyimg.com/nutui/nutui-biz/3x/0.0.8/logo-biz-red.676f7cb0.png" width="150" style="margin-bottom: 10px;">
-</p>
+京东风格的移动端业务组件库, fork 自 [jdf2e/nutui-biz](https://github.com/jdf2e/nutui-biz),
+改造为**只支持 Taro** 的版本:
 
-<p align="center">基于 NutUI-React 的移动电商业务组件库</p>
+- Taro 4.2 + [@nutui/nutui-react-taro](https://github.com/jdf2e/nutui-react) 3.x + React 18
+- 30 个组件统一为单份 Taro 实现 (View / Text / ScrollView ...), 无 DOM 依赖, 微信小程序与 H5 同源
+- 主题走 CSS 变量: `--nb-*` → `--nutui-*` → 默认值, 可运行时整体换色
+- 每个组件自带样式按需引入
 
-<p align="center">
-    <a href="http://makeapullrequest.com">
-    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs Welcome">
-  </a>
-    <a href="https://github.com/jdf2e/nutui-biz">
-    <img src="https://coveralls.io/repos/github/jdf2e/nutui/badge.svg?branch=master" alt="Coverage Status" />
-    </a>
-    <a href="https://github.com/jdf2e/nutui-biz">
-    <img src="https://img.shields.io/npm/l/@nutui/nutui-biz.svg" alt="license"/>
-    </a>
-    <a href="https://www.npmjs.com/package/@nutui/nutui">
-    <img src="https://img.shields.io/npm/v/@nutui/nutui-biz.svg?style=flat-square">
-    </a>
-    <a href="https://www.npmjs.com/package/@nutui/nutui">
-    <img src="https://img.shields.io/npm/dt/@nutui/nutui-biz.svg?style=flat-square">
-    </a>
-    <a href="https://travis-ci.org/jdf2e/nutui">
-    <img src="https://img.shields.io/travis/jdf2e/nutui-biz.svg?style=flat-square">
-    </a>  
+## 组件
 
-</p>
-<p align="center">
-    <a href="https://github.com/jdf2e/nutui-biz">
-    <img src="https://img.shields.io/github/contributors/jdf2e/nutui-biz" alt="GitHub contributors">
-    </a>  
-    <a href="https://github.com/jdf2e/nutui-biz">
-    <img src="https://img.shields.io/github/commit-activity/w/jdf2e/nutui-biz" alt="GitHub commit activity">
-    </a>
-    <a href="https://github.com/jdf2e/nutui-biz">
-    <img src="https://img.shields.io/github/issues-closed/jdf2e/nutui-biz" alt="GitHub closed issues">
-    </a>  
-    <a href="https://github.com/jdf2e/nutui-biz">
-    <img src="https://img.shields.io/github/commits-since/jdf2e/nutui/latest/v4" alt="GitHub commits since latest release (by date)">
-    </a>
-    <a href="https://github.com/jdf2e/nutui-biz">
-    <img src="https://img.shields.io/github/release-date/jdf2e/nutui" alt="GitHub Release Date">
-  </a>
-</p>
+| 分类 | 组件 |
+| --- | --- |
+| 商品类 | Card 商品卡片 · CartBar / CartBarButton / CartBarIcon 购物车栏 · Category 商品分类 · Comment 评论 · Ecard 电子卡 · GoodsFilter 商品筛选 · QuickEnter 快捷入口 · SearchHistory 搜索历史 · SettleBar 结算栏 · Sku 规格选择 · ProductFeed 商品 Feed 流 |
+| 订单类 | Address 地址 · AddressEdit 地址编辑 · AddressList 地址列表 · Delivery (+DeliveryDate / DeliveryDateTime / DeliveryDateTimeAccurate) 配送 · OrderCancelPanel 订单取消面板 · OrderRemark 订单备注 |
+| 发票类 | InvoiceTitleEdit / InvoiceTitleList 发票抬头 · ReceiveInvoiceEdit / ReceiveInvoiceList 收票人 |
+| 其他 | Coupon 优惠券 · HorizontalScrolling 横向滚动 · Login 登录 · ConfigProvider 全局配置 |
 
-<p align="center">
-   <img src="https://img11.360buyimg.com/imagetools/jfs/t1/125392/15/36236/3450/6422d3fcF3af86473/e103f55da277a200.png" width="164" alt="NutUI-Biz" />
-</p>
+各组件文档见 `src/packages/<name>/doc.md` (含与 1.x 的差异)。
 
----
+## 使用
 
-##  特性
+以源码方式接入 (例如 git submodule), 见 [AGENTS.md](./AGENTS.md#业务方接入)。按组件路径引入:
 
-* 🚀 20+ 高质量组件，覆盖移动端商城所有模块
-* 📖 基于京东APP 10.0 视觉规范
-* 🍭 支持按需引用
-* 📖 详尽的文档和示例
-* 💪 支持 TypeScript
-* 🍭 单元测试覆盖率超过 80%，保障稳定性
+```tsx
+import { Sku } from 'nutui-biz-taro/packages/sku'
+import { ConfigProvider } from 'nutui-biz-taro/packages/configprovider'
 
-## 安装
+<ConfigProvider theme={{ nbColorPrimary: '#0f7b6c' }}>
+  <Sku visible={visible} sku={sku} goods={goods} onClose={() => setVisible(false)} />
+</ConfigProvider>
+```
+
+## 开发
 
 ```bash
-npm i @nutui/nutui-biz
+bun install
+bun run dev:weapp        # demo 小程序 (微信开发者工具打开仓库根目录)
+bun run dev:h5           # demo H5
+bun run check-types
+bun run test
 ```
 
-## 示例
+开发约定见 [AGENTS.md](./AGENTS.md)。
 
-```js
-import * as React from "react";
-import * as ReactDOM from "react-dom";
-import '@nutui/nutui-biz/dist/style.css'
-import '@nutui/nutui-react/dist/style.css'
-import { Card } from '@nutui/nutui-biz';
+## License
 
-ReactDOM.render(
-  <div className="App">
-     <Card
-      imageProps='//img10.360buyimg.com/n2/s240x240_jfs/t1/210890/22/4728/163829/6163a590Eb7c6f4b5/6390526d49791cb9.jpg!q70.jpg'
-      title='【活蟹】湖塘煙雨 阳澄湖大闸蟹公4.5两 母3.5两 4对8只 鲜活生鲜螃蟹现货水产礼盒海鲜水'
-      price='388'
-      shopName='阳澄湖大闸蟹自营店'
-    />
-  </div>,
-  document.getElementById("app")
-);
-```
-
-## 构建版本
-
-> AMD 环境、Webpack、Vite 等构建工具环境、服务端建议使用 es 版，非模块化环境（如通过 `<script>` 标签直接引用）建议使用 umd 压缩版。
-
-* es **nutui.biz.es.js**
-
-* umd **nutui.biz.umd.js**
-
-## 问题反馈与建议
-
-[参与 NutUI-Biz 社区讨论](https://github.com/jdf2e/nutui-biz/discussions)
-
-如果您有任何想法、疑问或建议，都可以参与社区讨论分享您的观点。
-
-## 贡献者们
-
-感谢以下所有给 NutUI-Biz 贡献过代码的 [开发者](https://github.com/jdf2e/nutui-biz/graphs/contributors)。
-
-<a href="https://github.com/jdf2e/nutui-biz/graphs/contributors">
-  <img src="https://opencollective.com/nutui-biz/contributors.svg?width=890&button=false" alt="contributors">
-</a>
-
-
-<!-- ## Stargazers  -->
-
-<!-- [![Stargazers repo roster for @jdf2e/nutui](https://reporoster.com/stars/jdf2e/nutui)](https://github.com/jdf2e/nutui/stargazers) -->
-
-<!-- ## Forkers
-
-[![Forkers repo roster for @jdf2e/nutui](https://reporoster.com/forks/jdf2e/nutui)](https://github.com/jdf2e/nutui/network/members) -->
-
-
-<!-- ## 开发计划
-
-[Milestones](https://github.com/jdf2e/nutui/projects) -->
-
-## 更新日志
-
-本项目遵从 [Angular Style Commit Message Conventions](https://gist.github.com/stephenparish/9941e89d80e2bc58a153)，更新日志请查阅 [Release](https://github.com/jdf2e/nutui-biz/releases)。
-
-## github stargazers 
-
-![stargazers](https://starchart.cc/jdf2e/nutui-biz.svg)
-
+MIT

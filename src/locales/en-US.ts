@@ -12,19 +12,6 @@ const enUS: BaseLang = {
   tel: "Tel",
   default: "Default",
   addres: "Addres",
-  video: {
-    errorTip: "Error Tip",
-    clickRetry: "Click Retry",
-  },
-  fixednav: {
-    activeText: "Close Nav",
-    unActiveText: "Open Nav",
-  },
-  infiniteloading: {
-    pullRefreshText: "Pull Refresh",
-    loadText: "Loading",
-    loadMoreText: "Oops, here's the bottom",
-  },
   searchHistory: {
     recentSearchText: "Recent Search Text",
     searchDiscoverText: "Search Discover Text",
@@ -33,55 +20,18 @@ const enUS: BaseLang = {
     deleteAll: "Delete All",
     finish: "Finish",
     hidden: "Hidden",
+    placeholder: "Please enter a keyword",
   },
   settleBar: {
     totalText: "Total",
     settleButtonText: "To Settle",
     selectAll: "Select All",
-  },
-  pagination: {
-    prev: "Previous",
-    next: "Next",
-  },
-  range: { rangeText: "is overflow" },
-  calendaritem: {
-    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    end: "End",
-    start: "Start",
-    title: "Calendar",
-    monthTitle: (year: number, month: number) => `${year}/${month}`,
-    today: "Today",
-    loadPreviousMonth: "Load Previous Month",
-    noEarlierMonth: "No Earlier Month",
-  },
-  shortpassword: {
-    title: "Please input a password",
-    desc: "Verify",
-    tips: "Forget password",
-  },
-  uploader: {
-    ready: "Ready",
-    readyUpload: "Ready to upload",
-    waitingUpload: "Waiting for upload",
-    uploading: "Uploading...",
-    success: "Upload successful",
-    error: "Upload failed",
-    deleteWord: "The user blocked the deletion!",
-  },
-  countdown: {
-    day: " Day ",
-    hour: " Hour ",
-    minute: " Minute ",
-    second: " Second ",
+    colon: ": ",
   },
   address: {
     selectRegion: "Select Region",
     deliveryTo: "Delivery To",
     chooseAnotherAddress: "Choose Another Address",
-  },
-  signature: {
-    reSign: "Re Sign",
-    unSupportTpl: `Sorry, the current browser doesn't support canvas, so we can't use this control!`,
   },
   ecard: {
     chooseText: "Select",
@@ -103,9 +53,6 @@ const enUS: BaseLang = {
     addressErrorMsg: "This item is required, please fill it out and submit it",
     bottomText: "save",
   },
-  timeselect: {
-    pickupTime: "Pickup Time",
-  },
   sku: {
     buyNow: "Buy Now",
     buyNumber: "Buy Number",
@@ -114,6 +61,7 @@ const enUS: BaseLang = {
   },
   skuheader: {
     skuId: "Sku Number",
+    colon: ": ",
   },
   addresslist: {
     addAddress: "Add New Address",
@@ -134,39 +82,47 @@ const enUS: BaseLang = {
     additionalReview: (day: number) => `Review after ${day} days of purchase`,
     additionalImages: (length: number) =>
       `There are ${length} follow-up comments`,
+    totalImages: (length: number) => `${length} in total`,
   },
-  searchbar: {
-    basePlaceholder: "Go to jd.com and buy good things",
-    text: "text",
-    test: "test",
-    title1: "basic usage",
-    title2: "search box shape and maximum length",
-    title3: "background settings inside and outside the search box",
-    title4: "search box text settings",
-    title5: "custom icon settings",
-    title6: "data change monitoring",
+  coupon: {
+    btnText: "Get it now",
   },
-  audio: {
-    back: "fastBack",
-    forward: "forward",
-    pause: "pause",
-    start: "start",
-    mute: "mute",
-    tips: "The onplayend event will only be triggered when loop = false",
+  invoiceTitleEdit: {
+    titleTypeText: "Title type",
+    personalText: "Personal / Institution",
+    enterpriseText: "Enterprise",
+    titleText: "Invoice title",
+    titlePlaceholder: "Please enter the invoice title",
+    companyCodeText: "Taxpayer ID",
+    companyCodePlaceholder: "Please enter the taxpayer ID",
+    addressText: "Registered address",
+    addressPlaceholder: "Please enter the registered address",
+    companyPhoneText: "Registered phone",
+    companyPhonePlaceholder: "Please enter the registered phone",
+    bankDepositText: "Bank",
+    bankDepositPlaceholder: "Please enter the bank",
+    bankAccountText: "Bank account",
+    bankAccountPlaceholder: "Please enter the bank account",
+    submitButtonText: "Submit",
   },
-  datepicker: {
-    year: "Year",
-    month: "Month",
-    day: "Day",
-    hour: "Hour",
-    min: "Minute",
-    seconds: "Second",
+  invoiceTitleList: {
+    defaultText: "Default",
+    statusPass: "Approved",
+    statusVeto: "Rejected",
+    statusApproval: "Pending",
+    companyCodeText: "Taxpayer ID",
+    addressText: "Registered address",
+    companyPhoneText: "Company phone",
+    bankDepositText: "Bank",
+    bankAccountText: "Bank account",
+    deleteText: "Delete",
+    editText: "Edit",
   },
-  pullToRefresh: {
-    pullingText: "Pulling",
-    canReleaseText: "Release to refresh",
-    refreshingText: "Loading...",
-    completeText: "Refresh successful",
+  delivery: {
+    title: "Delivery",
+    deliveryTimeTitle: "Delivery Time",
+    jdExpress: "JD Express",
+    buttonText: "Confirm",
   },
   orderRemark: {
     placeholderText: "Please enter the content of the remarks",
@@ -179,6 +135,9 @@ const enUS: BaseLang = {
   },
   orderCancelPanel: {
     otherText: "other",
+    submitText: "Submit",
+    tipsTitle: "Tips",
+    btnTipsText: "Put the items of this order back into the cart after submitting",
   },
   addressedit: {
     nameText: "Consignee",
@@ -212,6 +171,16 @@ const enUS: BaseLang = {
   },
   category: {
     pullUpText: "Scroll up to continue browsing",
+  },
+  goodsfilter: {
+    confirm: "Confirm",
+    reset: "Reset",
+    priceRangeTitle: "Price Range",
+    addressTitle: "Delivery Address",
+    noAddress: "No address selected",
+    modify: "Change",
+    lowPrice: "Min",
+    highPrice: "Max",
   },
 };
 export default enUS;

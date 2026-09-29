@@ -1,171 +1,114 @@
-@import '../../styles/mixins/text-ellipsis.scss';
+@import '../../styles/variables';
 
-.nut-theme-dark {
-  .nb-card {
-    .nb-card__right {
-      color: $dark-color;
-    }
-  }
-}
-
-%noClamp {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  word-break: break-all;
-}
+$nb-card-background: var(--nb-card-background, $nb-color-surface);
+$nb-card-image-size: var(--nb-card-image-size, 120px);
+$nb-card-title-color: var(--nb-card-title-color, $nb-color-title);
+$nb-card-title-font-size: var(--nb-card-title-font-size, $nb-font-size-base);
+$nb-card-shop-color: var(--nb-card-shop-color, $nb-color-text-help);
 
 .nb-card {
   width: 100%;
-  background-color: #fff;
+  background-color: $nb-card-background;
+  box-sizing: border-box;
 
   &__main {
     display: flex;
   }
 
   &__left {
-    width: 120px;
-    height: 120px;
-    flex-shrink: 0;
     position: relative;
+    flex-shrink: 0;
+    width: $nb-card-image-size;
+    height: $nb-card-image-size;
+    overflow: hidden;
+  }
 
-    > img {
-      display: block;
-      width: 100%;
-      height: 100%;
+  &__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  &__img-tag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+
+    &--top-right {
+      left: auto;
+      right: 0;
     }
   }
 
   &__right {
     flex: 1;
+    min-width: 0;
     padding: 10px;
-    width: calc(100% - 130px);
+  }
 
-    .nb-card__right__title {
-      line-height: 1.5;
-      font-size: 14px;
+  &__title {
+    color: $nb-card-title-color;
+    font-size: $nb-card-title-font-size;
+    line-height: 1.5;
 
-      &.multiple-lines {
-        @extend %noClamp;
-      }
-
-      &.one-line {
-        @include oneline-ellipsis;
-      }
+    &--one-line {
+      @include oneline-ellipsis;
     }
-    .nb-card__right__price {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      line-height: 18px;
 
-      > * {
-        margin-top: 9px;
-      }
-
-      .nut-price {
-        @include text-ellipsis;
-
-        .nut-price__big {
-          font-size: 18px;
-        }
-        .nut-price__symbol, 
-        .nut-price__integer, 
-        .nut-price__decimal {
-          display: inline;
-        }
-        .nut-price__symbol,
-        .nut-price__point,
-        .nut-price__small {
-          font-size: 12px;
-        }
-      }
-    }
-    .nb-card__right__shop {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      .nb-card__right__shop__name {
-        line-height: 1.5;
-        color: #999;
-        font-size: 12px;
-        padding-top: 4px;
-        width: 100%;
-
-        span {
-          @include text-ellipsis;
-          display: inline-block;
-          max-width: 90%;
-          vertical-align: -5px;
-          margin-right: 5px;
-        }
-      }
+    &--multiple-lines {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      word-break: break-all;
     }
   }
 
-  &.half-line {
+  &__price {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    line-height: 18px;
+  }
+
+  &__shop {
+    display: flex;
+    align-items: center;
+    padding-top: 4px;
+    color: $nb-card-shop-color;
+    font-size: $nb-font-size-s;
+    line-height: 1.5;
+  }
+
+  &__shop-name {
+    @include text-ellipsis;
+    max-width: 90%;
+    margin-right: 4px;
+  }
+
+  // 上图下文, 双列
+  &--half-line {
     display: inline-flex;
     flex-direction: column;
     width: 48%;
-    margin-right: 10px;
-    margin-bottom: 10px;
+    vertical-align: top;
 
     .nb-card__main {
-      display: inline-flex;
       flex-direction: column;
-    }
-
-    &:nth-child(2n+1) {
-      margin-right: 0;
-    }
-
-    .nut-image {
-      position: absolute;
-      top: 0;
-    }
-
-    img {
-      width: 100%;
-    }
-
-    .half-line-img {
-      position: relative;
-    }
-
-    .nb-card__right__title {
-      color: #333;
-      margin-top: 8px;
-
-      &.one-line {
-        @include oneline-ellipsis;
-      }
-
-      &.multiple-lines {
-        @extend %noClamp;
-      }
     }
 
     .nb-card__left {
       width: 100%;
+      height: auto;
       padding-top: 100%;
-
     }
 
-    .nb-card__right {
-      width: 100%;
-    }
-
-    .half-line-bottom {
-      padding: 10px;
-    }
-  }
-
-  .img-tag {
-    position: absolute;
-    z-index: 1;
-
-    &.top-right {
-      right: 0;
+    .nb-card__image {
+      position: absolute;
+      top: 0;
+      left: 0;
     }
   }
 }

@@ -6,7 +6,7 @@ function multiply(num1:any, num2:any) {
 	let l1 = num1.length,
 		l2 = num2.length;
 
-	let result = [];
+	let result: number[] = [];
 
 	for (let i = l1 - 1; i >= 0; i--) {
 		for (let j = l2 - 1; j >= 0; j--) {

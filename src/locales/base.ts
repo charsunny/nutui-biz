@@ -10,19 +10,6 @@ export interface BaseLang {
   tel: string;
   default: string;
   addres: string;
-  video: {
-    errorTip: string;
-    clickRetry: string;
-  };
-  fixednav: {
-    activeText: string;
-    unActiveText: string;
-  };
-  infiniteloading: {
-    pullRefreshText: string;
-    loadText: string;
-    loadMoreText: string;
-  };
   searchHistory: {
     recentSearchText: string;
     searchDiscoverText: string;
@@ -31,58 +18,18 @@ export interface BaseLang {
     deleteAll: string;
     finish: string;
     hidden: string;
+    placeholder: string;
   };
   settleBar: {
     totalText: string;
     settleButtonText: string;
     selectAll: string;
-  };
-  pagination: {
-    prev: string;
-    next: string;
-  };
-  range: {
-    rangeText: string;
-  };
-  calendaritem: {
-    weekdays: Array<string>;
-    end: string;
-    start: string;
-    title: string;
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    monthTitle: Function;
-    today: string;
-    loadPreviousMonth: string;
-    noEarlierMonth: string;
-  };
-  shortpassword: {
-    title: string;
-    desc: string;
-    tips: string;
-  };
-  uploader: {
-    ready: string;
-    readyUpload: string;
-    waitingUpload: string;
-    uploading: string;
-    success: string;
-    error: string;
-    deleteWord: string;
-  };
-  countdown: {
-    day: string;
-    hour: string;
-    minute: string;
-    second: string;
+    colon: string;
   };
   address: {
     selectRegion: string;
     deliveryTo: string;
     chooseAnotherAddress: string;
-  };
-  signature: {
-    reSign: string;
-    unSupportTpl: string;
   };
   ecard: {
     chooseText: string;
@@ -104,9 +51,6 @@ export interface BaseLang {
     addressErrorMsg: string;
     bottomText: string;
   };
-  timeselect: {
-    pickupTime: string;
-  };
   sku: {
     buyNow: string;
     buyNumber: string;
@@ -115,6 +59,7 @@ export interface BaseLang {
   };
   skuheader: {
     skuId: string;
+    colon: string;
   };
   addresslist: {
     addAddress: string;
@@ -132,43 +77,49 @@ export interface BaseLang {
   };
   comment: {
     complaintsText: string;
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    additionalReview: Function;
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    additionalImages: Function;
+    additionalReview: (day: number) => string;
+    additionalImages: (length: number) => string;
+    totalImages: (length: number) => string;
   };
-  searchbar: {
-    basePlaceholder: string;
-    text: string;
-    test: string;
-    title1: string;
-    title2: string;
-    title3: string;
-    title4: string;
-    title5: string;
-    title6: string;
+  coupon: {
+    btnText: string;
   };
-  audio: {
-    back: string;
-    forward: string;
-    pause: string;
-    start: string;
-    mute: string;
-    tips: string;
+  invoiceTitleEdit: {
+    titleTypeText: string;
+    personalText: string;
+    enterpriseText: string;
+    titleText: string;
+    titlePlaceholder: string;
+    companyCodeText: string;
+    companyCodePlaceholder: string;
+    addressText: string;
+    addressPlaceholder: string;
+    companyPhoneText: string;
+    companyPhonePlaceholder: string;
+    bankDepositText: string;
+    bankDepositPlaceholder: string;
+    bankAccountText: string;
+    bankAccountPlaceholder: string;
+    submitButtonText: string;
   };
-  datepicker: {
-    year: string;
-    month: string;
-    day: string;
-    hour: string;
-    min: string;
-    seconds: string;
+  invoiceTitleList: {
+    defaultText: string;
+    statusPass: string;
+    statusVeto: string;
+    statusApproval: string;
+    companyCodeText: string;
+    addressText: string;
+    companyPhoneText: string;
+    bankDepositText: string;
+    bankAccountText: string;
+    deleteText: string;
+    editText: string;
   };
-  pullToRefresh: {
-    pullingText: string;
-    canReleaseText: string;
-    refreshingText: string;
-    completeText: string;
+  delivery: {
+    title: string;
+    deliveryTimeTitle: string;
+    jdExpress: string;
+    buttonText: string;
   };
   orderRemark: {
     placeholderText: string;
@@ -179,7 +130,12 @@ export interface BaseLang {
   horizontalscrolling: {
     more: string;
   };
-  orderCancelPanel: { otherText: string };
+  orderCancelPanel: {
+    otherText: string;
+    submitText: string;
+    tipsTitle: string;
+    btnTipsText: string;
+  };
   addressedit: {
     nameText: string;
     namePlaceholder: string;
@@ -211,5 +167,15 @@ export interface BaseLang {
   };
   category: {
     pullUpText: string;
+  };
+  goodsfilter: {
+    confirm: string;
+    reset: string;
+    priceRangeTitle: string;
+    addressTitle: string;
+    noAddress: string;
+    modify: string;
+    lowPrice: string;
+    highPrice: string;
   };
 }

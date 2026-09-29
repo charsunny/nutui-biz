@@ -1,130 +1,112 @@
-import { ReactNode, CSSProperties } from 'react';
-import { IComponent } from '@/utils/typings';
+import type { ReactNode } from 'react'
+import type { IComponent } from '../../utils/typings'
 
 export interface RegionData {
-  name?: string;
-  [key: string]: any;
+  id?: string | number
+  name?: string
+  /** type="elevator" 时必填, 楼层索引 (一般为拼音首字母) */
+  title?: string
+  [key: string]: any
 }
+
+/** 行政区域层级 */
+export type RegionKey = 'province' | 'city' | 'country' | 'town'
 
 export interface ChangeCallBack {
-  next: string;
-  value: RegionData;
-  custom: string;
-}
-export interface CloseCallBackData extends SelectedRegionObj {
-  addressIdStr: string;
-  addressStr: string;
+  /** 下一级, 已是最后一级时为 '' */
+  next: RegionKey | ''
+  value: RegionData
+  /** 当前点击的层级 */
+  custom: RegionKey
 }
 
-export interface CloseCallBack {
-  data: CloseCallBackData | AddressList;
-  type: string;
+export interface NextListObj extends ChangeCallBack {
+  selectedRegion?: SelectedRegionObj
+}
+
+/** 已选地址 */
+export interface SelectedRegionObj {
+  province: RegionData
+  city: RegionData
+  country: RegionData
+  town: RegionData
+}
+
+export interface CloseCallBackData extends SelectedRegionObj {
+  addressIdStr: string
+  addressStr: string
 }
 
 export interface AddressList {
-  id?: string | number;
-  provinceName: string;
-  cityName: string;
-  countyName: string;
-  townName: string;
-  addressDetail: string;
-  selectedAddress: boolean;
-  name?: string;
-  phone?: string;
-}
-export interface NextListObj {
-  next: string;
-  value: RegionData;
-  custom: string;
-  selectedRegion?: SelectedRegionObj;
-}
-// 已选地址
-export interface SelectedRegionObj {
-  province: RegionData;
-  city: RegionData;
-  country: RegionData;
-  town: RegionData;
-}
-export interface baseAddressInfo {
-  province: RegionData[];
-  city: RegionData[];
-  country: RegionData[];
-  town: RegionData[];
-}
-export interface AddressResult extends AddressList, baseAddressInfo {
-  addressIdStr: string;
-  addressStr: string;
-}
-export type AddressType = 'exist' | 'custom' | 'elevator';
-export type HotCityList = Array<{
-  id: number;
-  name: string;
-  title: string;
-}>;
-
-export interface ExistRenderProps {
-  type: string;
-  existAddress: AddressList[] | [];
-  defaultIcon: ReactNode;
-  selectedIcon: ReactNode;
-  isShowCustomAddress: boolean;
-  customAndExistTitle: ReactNode;
-  onSelected?: (prevExistAdd: AddressList, item: AddressList, copyExistAdd: AddressList[]) => void;
-  onClose?: (cal: { closeWay: string }) => void;
-  onSwitchModule?: (cal: { type: string }) => void;
+  id?: string | number
+  provinceName: string
+  cityName: string
+  countyName: string
+  townName: string
+  addressDetail: string
+  selectedAddress: boolean
+  name?: string
+  phone?: string
 }
 
-export interface AddressProps extends IComponent, baseAddressInfo {
-  className?: string;
-  style?: CSSProperties;
-  modelValue: boolean;
-  modelSelect: (string | number)[];
-  type: AddressType;
-  isShowCustomAddress: boolean;
-  existAddress: AddressList[];
-  loading: boolean;
-  // hotCities: HotCityList;
-  customAddressTitle: ReactNode;
-  existAddressTitle: ReactNode;
-  customAndExistTitle: ReactNode;
-  height: string | number;
-  defaultIcon: ReactNode;
-  selectedIcon: ReactNode;
-  closeBtnIcon: string;
-  backBtnIcon: string;
-  bottom: ReactNode;
-  onSelected?: (prevExistAdd: AddressList, item: AddressList, copyExistAdd: AddressList[]) => void;
-  onClose?: (cal: CloseCallBack) => void;
-  // onClickHotCity?: (city: { id: number; name: string }) => void;
-  onCloseMask?: (cal: { closeWay: string }) => void;
-  onSwitchModule?: (cal: { type: string }) => void;
-  onChange?: (cal: ChangeCallBack) => void;
-  onClickItem?: (cal: ChangeCallBack, resolve: (value: boolean | PromiseLike<boolean>) => void) => Promise<void>;
-  onTabChecked?: (cal: string) => void;
+export interface CloseCallBack {
+  data: CloseCallBackData | AddressList
+  type: AddressType
 }
 
-export interface CustomRenderProps extends baseAddressInfo {
-  modelValue: (string | number)[];
-  type: string;
-  height: string | number;
-  loading: boolean;
-  // hotCities: HotCityList;
-  onNextArea?: (cal: NextListObj, lazyStatus: boolean) => void;
-  emitSelectedRegion?: (cal: SelectedRegionObj) => void;
-  onTabClick?: (type: string) => void;
-  onClose?: () => void;
-  onClickItem?: (cal: ChangeCallBack, resolve: (value: boolean | PromiseLike<boolean>) => void) => Promise<void>;
-
-  // onClickHotCity?: (city: { id: number; name: string; title: string }) => void;
+export interface BaseAddressInfo {
+  province: RegionData[]
+  city: RegionData[]
+  country: RegionData[]
+  town: RegionData[]
 }
-export interface CustomRegionData {
-  title: string;
-  list: any[];
+/** @deprecated 使用 BaseAddressInfo */
+export type baseAddressInfo = BaseAddressInfo
+
+export interface AddressResult extends AddressList, BaseAddressInfo {
+  addressIdStr: string
+  addressStr: string
 }
 
-export interface MapRef {
-  province: React.RefObject<HTMLDivElement>;
-  city: React.RefObject<HTMLDivElement>;
-  country: React.RefObject<HTMLDivElement>;
-  town: React.RefObject<HTMLDivElement>;
+export type AddressType = 'exist' | 'custom' | 'elevator'
+
+export type ClickItemResolve = (value: boolean | PromiseLike<boolean>) => void
+
+export interface AddressProps extends IComponent, BaseAddressInfo {
+  /** 是否打开地址选择 */
+  modelValue: boolean
+  /** 默认选中地址, 按 province、city、country、town 顺序的 id 数组 */
+  modelSelect: (string | number)[]
+  type: AddressType
+  isShowCustomAddress: boolean
+  existAddress: AddressList[]
+  loading: boolean
+  customAddressTitle: ReactNode
+  existAddressTitle: ReactNode
+  customAndExistTitle: ReactNode
+  /** type="elevator" 时列表区域高度 */
+  height: string | number
+  defaultIcon: ReactNode
+  selectedIcon: ReactNode
+  /** 关闭按钮图标, 传 null 不显示 */
+  closeBtnIcon: ReactNode
+  /** 已有地址切到自定义地址时, 左上角返回按钮图标, 传 null 不显示 */
+  backBtnIcon: ReactNode
+  bottom: ReactNode
+  onSelected?: (prevExistAdd: AddressList, item: AddressList, copyExistAdd: AddressList[]) => void
+  onClose?: (cal: CloseCallBack) => void
+  onCloseMask?: (cal: { closeWay: 'mask' | 'cross' }) => void
+  onSwitchModule?: (cal: { type: AddressType }) => void
+  onChange?: (cal: ChangeCallBack) => void
+  /**
+   * 点击地区时触发, 用于异步加载下一级。调用 resolve(true) 切到下一级,
+   * resolve(false) 关闭弹窗并触发 onClose。
+   */
+  onClickItem?: (cal: ChangeCallBack, resolve: ClickItemResolve) => void | Promise<void>
+  onTabChecked?: (cal: RegionKey) => void
+}
+
+export interface ElevatorGroup {
+  title: string
+  list: RegionData[]
 }

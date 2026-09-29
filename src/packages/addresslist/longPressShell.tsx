@@ -1,164 +1,116 @@
-import React, {
-  FunctionComponent,
-  useState
-} from 'react'
-import { useConfig } from '@/packages/configprovider'
-
-import { IComponent } from '@/utils/typings'
+import { useEffect, useRef, useState } from 'react'
+import type { FunctionComponent } from 'react'
+import { View, Text } from '@tarojs/components'
+import type { ITouchEvent } from '@tarojs/components'
+import bem from '../../utils/bem'
+import { useConfig } from '../configprovider'
 import { ItemContents } from './itemContents'
-import bem from '@/utils/bem'
-import { IDataInfo, functionType } from './addresslist'
+import type { AddressListHandler, IDataInfo } from './types'
 
-export interface GeneralShellProps extends IComponent {
+export interface LongPressShellProps {
   item: IDataInfo
   longPress: boolean
-  onLongCopy?: functionType
-  onLongSet?: functionType
-  onLongDel?: functionType
-  onDelIcon?: functionType
-  onEditIcon?: functionType
-  onItemClick?: functionType
-  onLongDown?: functionType
+  onLongCopy?: AddressListHandler
+  onLongSet?: AddressListHandler
+  onLongDel?: AddressListHandler
+  onDelIcon?: AddressListHandler
+  onEditIcon?: AddressListHandler
+  onItemClick?: AddressListHandler
 }
 
-const defaultProps = {
-  longPress: false
-} as GeneralShellProps
+const LONG_PRESS_DELAY = 300
 
-export const LongPressShell: FunctionComponent<
-  Partial<GeneralShellProps>
-> = (props) => {
+export const LongPressShell: FunctionComponent<LongPressShellProps> = ({
+  item,
+  longPress,
+  onLongCopy,
+  onLongSet,
+  onLongDel,
+  onDelIcon,
+  onEditIcon,
+  onItemClick,
+}) => {
   const { locale } = useConfig()
-  const {
-    item,
-    longPress,
-    onLongCopy,
-    onLongSet,
-    onLongDel,
-    onDelIcon,
-    onEditIcon,
-    onItemClick,
-    onLongDown,
-    ...rest
-  } = {
-    ...defaultProps,
-    ...props,
-  }
-
   const b = bem('address-list')
+  const timer = useRef<ReturnType<typeof setTimeout>>()
+  // 长按后松手会再触发一次点击, 用它屏蔽
+  const pressed = useRef(false)
+  const [showMask, setShowMask] = useState(false)
 
-  let loop: number = 0;
+  const clearTimer = () => {
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = undefined
+  }
 
-  const [showMaskRef, setShowMaskRef] = useState<boolean>(false)
+  useEffect(() => clearTimer, [])
 
-  const maskClick = (event: any) => {
-    if (loop != 0) {
-      // 排除长按时触发点击的情况
-      setShowMaskRef(false)
+  const handleTouchStart = () => {
+    if (!longPress) return
+    pressed.current = false
+    clearTimer()
+    timer.current = setTimeout(() => {
+      pressed.current = true
+      setShowMask(true)
+    }, LONG_PRESS_DELAY)
+  }
+
+  const handleItemClick: AddressListHandler = (event, data) => {
+    if (pressed.current) {
+      pressed.current = false
+      return
     }
-    event.stopPropagation();
-    event.preventDefault();
-  };
+    onItemClick?.(event, data)
+  }
 
-  const copyClick = (event: any) => {
-    if(item){
-      onLongCopy?.(event, item)
+  const action = (fn?: AddressListHandler) => (event: ITouchEvent) => {
+    event.stopPropagation()
+    setShowMask(false)
+    fn?.(event, item)
+  }
+
+  const hideMask = (event: ITouchEvent) => {
+    event.stopPropagation()
+    if (pressed.current) {
+      pressed.current = false
+      return
     }
-    event.stopPropagation();
-  }
-
-  const setDefault = (event: any) => {
-    if(item) {
-      onLongSet?.(event, item)
-    }
-    event.stopPropagation();
-  }
-
-  const delClick = (event: any) => {
-    if(item) {
-      onLongDel?.(event, item)
-    }
-    event.stopPropagation();
-  }
-
-  const hideMaskClick = () => {
-    setShowMaskRef(false)
-  }
-
-  const delShellClick = (event: any) => {
-    if(item) {
-      onDelIcon?.(event, item)
-    }
-    event.stopPropagation();
-  }
-
-  const editShellClick = (event: any) => {
-    if(item) {
-      onEditIcon?.(event, item)
-    }
-    event.stopPropagation();
-  }
-
-  const itemShellClick = (event: any) => {
-    if(item) {
-      onItemClick?.(event, item)
-    }
-    event.stopPropagation();
-  }
-
-  const holdingFunc = (event: Event) => {
-    loop = 0;
-    setShowMaskRef(true)
-    if(item) {
-      onLongDown?.(event, item)
-    }
-  }
-
-  // 长按功能实现
-  const holddownstart = (event: Event) => {
-    loop = setTimeout(() => {
-      holdingFunc(event);
-    }, 300);
-  }
-
-  const holddownmove = () => {
-    // 滑动不触发长按
-    clearTimeout(loop);
-  }
-  
-  const holddownend = () => {
-    // 删除定时器，防止重复注册
-    clearTimeout(loop);
+    setShowMask(false)
   }
 
   return (
-    <div {...rest} className={b('general')}>
+    <View
+      className={b('general')}
+      onTouchStart={handleTouchStart}
+      onTouchMove={clearTimer}
+      onTouchEnd={clearTimer}
+      onTouchCancel={clearTimer}
+    >
       <ItemContents
         item={item}
-        onDelIcon={delShellClick}
-        onEditIcon={editShellClick}
-        onClickItem={itemShellClick}
-        // @ts-ignore
-        onTouchStart={holddownstart}
-        onTouchEnd={holddownend}
-        onTouchMove={holddownmove}
+        onDelIcon={onDelIcon}
+        onEditIcon={onEditIcon}
+        onClickItem={handleItemClick}
       />
-      {longPress && showMaskRef && <div className={b('general-mask')} onClick={maskClick}>
-        <div className={b('general-mask-copy')} onClick={copyClick}>
-          <div className={b('mask-contain')}> {locale.generalShell.copyAddress} </div>
-        </div>
-        {!item.defaultAddress && <div className={b('general-mask-set')} onClick={setDefault}>
-          <div className={b('mask-contain')}> {locale.generalShell.setDefault} </div>
-        </div>}
-        <div className={b('general-mask-del')} onClick={delClick}>
-          <div className={b('mask-contain')}> {locale.generalShell.deleteAddress} </div>
-        </div>
-      </div>}
-      
-      {showMaskRef && <div className={b('mask-bottom')} onClick={hideMaskClick}></div>}
-    </div>
+      {longPress && showMask && (
+        <>
+          <View className={b('mask-bottom')} onClick={hideMask} catchMove />
+          <View className={b('general-mask')} onClick={hideMask}>
+            <View className={b('mask-btn', { copy: true })} onClick={action(onLongCopy)}>
+              <Text>{locale.generalShell.copyAddress}</Text>
+            </View>
+            {!item.defaultAddress && (
+              <View className={b('mask-btn', { set: true })} onClick={action(onLongSet)}>
+                <Text>{locale.generalShell.setDefault}</Text>
+              </View>
+            )}
+            <View className={b('mask-btn', { del: true })} onClick={action(onLongDel)}>
+              <Text>{locale.generalShell.deleteAddress}</Text>
+            </View>
+          </View>
+        </>
+      )}
+    </View>
   )
 }
 
-LongPressShell.defaultProps = defaultProps
-LongPressShell.displayName = 'NutGeneralShell'
+LongPressShell.displayName = 'NbAddressListLongPressShell'

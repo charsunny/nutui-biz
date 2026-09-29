@@ -1,24 +1,87 @@
-.nb-receive-invoice-edit{
-    background: $white;
-    padding:5px 10px;
-    border-radius: 4px;
-    &__item{
-        background: $white;
-        padding: 0 10px;
-        font-size: $font-size-2;
-        color:$title-color2;
+@import '../../styles/variables';
+
+$nb-receive-invoice-edit-background: var(--nb-receive-invoice-edit-background, $nb-color-surface);
+$nb-receive-invoice-edit-label-width: var(--nb-receive-invoice-edit-label-width, 80px);
+$nb-receive-invoice-edit-label-color: var(--nb-receive-invoice-edit-label-color, $nb-color-title);
+$nb-receive-invoice-edit-font-size: var(--nb-receive-invoice-edit-font-size, $nb-font-size-base);
+$nb-receive-invoice-edit-placeholder-color: var(--nb-receive-invoice-edit-placeholder-color, $nb-color-text-disabled);
+$nb-receive-invoice-edit-border-color: var(--nb-receive-invoice-edit-border-color, $nb-color-border);
+$nb-receive-invoice-edit-error-color: var(--nb-receive-invoice-edit-error-color, $nb-color-primary);
+
+.nb-receive-invoice-edit {
+  padding: 5px 10px;
+  background-color: $nb-receive-invoice-edit-background;
+  border-radius: $nb-radius-xs;
+  box-sizing: border-box;
+
+  &__item {
+    padding: 12px 10px;
+    color: $nb-receive-invoice-edit-label-color;
+    font-size: $nb-receive-invoice-edit-font-size;
+    border-bottom: 1px solid $nb-receive-invoice-edit-border-color;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+  }
+
+  &__label {
+    position: relative;
+    flex-shrink: 0;
+    width: $nb-receive-invoice-edit-label-width;
+    margin-right: 10px;
+    line-height: 24px;
+  }
+
+  &__required {
+    position: absolute;
+    left: -8px;
+    color: $nb-receive-invoice-edit-error-color;
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    --nutui-input-font-size: #{$nb-receive-invoice-edit-font-size};
+  }
+
+  &__region {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    line-height: 24px;
+  }
+
+  &__region-text {
+    flex: 1;
+    min-width: 0;
+    @include text-ellipsis;
+
+    &--placeholder {
+      color: $nb-receive-invoice-edit-placeholder-color;
     }
-    &__bottom{
-        bottom: constant(safe-area-inset-bottom);
-        bottom: env(safe-area-inset-bottom);
-        width: 100%;
-        padding: 6px 15px;
-        background-color: #fff;
-    }
-    .nut-input{
-        padding: var(--nutui-input-padding, 10px 10px);
-    }
-    .nut-input.nut-input-required:before{
-        left: 0;
-    }
+  }
+
+  &__region-arrow {
+    flex-shrink: 0;
+    margin-left: 6px;
+    color: $nb-color-text-help;
+    --nut-icon-color: #{$nb-color-text-help};
+  }
+
+  &__error {
+    margin-top: 4px;
+    padding-left: calc(#{$nb-receive-invoice-edit-label-width} + 10px);
+    color: $nb-receive-invoice-edit-error-color;
+    font-size: $nb-font-size-s;
+    line-height: 1.2;
+  }
+
+  &__bottom {
+    padding: 16px 5px 6px;
+  }
 }

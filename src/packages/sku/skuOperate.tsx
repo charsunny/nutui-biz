@@ -1,76 +1,59 @@
-import React, {
-  FunctionComponent,
-  ReactNode
-} from 'react'
-import { useConfig } from '@/packages/configprovider'
-import { IComponent } from '@/utils/typings'
-import classNames from 'classnames'
+import type { FunctionComponent, ReactNode } from 'react'
+import { View, Text } from '@tarojs/components'
+import bem from '../../utils/bem'
+import type { IComponent } from '../../utils/typings'
+
+export type SkuOperateType = 'confirm' | 'buy' | 'cart'
 
 export interface SkuOperateProps extends IComponent {
-  btnOptions: Array<string>
-  btnExtraText: string
+  btnOptions: Array<SkuOperateType | string>
+  btnExtraText: ReactNode
   operateBtn: ReactNode
   skuOperate: ReactNode
-  buyText: string
-  addCartText: string
-  confirmText: string
-  onClickBtnOperate: (btn: string) => void
+  buyText: ReactNode
+  addCartText: ReactNode
+  confirmText: ReactNode
+  onClickBtnOperate: (type: string) => void
 }
 
-export const SkuOperate: FunctionComponent<
-  Partial<SkuOperateProps> & React.HTMLAttributes<HTMLDivElement>
-> = (props) => {
-  const { locale } = useConfig()
-  const {
-    btnOptions,
-    btnExtraText,
-    operateBtn,
-    buyText,
-    addCartText,
-    confirmText,
-    skuOperate,
-    onClickBtnOperate
-  } = {
-    ...props,
+export const SkuOperate: FunctionComponent<Partial<SkuOperateProps>> = ({
+  btnOptions = [],
+  btnExtraText,
+  operateBtn,
+  buyText,
+  addCartText,
+  confirmText,
+  skuOperate,
+  onClickBtnOperate,
+}) => {
+  const b = bem('sku')
+  if (!btnOptions.length) return null
+
+  const textMap: Record<string, ReactNode> = {
+    confirm: confirmText,
+    cart: addCartText,
+    buy: buyText,
   }
-
-  const clickBtnOperate = (btn: string) => {
-    onClickBtnOperate && onClickBtnOperate(btn)
-  }
-
-  const getBtnDesc = (type: string) => {
-    if(typeof confirmText === 'undefined' || typeof addCartText === 'undefined' || typeof buyText === 'undefined') return;
-
-    let mapD: { [props: string]: string } = {
-      confirm: confirmText,
-      cart: addCartText,
-      buy: buyText
-    };
-
-    return mapD[type];
-  };
 
   return (
-    <>
-      {btnOptions && btnOptions.length > 0 ? <div className='nut-sku-operate'>
-      {btnExtraText && <div className='nut-sku-operate-desc'>{btnExtraText}</div>}
-      { skuOperate }
-      {operateBtn || <div className='nut-sku-operate-btn'>
-      {
-        btnOptions.map((btn, i) => {
-          return <div 
-              className={classNames([`nut-sku-operate-btn-${btn}`, 'nut-sku-operate-btn-item'])}
-              key={i}
-              onClick={()=>clickBtnOperate(btn)}
+    <View className={b('operate')}>
+      {btnExtraText && <View className={b('operate-desc')}>{btnExtraText}</View>}
+      {skuOperate}
+      {operateBtn || (
+        <View className={b('operate-btn')}>
+          {btnOptions.map((btn) => (
+            <View
+              className={b('operate-btn-item', { [btn]: true })}
+              key={btn}
+              onClick={() => onClickBtnOperate?.(btn)}
             >
-              {getBtnDesc(btn)}
-          </div>
-        })
-      }
-      </div>}
-      </div> : null}
-    </>
+              <Text>{textMap[btn]}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
   )
 }
 
-SkuOperate.displayName = 'NutSkuOperate'
+SkuOperate.displayName = 'NbSkuOperate'
