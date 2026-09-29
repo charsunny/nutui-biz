@@ -67,6 +67,7 @@ import { Button } from '@nutui/nutui-react-taro'
 | 字段         | 说明                         | 类型             | 默认值 |
 | ------------ | ---------------------------- | ---------------- | ------ |
 | data         | 发票信息，未传的字段取下表默认值 | Partial\<Idata\> | -      |
+| infoFields   | 展示哪些信息行 (按此顺序)，可选 `companyCode` `address` `companyPhone` `bankDeposit` `bankAccount` | InvoiceTitleInfoField[] | 全部 |
 | otherOperate | 扩展其他操作 (放在删除/编辑按钮之前) | ReactNode        | -      |
 | className    | 根节点类名                   | string           | -      |
 | style        | 根节点样式                   | CSSProperties    | -      |

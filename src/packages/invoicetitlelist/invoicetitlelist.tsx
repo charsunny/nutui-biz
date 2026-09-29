@@ -26,8 +26,14 @@ export interface Idata {
   isEdit: boolean
 }
 
+const INFO_FIELDS = ['companyCode', 'address', 'companyPhone', 'bankDeposit', 'bankAccount'] as const
+
+export type InvoiceTitleInfoField = (typeof INFO_FIELDS)[number]
+
 export interface InvoiceTitleListProps extends IComponent {
   data: Partial<Idata>
+  /** 展示哪些信息行 (按此顺序), 默认全部 —— 个人抬头没有税号与银行信息, 不该显示一排 "-" */
+  infoFields: InvoiceTitleInfoField[]
   otherOperate: ReactNode
   onClick: (data: Idata) => void
   onDelete: (data: Idata) => void
@@ -48,12 +54,11 @@ const DEFAULT_DATA: Idata = {
   isEdit: true,
 }
 
-const INFO_FIELDS = ['companyCode', 'address', 'companyPhone', 'bankDeposit', 'bankAccount'] as const
-
 export const InvoiceTitleList: FunctionComponent<Partial<InvoiceTitleListProps>> = ({
   className,
   style,
   data: dataProp,
+  infoFields = [...INFO_FIELDS],
   otherOperate,
   onClick,
   onDelete,
@@ -90,7 +95,7 @@ export const InvoiceTitleList: FunctionComponent<Partial<InvoiceTitleListProps>>
               <View className={b('main-status', { [status]: true })}>{statusText[status] ?? status}</View>
             ) : null}
           </View>
-          {INFO_FIELDS.map((field) => (
+          {infoFields.map((field) => (
             <View className={b('info')} key={field}>
               <View className={b('info-title')}>{infoLabels[field]}</View>
               <View className={b('info-content')}>{data[field]}</View>

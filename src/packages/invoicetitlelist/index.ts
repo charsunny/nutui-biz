@@ -6,5 +6,6 @@ export type {
   InvoiceTitleListProps,
   Idata as InvoiceTitleListData,
   InvoiceTitleStatus,
+  InvoiceTitleInfoField,
 } from './invoicetitlelist'
 export { InvoiceTitleList as default } from './invoicetitlelist'

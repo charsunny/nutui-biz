@@ -66,6 +66,7 @@ export default App
 | defaultValue | 当前选中联系人的 id, 变化时同步 | number \| string | `''` |
 | list | 联系人列表 | ReceiveInvoiceItem[] | `[]` |
 | enableDelete | 是否启用左滑删除 | boolean | `false` |
+| deselectable | 再次点击已选中项是否取消选中 (选中态代表业务状态时传 `false`) | boolean | `true` |
 | customEdit | 自定义编辑按钮 | ReactNode | `<Edit />` |
 
 ### ReceiveInvoiceItem
