@@ -1,385 +1,313 @@
-.nut-theme-dark {
-  .nut-comment {
-    &-header {
-      &__user {
-        &-name {
-          color: $dark-color;
-        }
+@import '../../styles/variables';
 
-        &-default {
-          &-name {
-            color: $dark-color;
-          }
-        }
-      }
-    }
-    &__follow {
-      &-title {
-        color: $dark-color;
-      }
-    }
-    &-bottom {
-      &__cpx {
-        color: $dark-color;
+$nb-comment-font-size: var(--nb-comment-font-size, $nb-font-size-s);
+$nb-comment-color: var(--nb-comment-color, $nb-color-title);
+$nb-comment-header-user-name-color: var(--nb-comment-header-user-name-color, $nb-color-title);
+$nb-comment-header-time-color: var(--nb-comment-header-time-color, $nb-color-text-help);
+$nb-comment-bottom-label-color: var(--nb-comment-bottom-label-color, $nb-color-text-help);
+$nb-comment-image-size: var(--nb-comment-image-size, 80px);
+$nb-comment-image-radius: var(--nb-comment-image-radius, $nb-radius-s);
+$nb-comment-popover-background: var(--nb-comment-popover-background, $nb-color-surface);
 
-        &-item {
-          span {
-            color: $dark-color;
-          }
-        }
-      }
-    }
-
-    .nut-comment-shop {
-      border-top: 1px solid $dark-color;
-    }
-  }
-}
 .nb-comment {
   width: 100%;
-  font-size: 12px;
-
-  &-header {
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-
-    &__user {
-      flex: 1;
-      display: flex;
-      align-items: center;
-
-      &-avter {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        margin-right: 10px;
-        overflow: hidden;
-
-        img {
-          width: 20px;
-          height: 20px;
-        }
-      }
-
-      &-name {
-        @include oneline-ellipsis();
-        margin-right: 5px;
-        font-size: 12px;
-        color: $comment-header-user-name-color;
-        width: auto;
-        max-width: 80px;
-      }
-
-      &-default {
-        flex: 1;
-        &-name {
-          display: flex;
-          align-items: center;
-          margin-bottom: 3px;
-
-          @include oneline-ellipsis();
-          font-size: 12px;
-          color: $comment-header-user-name-color;
-
-          > span {
-            margin-right: 8px;
-          }
-        }
-      }
-
-      &-complex {
-        display: flex;
-        align-items: center;
-        color: $comment-header-user-name-color;
-
-        &-name {
-          margin-right: 10px;
-          @include text-ellipsis();
-          max-width: 80px;
-        }
-
-        image {
-          max-width: 50px;
-          height: 16px;
-        }
-      }
-
-      &-score {
-        .nut-rate-item {
-          display: block !important;
-          line-height: 10px;
-
-          .nut-icon {
-            line-height: 10px;
-          }
-        }
-      }
-    }
-
-    &__time {
-      width: 100px;
-      text-align: right;
-      font-size: 12px;
-      color: $comment-header-time-color;
-    }
-
-    &__complex-score {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-
-      .nut-rate-item {
-        display: block !important;
-        line-height: 12px;
-
-        .nut-icon {
-          line-height: 12px;
-        }
-      }
-
-      &-i {
-        margin: 0 8px 0 6px;
-        display: inline-block;
-        width: 1px;
-        height: 6px;
-        background: $text-color;
-        opacity: 0.4;
-        font-style: inherit;
-      }
-      &-size {
-        @include oneline-ellipsis();
-      }
-    }
-  }
+  font-size: $nb-comment-font-size;
+  color: $nb-comment-color;
+  box-sizing: border-box;
 
   &__main {
-    word-break: break-all;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     overflow: hidden;
     word-break: break-all;
     white-space: pre-wrap;
-  }
-
-  &-images {
-    display: flex;
-    margin: 10px 0 12px;
-    overflow-x: auto;
-    overflow-y: hidden;
-
-    &__item {
-      position: relative;
-      width: 80px;
-      height: 80px;
-      margin-right: 5px;
-      border-radius: 6px;
-      overflow: hidden;
-      flex-shrink: 0;
-
-      img {
-        width: 80px;
-        height: 80px;
-      }
-
-      &--imgbox {
-        //   background: #f00;
-      }
-
-      &--video {
-        img {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          // height: auto;
-        }
-      }
-    }
-
-    &__mask {
-      position: absolute;
-      top: 0;
-      left: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 90px;
-      line-height: 90px;
-      background: rgba(0, 0, 0, 0.5);
-      font-size: 12px;
-      color: rgba(255, 255, 255, 1);
-      user-select: none;
-    }
-  }
-
-  &-images--multi {
-    flex-wrap: wrap;
-    justify-content: space-between;
-    overflow: hidden;
-    width: 100%;
-    margin: 10px auto 15px;
-
-    .nut-comment-images__item {
-      margin: 8px 8px 0 0;
-
-      width: calc(34% - 8px);
-      height: 90px;
-
-      img {
-        width: 100%;
-        height: 100%;
-      }
-
-      .svg-demo {
-        width: 40px;
-        height: 40px;
-      }
-
-      &:nth-child(3n) {
-        margin-right: 0;
-      }
-    }
-
-    &:after {
-      content: "";
-      display: block;
-      width: 105px;
-    }
+    line-height: 1.5;
   }
 
   &__follow {
     &-title {
       position: relative;
-      font-size: 14px;
-      font-weight: bold;
-      color: $black;
       padding-left: 8px;
+      font-size: $nb-font-size-base;
+      font-weight: $nb-font-weight-bold;
+      color: $nb-comment-color;
 
-      svg {
+      &::before {
+        content: '';
         position: absolute;
         left: 0;
-        top: 13%;
-        color: $primary-color;
-        transform: rotate(90deg);
+        top: 50%;
+        width: 3px;
+        height: 12px;
+        margin-top: -6px;
+        border-radius: 2px;
+        background: $nb-color-primary;
         opacity: 0.4;
       }
     }
+
     &-com {
-      margin: 8px 0px 8px 8px;
+      margin: 8px 0 8px 8px;
       @include moreline-ellipsis(6);
     }
+
     &-img {
+      display: flex;
+      align-items: center;
       margin: 0 0 8px 8px;
-      display: flex;
-      align-items: center;
+      color: $nb-color-text-help;
     }
   }
 
-  &-bottom {
+  &__shop {
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid $nb-color-border;
+    line-height: 1.5;
+    @include moreline-ellipsis(6);
+  }
+}
+
+.nb-comment-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+
+  &__user {
+    flex: 1;
+    min-width: 0;
     display: flex;
-    justify-content: space-between;
-    color: $comment-bottom-label-color;
-    margin-right: 5px;
+    align-items: center;
 
-    &__lable {
-      flex: 1;
+    &-avatar {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
       margin-right: 10px;
-      @include oneline-ellipsis();
+      border-radius: 50%;
+      overflow: hidden;
+      background: $nb-color-background;
     }
-    &__cpx {
+
+    &-avatar-img {
+      display: block;
+      width: 20px;
+      height: 20px;
+    }
+
+    &-default {
+      flex: 1;
+      min-width: 0;
+    }
+
+    &-default-name {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
-      color: $black;
+      margin-bottom: 3px;
+      overflow: hidden;
+      font-size: $nb-font-size-s;
+      color: $nb-comment-header-user-name-color;
+    }
 
-      &-item {
-        position: relative;
-        margin-right: 18px;
-        display: flex;
-        align-items: center;
+    &-default-nick {
+      @include text-ellipsis;
+      max-width: 120px;
+      margin-right: 8px;
+    }
 
-        span {
-          color: $black;
-          margin-right: 5px;
-        }
+    &-complex {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      color: $nb-comment-header-user-name-color;
+    }
 
-        &:last-child {
-          margin-right: 0;
-        }
-
-        &-popover {
-          position: absolute;
-          top: 35px;
-          right: 18px;
-          width: max-content;
-          background: $white;
-          padding: 10px;
-          box-shadow: 0 0 6px $disable-color;
-          border-radius: 5px 0 5px 5px;
-
-          &::after {
-            content: "";
-            position: absolute;
-            top: -20px;
-            right: 0px;
-            width: 0;
-            height: 0;
-            border-left: 14px solid transparent;
-            border-right: 0px solid transparent;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid $white;
-          }
-
-          &::before {
-            content: "";
-            position: absolute;
-            top: -22px;
-            right: -1px;
-            width: 0;
-            height: 0;
-            border-left: 14px solid transparent;
-            border-right: 0px solid transparent;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid rgba(114, 113, 113, 0.1);
-          }
-        }
-      }
+    &-complex-name {
+      @include text-ellipsis;
+      max-width: 80px;
+      margin-right: 10px;
     }
   }
 
-  &-images__play {
-    width: 40px;
-    height: 40px;
+  // 头部星级: 固定 12px 星星 (NutUI Rate 的 CSS 变量)
+  &__score {
+    display: flex;
+    align-items: center;
+    --nutui-rate-icon-size: 12px;
+    --nutui-rate-item-margin: 3px;
+  }
+
+  &__time {
+    flex-shrink: 0;
+    width: 100px;
+    text-align: right;
+    font-size: $nb-font-size-s;
+    color: $nb-comment-header-time-color;
+  }
+
+  &__complex-score {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+
+    &-divider {
+      flex-shrink: 0;
+      width: 1px;
+      height: 6px;
+      margin: 0 8px 0 6px;
+      background: $nb-color-text;
+      opacity: 0.4;
+    }
+
+    &-size {
+      flex: 1;
+      min-width: 0;
+      @include text-ellipsis;
+      color: $nb-color-text-help;
+    }
+  }
+}
+
+.nb-comment-images {
+  margin: 10px 0 12px;
+
+  &--one {
+    width: 100%;
+    white-space: nowrap;
+  }
+
+  &__track {
+    display: flex;
+  }
+
+  &__item {
+    position: relative;
+    flex-shrink: 0;
+    width: $nb-comment-image-size;
+    height: $nb-comment-image-size;
+    margin-right: 5px;
+    border-radius: $nb-comment-image-radius;
+    overflow: hidden;
+    background: $nb-color-background;
+  }
+
+  &__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  &__play {
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%);
+    width: 40px;
+    height: 40px;
     transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.5);
     border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
 
     &::after {
-      display: block;
-      content: "";
+      content: '';
       position: absolute;
       left: 15px;
       top: 11px;
       border-top: 9px solid transparent;
       border-bottom: 9px solid transparent;
-      border-left: 15px solid #fff;
+      border-left: 15px solid $nb-color-primary-text;
     }
   }
 
-  .nut-comment-shop {
+  &__mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    margin-top: 20px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    @include moreline-ellipsis(6);
-    span {
-      color: $comment-shop-color;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    font-size: $nb-font-size-s;
+    color: $nb-color-primary-text;
+  }
+
+  // 多行: 三列九宫格
+  &--multi {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    margin: 10px 0 15px;
+
+    .nb-comment-images__item {
+      width: calc((100% - 16px) / 3);
+      height: 90px;
+      margin: 8px 8px 0 0;
+
+      &:nth-child(3n) {
+        margin-right: 0;
+      }
+    }
+  }
+}
+
+.nb-comment-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-right: 5px;
+  color: $nb-comment-bottom-label-color;
+
+  &__label {
+    flex: 1;
+    min-width: 0;
+    margin-right: 10px;
+    @include text-ellipsis;
+  }
+
+  &__cpx {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    color: $nb-comment-color;
+  }
+
+  &__cpx-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-right: 18px;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  &__cpx-count {
+    margin-right: 5px;
+    color: $nb-comment-color;
+  }
+
+  &__popover {
+    position: absolute;
+    top: 28px;
+    right: 0;
+    z-index: 1;
+    padding: 10px;
+    white-space: nowrap;
+    background: $nb-comment-popover-background;
+    border-radius: 5px 0 5px 5px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: -10px;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-bottom: 10px solid $nb-comment-popover-background;
     }
   }
 }

@@ -1,113 +1,113 @@
-import React, { FunctionComponent, HTMLAttributes, useEffect, useState } from "react";
-import { IComponent } from "@/utils/typings";
-import { Icon } from "@nutui/nutui-react";
-import classNames from 'classnames';
-import bem from '@/utils/bem'
-
-export interface GoodsClickParams {
-  type: string;
-  index: string | number;
-  value: VideosType | ImagesType;
-}
+import type { FunctionComponent } from 'react'
+import { View, Text, Image, ScrollView } from '@tarojs/components'
+import { ArrowRight } from '@nutui/icons-react-taro'
+import { useConfig } from '../../configprovider'
+import bem from '../../../utils/bem'
 
 export interface VideosType {
-  id?: number | string;
-  mainUrl?: string;
-  videoUrl?: string;
+  id?: number | string
+  mainUrl?: string
+  videoUrl?: string
 }
 
 export interface ImagesType {
-  id?: number | string;
-  smallImgUrl?: string;
-  bigImgUrl?: string;
-  imgUrl?: string;
-}
-export interface CommentImagesProps extends IComponent {
-  type: "one" | "multi";
-  videos: Array<VideosType>;
-  images: Array<ImagesType>;
-  onClickImages: (imgs: GoodsClickParams) => void;
+  id?: number | string
+  smallImgUrl?: string
+  bigImgUrl?: string
+  imgUrl?: string
 }
 
+export interface GoodsClickParams {
+  /** video: 点击视频; img: 点击图片; more: 点击多行模式第 9 格的 "共 N 张" 遮罩 */
+  type: 'video' | 'img' | 'more'
+  /** 在 videos / images 各自数组里的下标 */
+  index: number
+  value: VideosType | ImagesType
+}
 
+export interface CommentImagesProps {
+  type: 'one' | 'multi'
+  videos: VideosType[]
+  images: ImagesType[]
+  onClickImages?: (imgs: GoodsClickParams) => void
+}
 
-const defaultProps = {
-  type: "one",
-} as CommentImagesProps;
+/** 多行模式最多展示 9 格 */
+const MULTI_MAX = 9
 
-export const CommentImages: FunctionComponent<
-  Partial<CommentImagesProps> & HTMLAttributes<HTMLDivElement>
-> = (props) => {
-  const { type, videos, images, onClickImages } = {
-    ...defaultProps,
-    ...props,
-  };
+export const CommentImages: FunctionComponent<CommentImagesProps> = ({
+  type,
+  videos,
+  images,
+  onClickImages,
+}) => {
+  const { locale } = useConfig()
   const b = bem('comment-images')
+  const multi = type === 'multi'
+  const total = videos.length + images.length
 
-  const [totalImages, setTotalImages] = useState(
-    [] as Array<VideosType | ImagesType>
-  );
+  if (!total) return null
 
-  const showImages = (type: string, index: number) => {
-    const i = type === "img" ? (index) - videos.length : index;
-    onClickImages &&
-      onClickImages({
-        type,
-        index: i,
-        value: type == "img" ? images[i] : videos[i],
-      });
-  };
+  const emit = (kind: GoodsClickParams['type'], index: number) => {
+    onClickImages?.({
+      type: kind,
+      index,
+      value: kind === 'video' ? videos[index] : images[index],
+    })
+  }
 
-  useEffect(() => {
-    if (videos && images) setTotalImages([...videos, ...images]);
-  }, [videos, images]);
+  const items = [
+    ...videos.map((video, index) => (
+      <View
+        className={b('item', { video: true })}
+        key={`v-${video.id ?? index}`}
+        onClick={() => emit('video', index)}
+      >
+        <Image className={b('img')} src={video.mainUrl || ''} mode="aspectFill" />
+        <View className={b('play')} />
+      </View>
+    )),
+    ...images.map((image, index) => {
+      const position = videos.length + index
+      if (multi && position >= MULTI_MAX) return null
+      const showMask = multi && total > MULTI_MAX && position === MULTI_MAX - 1
+      return (
+        <View
+          className={b('item', { imgbox: true })}
+          key={`i-${image.id ?? index}`}
+          onClick={() => emit('img', index)}
+        >
+          <Image
+            className={b('img')}
+            src={image.smallImgUrl || image.imgUrl || ''}
+            mode="aspectFill"
+          />
+          {showMask ? (
+            <View
+              className={b('mask')}
+              onClick={(e) => {
+                e.stopPropagation()
+                emit('more', index)
+              }}
+            >
+              <Text>{locale.comment.totalImages(total)}</Text>
+              <ArrowRight size={12} />
+            </View>
+          ) : null}
+        </View>
+      )
+    }),
+  ]
+
+  if (multi) {
+    return <View className={b({ multi: true })}>{items}</View>
+  }
 
   return (
-    <div className={classNames([b(),b(`${type}`)]) }>
-      {/* videos */}
-      {videos &&
-        videos.map((itV, index) => {
-          return (
-            <div
-              className={classNames([b('item'),b(`item-video`)])}
-              key={index}
-              onClick={() => showImages("video", index)}
-            >
-              <img src={itV.mainUrl} />
-              <div className={b('play')}></div>
-            </div>
-          );
-        })}
-      {/* images */}
-      {images &&
-        images.map((itI, index) => {
-          return (type === "multi" && videos.length + index < 9) ||
-            type != "multi" ? (
-            <div
-              className={classNames([b('item'),b(`item--imgbox`)])}
-              key={index}
-              onClick={() => showImages("img", index + videos.length)}
-            >
-              <img src={itI.smallImgUrl ? itI.smallImgUrl : itI.imgUrl} />
-              {type === "multi" &&
-                totalImages.length > 9 &&
-                videos.length + index > 7 && (
-                  <div
-                    className={b('mask')}
-                    onClick={() => showImages("more", index + videos.length)}
-                  >
-                    <span>共 {totalImages.length} 张</span>
-                    <Icon name="right" size={12}></Icon>
-                  </div>
-                )}
-            </div>
-          ) : (
-            ""
-          );
-        })}
-    </div>
-  );
-};
+    <ScrollView className={b({ one: true })} scrollX enhanced showScrollbar={false}>
+      <View className={b('track')}>{items}</View>
+    </ScrollView>
+  )
+}
 
-CommentImages.defaultProps = defaultProps;
-CommentImages.displayName = "NutCommentImages";
+CommentImages.displayName = 'NbCommentImages'

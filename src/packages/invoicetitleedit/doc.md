@@ -1,160 +1,107 @@
-#  InvoiceTitleEdit 发票抬头编辑
+# InvoiceTitleEdit 发票抬头编辑
 
 ### 介绍
 
-用于新增或编辑发票抬头，包括增值税专用发票和电子普通发票。
+编辑增值税专用发票 / 电子普通发票的抬头信息, 内置必填校验。依赖 NutUI 组件: Form、Input、Radio、Button。
 
 ### 安装
 
-```javascript
-import { InvoiceTitleEdit } from '@nutui/nutui-biz';
+```tsx
+import { InvoiceTitleEdit } from 'nutui-biz-taro'
 ```
-
 
 ## 代码演示
 
 ### 增值税专用发票
-纳税人识别号不可编辑。
 
-:::demo
+增值税专用发票: 发票抬头、注册地址、注册电话、开户行、银行账户必填, 纳税人识别号不可修改。
 
-```ts
-import  React from "react";
-import { Toast } from '@nutui/nutui-react'
-import { InvoiceTitleEdit } from '@nutui/nutui-biz';
-import "@nutui/nutui-biz/dist/styles/demo.css";
+```tsx
+import { InvoiceTitleEdit } from 'nutui-biz-taro'
 
-const App = () => {
-  const handleSubmit = (arg: any) => {
-    if (Array.isArray(arg)) {
-      Toast.fail('callback: submitFailed error')
-      console.log('failed error', arg)
-    } else {
-      Toast.success('succeed')
-      console.log('succeed', arg)
-    }
-  }
-
-  const handleInput = () => {
-    console.log('Invoice title input event is triggered')
-  }
-
-  return (
-    <div className="demo">
-      <InvoiceTitleEdit 
-        onSubmit={handleSubmit}
-        onInput={handleInput}
-      />
-    </div>
-  );
-};
-export default App;
+const App = () => (
+  <InvoiceTitleEdit
+    data={{
+      title: '京东集团',
+      companyCode: '123456ABCD',
+      address: '北京市经开区',
+      companyPhone: '010-12345678',
+      bankDeposit: '中国银行',
+      bankAccount: '12345678',
+    }}
+    submitFixed={false}
+    onSubmit={(arg) => {
+      if (Array.isArray(arg)) console.log('校验失败', arg)
+      else console.log('提交', arg)
+    }}
+    onInput={(val) => console.log(val)}
+  />
+)
 ```
-
-:::
 
 ### 电子普通发票
 
-:::demo
+电子普通发票可选择抬头类型, 选择 "企业" 时纳税人识别号必填。
 
-```ts
-import  React from "react";
-import { Toast } from '@nutui/nutui-react'
-import { InvoiceTitleEdit } from '@nutui/nutui-biz';
-import "@nutui/nutui-biz/dist/styles/demo.css";
-
-const App = () => {
-  const handleSubmit = (arg: any) => {
-    if (Array.isArray(arg)) {
-      Toast.fail('callback: submitFailed error')
-      console.log('failed error', arg)
-    } else {
-      Toast.success('succeed')
-      console.log('succeed', arg)
-    }
-  }
-
-  return (
-    <div className="demo">
-      <InvoiceTitleEdit 
-        onSubmit={handleSubmit}
-        invoiceType="normal"
-        submitButtonText="提交"
-      />
-    </div>
-  );
-};
-export default App;
+```tsx
+<InvoiceTitleEdit data={{ ...data, titleType: 'enterprise' }} invoiceType="normal" submitButtonText="提交" submitFixed={false} />
 ```
-
-:::
 
 ### 自定义底部
 
-:::demo
+默认提交按钮固定在页面底部 (`submitFixed`), 组件会在自身末尾留出同等高度的占位。
 
-```ts
-import  React from "react";
-import { Toast } from '@nutui/nutui-react'
-import { InvoiceTitleEdit } from '@nutui/nutui-biz';
-import "@nutui/nutui-biz/dist/styles/demo.css";
-
-const App = () => {
-  const handleSubmit = (arg: any) => {
-    if (Array.isArray(arg)) {
-      Toast.fail('callback: submitFailed error')
-      console.log('failed error', arg)
-    } else {
-      Toast.success('succeed')
-      console.log('succeed', arg)
-    }
-  }
-
-  return (
-    <div className="demo">
-      <InvoiceTitleEdit 
-        onSubmit={handleSubmit}
-        invoiceType="normal"
-        submitButtonText="提交"
-        bottom={<div style={{textAlign: 'center', lineHeight: '40px'}}>我是自定义的底部</div>}
-      />
-    </div>
-  );
-};
-export default App;
+```tsx
+<InvoiceTitleEdit invoiceType="normal" bottom={<View style={{ textAlign: 'center' }}>自定义底部</View>} />
 ```
-
-:::
-
 
 ## API
 
 ### Props
 
-
-| 字段    | 说明                                       | 类型    | 默认值    |
-|---------|--------------------------------------------|---------|-----------|
-| data   | 地址数组                                 | Idata  | -         |
-| invoiceType   | 发票类型，可选 `normal`，`special`    | string  | `special`         |
-| bottom   | 底部自定义内容     | ReactNode  | -         |
-| submitButtonText   | 提交按钮文案     | string  | `提交审批`         |
-
+| 字段             | 说明                                         | 类型                                   | 默认值                |
+| ---------------- | -------------------------------------------- | -------------------------------------- | --------------------- |
+| data             | 初始数据，变化时会回填表单                   | Partial\<Idata\>                       | -                     |
+| invoiceType      | 发票类型，可选 `normal` `special`            | string                                 | `special`             |
+| bottom           | 表单与提交按钮之间的自定义内容               | ReactNode                              | -                     |
+| submitButtonText | 提交按钮文案                                 | string                                 | `提交审批` (随语言包) |
+| submitFixed      | 提交按钮是否固定在页面底部                   | boolean                                | `true`                |
+| buttonProps      | 提交按钮 props (NutUI React Taro 3.x Button) | Partial\<Omit\<ButtonProps, 'type' \| 'block'\>\> | -       |
+| className        | 根节点类名                                   | string                                 | -                     |
+| style            | 根节点样式                                   | CSSProperties                          | -                     |
 
 ### Events
-| 字段 | 说明 | 回调参数 |
-|----- | ----- | -----  |
-| onSubmit | 点击提交审批按钮事件 |  arg: any |
-| onInput | 发票抬头输入事件 |  value: string \| number, event: Event |
 
+| 字段     | 说明                                                                                 | 回调参数            |
+| -------- | ------------------------------------------------------------------------------------ | ------------------- |
+| onSubmit | 点击提交按钮。校验通过时参数为表单值对象; 校验失败时参数为错误数组 (`Array.isArray` 可区分) | `arg: any`          |
+| onInput  | 发票抬头输入                                                                         | `value: string`     |
 
-### Idata 
+### Idata (导出名 `InvoiceTitleEditData`)
 
-| 字段    | 说明                                       | 类型    | 
-|---------|--------------------------------------------|---------|
-| titleType   | 抬头类型，仅适用于电子普通发票，可选值：`personal`、`enterprise`                                | string |
-| title   | 发票抬头            | string  | 
-| companyCode   | 纳税人识别号            | string  | 
-| address   | 注册地址            | string  | 
-| companyPhone   | 注册电话            | string  | 
-| bankDeposit   | 开户行            | string  | 
-| bankAccount   | 银行账户            | string  | 
+| 字段         | 说明                                                             | 类型   |
+| ------------ | ---------------------------------------------------------------- | ------ |
+| titleType    | 抬头类型，仅电子普通发票，可选 `personal` `enterprise`，默认 `personal` | string |
+| title        | 发票抬头                                                         | string |
+| companyCode  | 纳税人识别号                                                     | string |
+| address      | 注册地址                                                         | string |
+| companyPhone | 注册电话                                                         | string |
+| bankDeposit  | 开户行                                                           | string |
+| bankAccount  | 银行账户                                                         | string |
+
+### 工具函数
+
+| 名称                         | 说明                                                                 |
+| ---------------------------- | -------------------------------------------------------------------- |
+| validateInvoiceTitle         | `(values, invoiceType) => InvoiceTitleField[]`，返回未填写的必填字段 (仅空白视为未填) |
+| isInvoiceTitleFieldRequired  | `(field, invoiceType, titleType?) => boolean`                        |
+| isInvoiceTitleFieldReadOnly  | `(field, invoiceType) => boolean`                                    |
+| getInvoiceTitleFieldRules    | 生成 Form.Item 的 `rules`                                            |
+| INVOICE_TITLE_FIELDS         | 字段列表                                                             |
+
+## 主题定制
+
+| 名称                                       | 默认值              |
+| ------------------------------------------ | ------------------- |
+| --nb-invoice-title-edit-submit-padding     | `10px 10px 20px`    |
+| --nb-invoice-title-edit-submit-background  | `$nb-color-surface` |
