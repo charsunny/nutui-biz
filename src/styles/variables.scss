@@ -31,7 +31,8 @@ $nb-color-surface-variant: var(--nb-color-surface-variant, #f7f8fa);
 $nb-color-border: var(--nb-color-border, var(--nutui-color-border, #e8e8e8));
 $nb-color-mask: var(--nb-color-mask, var(--nutui-color-mask, rgba(0, 0, 0, 0.7)));
 
-$nb-color-danger: var(--nb-color-danger, var(--nutui-color-danger, #ff0f23));
+// 注意: NutUI 3 的 --nutui-color-danger 是 red-2 (#ffd6e1, 浅底色), 不能当错误文字色用
+$nb-color-danger: var(--nb-color-danger, var(--nutui-red-6, #ff3333));
 $nb-color-warning: var(--nb-color-warning, var(--nutui-color-warning, #ff8200));
 $nb-color-success: var(--nb-color-success, var(--nutui-color-success, #00d900));
 $nb-color-info: var(--nb-color-info, var(--nutui-color-info, #0073ff));
