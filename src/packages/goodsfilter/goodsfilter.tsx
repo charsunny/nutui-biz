@@ -1,497 +1,382 @@
-import React, {
-  FunctionComponent, HTMLAttributes, useEffect, useMemo, useState, CSSProperties, ReactNode
-} from 'react'
-import { Icon, Popup } from '@nutui/nutui-react'
-import { IComponent } from '@/utils/typings'
-import bem from '@/utils/bem'
-import { numericProp } from '@/utils/props'
-import { InputNum } from './components/InputNum'
+import { useEffect, useMemo, useState } from 'react'
+import type { CSSProperties, FunctionComponent, ReactNode } from 'react'
+import { View, Text, ScrollView } from '@tarojs/components'
+import { Popup } from '@nutui/nutui-react-taro'
+import { ArrowDown, Location } from '@nutui/icons-react-taro'
 import classNames from 'classnames'
+import { useConfig } from '../configprovider'
+import bem from '../../utils/bem'
+import type { IComponent } from '../../utils/typings'
+import { InputNum } from './components/InputNum'
+import {
+  EMPTY_PRICE_RANGE,
+  buildGoodsFilterResult,
+  getSelectedNames,
+  getVisibleValues,
+  isFilterAttrSelected,
+  isGoodsAttrExpanded,
+  isGoodsAttrSelected,
+  normalizePriceRanges,
+  selectDataToState,
+  toggleFilterAttr,
+  toggleGoodsAttrExpand,
+  toggleGoodsAttrValue,
+} from './utils'
+import type {
+  FilterId,
+  GoodsFilterAttrGroup,
+  GoodsFilterAttrSelection,
+  GoodsFilterPriceRange,
+  GoodsFilterResult,
+  GoodsFilterSelectData,
+  GoodsFilterState,
+  GoodsFilterValue,
+} from './utils'
 
-export interface valueType {
-  id?: numericProp
-  name?: string
-  [x:string]: any
-}
-export interface goodsAttrsResType {
-  id?:numericProp
-  value?:string[]
-  [x:string]:any
-}
-
-export interface resType {
-  address: string
-  price:{
-    low: numericProp,
-    high: numericProp
-  }
-  filterAttrs: valueType
-  goodsAttrs: goodsAttrsResType
-}
-
-export interface priceRangesType {
-    low: string
-    high: string
-    desc: string
-    id?: numericProp
-    extra: any
-}
-
-export interface goodsAttrsType {
-  title: string
-  id: numericProp,
-  values: valueType
-}
-
-export interface selectedGoodsAttrType {
-  id: numericProp
-  isExpand: boolean|undefined
-  showRow : numericProp
-  title:string
-  [x:string]:any
-}
- 
-export interface selectDataType {
-  filterAttrs: valueType[]
-  goodsAttrs: goodsAttrsType[]
-  price: {
-    low:string,
-    high:string,
-  }
-}
-
+/** 商品属性每行展示几个 */
+const VALUES_PER_ROW = 3
 
 export interface GoodsFilterProps extends IComponent {
-  visible?: boolean
-  confirmText?: React.ReactNode
-  resetText?: React.ReactNode
-  priceRangeTitle?: string
-  addressTitle?: string
+  /** 是否展示 */
+  visible: boolean
+  /** 确定按钮文案 */
+  confirmText: ReactNode
+  /** 重置按钮文案 */
+  resetText: ReactNode
+  /** 价格区间标题 */
+  priceRangeTitle: ReactNode
+  /** 配送地址标题 */
+  addressTitle: ReactNode
+  /** 选中的地址, 为空时展示"您还没有选中的地址" */
   selectedAddress: string
-  resetDisable?: boolean
-  priceRanges?: priceRangesType[]
-  filterAttrs?: valueType[]
-  goodsAttrs?: goodsAttrsType[]
-  specStyle?: CSSProperties
-  selectedSpecShow?: boolean
+  /** 重置按钮是否禁用 */
+  resetDisable: boolean
+  /** 推荐价格区间 */
+  priceRanges: Partial<GoodsFilterPriceRange>[]
+  /** 地址下方的筛选项 (多选) */
+  filterAttrs: GoodsFilterValue[]
+  /** 商品属性筛选项 */
+  goodsAttrs: GoodsFilterAttrGroup[]
+  /** 每个属性值的样式 */
+  specStyle: CSSProperties
+  /** 是否在属性标题右侧展示已选值 */
+  selectedSpecShow: boolean
+  /** 每类属性收起时最多展示的行数 (每行 3 个) */
   maxLine: number
-  icon?: string
-  selectData?: selectDataType
-  onClose?: () => void
-  onReset?: () => void
-  onConfirm?: (res: resType) => void
-  onClickAddress?: () => void
-  onSelectedAttrs?: (attr: valueType, selected: boolean, selectedAttrs:valueType[]) => void
-  onSelectedPrice?: (range: priceRangesType) => void
-  onBeforeSelected?: (done: () => void, selectedValue: goodsAttrsResType) => void
-  onSelectedGoodsAttr?: (attrs: selectedGoodsAttrType, value: valueType) => void
-  bottom?: React.ReactNode,
+  /** 展开 / 收起图标, 展开时旋转 180° */
+  icon: ReactNode
+  /** 回显数据, 打开弹层时写入内部状态 */
+  selectData: GoodsFilterSelectData
+  /** 自定义底部操作栏 */
+  bottom: ReactNode
+  onClose: () => void
+  onReset: () => void
+  onConfirm: (res: GoodsFilterResult) => void
+  onClickAddress: () => void
+  onSelectedAttrs: (
+    attr: GoodsFilterValue,
+    selected: boolean,
+    selectedAttrs: GoodsFilterValue[]
+  ) => void
+  onSelectedPrice: (range: GoodsFilterPriceRange) => void
+  onBeforeSelected: (done: () => void, selectedValue: GoodsFilterAttrSelection) => void
+  onSelectedGoodsAttr: (
+    attrs: GoodsFilterAttrGroup & { isExpand: boolean },
+    value: GoodsFilterValue
+  ) => void
 }
 
-const defaultProps = {
-  visible: false,
-  confirmText: '确定',
-  resetText: '重置',
-  priceRangeTitle: '价格区间',
-  addressTitle: '配送地址',
-  selectedAddress: '',
-  resetDisable: false,
-  selectedSpecShow: true,
-  maxLine: 2,
-  icon: 'arrow-down',
-  onBeforeSelected: (done: () => void) => {
-    done()
-  },
-} as GoodsFilterProps
+const EMPTY_STATE: GoodsFilterState = { filterAttrs: [], goodsAttrs: {} }
 
-export const GoodsFilter: FunctionComponent<
-  Partial<GoodsFilterProps> & HTMLAttributes<HTMLDivElement>
-> = (props) => {
-  const {
-    className,
-    style,
-    visible,
-    confirmText,
-    selectData,
-    resetText,
-    priceRangeTitle,
-    addressTitle,
-    selectedAddress,
-    resetDisable,
-    priceRanges,
-    filterAttrs,
-    goodsAttrs,
-    specStyle,
-    selectedSpecShow,
-    maxLine,
-    icon,
-    onClose,
-    onReset,
-    onConfirm,
-    onClickAddress,
-    onSelectedAttrs,
-    onSelectedPrice,
-    onBeforeSelected,
-    onSelectedGoodsAttr,
-    bottom,
-    ...rest
-  } = {
-    ...defaultProps,
-    ...props,
-  }
-
+export const GoodsFilter: FunctionComponent<Partial<GoodsFilterProps>> = ({
+  className,
+  style,
+  visible = false,
+  confirmText,
+  resetText,
+  priceRangeTitle,
+  addressTitle,
+  selectedAddress = '',
+  resetDisable = false,
+  priceRanges,
+  filterAttrs,
+  goodsAttrs,
+  specStyle,
+  selectedSpecShow = true,
+  maxLine = 2,
+  icon,
+  selectData,
+  bottom,
+  onClose,
+  onReset,
+  onConfirm,
+  onClickAddress,
+  onSelectedAttrs,
+  onSelectedPrice,
+  onBeforeSelected,
+  onSelectedGoodsAttr,
+}) => {
+  const { locale } = useConfig()
+  const text = locale.goodsfilter
   const b = bem('goods-filter')
 
-  useEffect(()=>{
-    if(visible &&selectData ){
-      let obj:goodsAttrsResType = {}
-      if(selectData.goodsAttrs){
-        selectData.goodsAttrs.forEach(item => obj[item.id] = item);
-      }
-        setSelectedValues({
-          ...selectedValues,
-          filterAttrs: selectData.filterAttrs||[],
-          goodsAttrs: obj||{}
-        })
-        setPriceLow(selectData?.price?.low||"")
-        setPriceHigh(selectData?.price?.high||"")
-        setPriceId(undefined)
+  const [state, setState] = useState<GoodsFilterState>(EMPTY_STATE)
+  const [priceLow, setPriceLow] = useState<FilterId>('')
+  const [priceHigh, setPriceHigh] = useState<FilterId>('')
+  const [priceId, setPriceId] = useState<FilterId | undefined>()
+
+  // 打开时用 selectData 回显
+  useEffect(() => {
+    if (visible && selectData) {
+      setState(selectDataToState(selectData))
+      setPriceLow(selectData.price?.low ?? '')
+      setPriceHigh(selectData.price?.high ?? '')
+      setPriceId(undefined)
     }
-  },[selectData,visible])
+  }, [selectData, visible])
 
-  const [selectedValues, setSelectedValues] = useState({
-    filterAttrs: [] as  valueType[] ,
-    goodsAttrs: {} as goodsAttrsResType ,
-  })
-  const [priceLow, setPriceLow] = useState<numericProp>('')
-  const [priceHigh, setPriceHigh] = useState<numericProp>('')
+  const ranges = useMemo(() => normalizePriceRanges(priceRanges), [priceRanges])
 
-  // 地址选择
-  const chooseAddress = () => {
-    onClickAddress && onClickAddress()
+  const handleFilterAttr = (attr: GoodsFilterValue) => {
+    const { next, selected } = toggleFilterAttr(state.filterAttrs, attr)
+    setState({ ...state, filterAttrs: next })
+    onSelectedAttrs?.(attr, selected, next)
   }
 
-  // 筛选分类类型
-  const filterAttrsHandler = (attr:valueType ) => {
-    const idx = selectedValues.filterAttrs.findIndex((cattr: valueType) => {
-      return cattr.id === attr.id
-    })
-    let newFilterAttrs = [] as valueType[]
-    newFilterAttrs = selectedValues.filterAttrs.slice()
-    if (idx !== -1) {
-      newFilterAttrs.splice(idx, 1)
-      setSelectedValues({
-        ...selectedValues,
-        filterAttrs: newFilterAttrs
-      })
-      onSelectedAttrs?.(attr, false, newFilterAttrs)
-    } else {
-      newFilterAttrs.push(attr)
-      setSelectedValues({
-        ...selectedValues,
-        filterAttrs: newFilterAttrs
-      })
-      onSelectedAttrs?.(attr, true, newFilterAttrs)
-    }
+  const handlePriceInput = (val: string, type: 'low' | 'high') => {
+    if (type === 'low') setPriceLow(val)
+    else setPriceHigh(val)
+    // 手动输入后不再高亮推荐价格
+    setPriceId(undefined)
   }
 
-  // 价格
-  const handleInput = (val: string, type: 'low' | 'high')=> {
-    if (type === 'low') {
-      setPriceLow(val)
-    } else {
-      setPriceHigh(val)
-    }
-  }
-
-  const [priceId,setPriceId] = useState<numericProp|undefined>()
-
-  // 点击推荐价格
-  const onClickRecPrice = (range: priceRangesType) => {
-    if(range.id==priceId){
+  const handleRecPrice = (range: GoodsFilterPriceRange) => {
+    if (range.id === priceId) {
       setPriceId(undefined)
       setPriceLow('')
       setPriceHigh('')
-      const data = {
-        low:'',
-        high: '',
-        desc: '',
-        id:'',
-        extra: ''
-      }
-      onSelectedPrice?.(data)
-    }else{
+      onSelectedPrice?.({ ...EMPTY_PRICE_RANGE })
+    } else {
+      setPriceId(range.id)
       setPriceLow(range.low)
       setPriceHigh(range.high)
-      setPriceId(range.id)
       onSelectedPrice?.(range)
     }
-    
   }
 
-  // 价格区间格式化
-  const norPriceRanges = useMemo(() => {
-    return priceRanges?.map((range, index: number) => {
-      const defaultItem = {
-        id: 0,
-        low: "",
-        high: "",
-        desc: "",
-        extra: {},
-      }
-      return Object.assign(defaultItem, { id: index }, range)
-    })
-  }, [priceRanges])
-
-  // 商品属性格式化
-  const norGoodsAttrs = useMemo(() => {
-    return goodsAttrs?.map((attr, index) => {
-      const defaultItem = {
-        isExpand: selectedValues.goodsAttrs.hasOwnProperty(attr.id)
-          && selectedValues.goodsAttrs[attr.id].isExpand, // 是否展开
-        showRow: 1 // 折叠后，显示在外侧的行数
-      }
-      return Object.assign(attr, defaultItem)
-    })
-  }, [goodsAttrs, selectedValues.goodsAttrs])
-
-  // 副标题，选中的值
-  const renderSelectedValues = (attrs:selectedGoodsAttrType)=>{
-    const allAttrs = attrs.values
-    const id = selectedValues.goodsAttrs[attrs.id]
-    if (id) {
-      const sValues = id.values
-      const sAttrs = allAttrs.filter((attrs: { id: number }) => sValues.indexOf(attrs.id) != -1)
-      return sAttrs.map((s: { name: string }) => s.name).join(',')
+  const handleGoodsAttr = (group: GoodsFilterAttrGroup, value: GoodsFilterValue) => {
+    if (value.id === undefined) return
+    const valueId = value.id
+    const current = state.goodsAttrs[String(group.id)] || {
+      id: group.id,
+      values: [],
+      isExpand: false,
     }
-  }
-
-  // 商品属性选择
-  const selectedGoodsAttr = (attrs: selectedGoodsAttrType, attr: valueType) => {
-    const { filterAttrs, goodsAttrs } = selectedValues
-    let selectedVal = {} as goodsAttrsResType
-    if (goodsAttrs[attrs.id]) {
-      selectedVal = goodsAttrs[attrs.id]
-    } else {
-      selectedVal = {
-        id: attrs.id,
-        values: [],
-        isExpand: false
-      }
-    }
-
     const done = () => {
-      if (goodsAttrs.hasOwnProperty(attrs.id)) {
-        const idx = goodsAttrs[attrs.id].values.indexOf(attr.id)
-        if (idx != -1) {
-          goodsAttrs[attrs.id].values.splice(idx, 1)
-        } else {
-          goodsAttrs[attrs.id].values.push(attr.id)
-        }
-      } else {
-        goodsAttrs[attrs.id] = {
-          id: attrs.id,
-          values: [attr.id]
-        }
-      }
-      setSelectedValues({
-        filterAttrs: filterAttrs.slice(),
-        goodsAttrs: Object.assign({}, goodsAttrs)
-      })
-      onSelectedGoodsAttr?.(attrs, attr)
+      setState((prev) => ({
+        ...prev,
+        goodsAttrs: toggleGoodsAttrValue(prev.goodsAttrs, group.id, valueId),
+      }))
+      onSelectedGoodsAttr?.(
+        { ...group, isExpand: isGoodsAttrExpanded(state.goodsAttrs, group.id) },
+        value
+      )
     }
-    onBeforeSelected?.(done, selectedVal)
+    if (onBeforeSelected) onBeforeSelected(done, { ...current, values: current.values.slice() })
+    else done()
   }
 
-  const onClickIcon = (attrs: selectedGoodsAttrType) => {
-    const { filterAttrs, goodsAttrs } = selectedValues
-    if (goodsAttrs[attrs.id]) {
-      goodsAttrs[attrs.id].isExpand = !goodsAttrs[attrs.id].isExpand
-    } else {
-      const selectedVal = {
-        id: attrs.id,
-        values: [],
-        isExpand: !attrs.isExpand
-      }
-      goodsAttrs[attrs.id] = selectedVal
-    }
-    setSelectedValues({
-      filterAttrs: filterAttrs.slice(),
-      goodsAttrs: Object.assign({}, goodsAttrs)
-    })
+  const handleExpand = (group: GoodsFilterAttrGroup) => {
+    setState((prev) => ({
+      ...prev,
+      goodsAttrs: toggleGoodsAttrExpand(prev.goodsAttrs, group.id),
+    }))
   }
 
-  // 重置
   const reset = () => {
-    if (!resetDisable) { 
-      setSelectedValues({
-        filterAttrs: [],
-        goodsAttrs: {}
-      })
-      setPriceLow('')
-      setPriceHigh('')
-      onReset && onReset()
-    }
+    if (resetDisable) return
+    setState(EMPTY_STATE)
+    setPriceLow('')
+    setPriceHigh('')
+    setPriceId(undefined)
+    onReset?.()
   }
 
-  // 确定
   const confirm = () => {
-    const { filterAttrs, goodsAttrs } = selectedValues
-    const sGoods:goodsAttrsResType = Object.keys(goodsAttrs).map(id => (goodsAttrs[id]))
-    let pricelow:numericProp = ""
-    let pricehigh:numericProp = ""
-    if(+priceLow > +priceHigh){
-      pricelow = priceHigh
-      pricehigh = priceLow 
-      setPriceHigh(priceLow)
-      setPriceLow(priceHigh)
-    }
-    const res = {
-      address: selectedAddress,
-      price:{
-        low:pricelow|| priceLow,
-        high: pricehigh||priceHigh
-      },
-      filterAttrs: filterAttrs,
-      goodsAttrs: sGoods
-    }
+    const res = buildGoodsFilterResult(
+      state,
+      { low: priceLow, high: priceHigh },
+      selectedAddress
+    )
+    // 最低价大于最高价时, 输入框同步交换
+    setPriceLow(res.price.low)
+    setPriceHigh(res.price.high)
     onConfirm?.(res)
   }
+
+  const renderAddress = () => (
+    <View className={b('chunk', { address: true })}>
+      <View className={b('label')}>{addressTitle ?? text.addressTitle}</View>
+      <View className={b('address')}>
+        <View className={b('address-icon')}>
+          <Location size={12} />
+        </View>
+        <Text className={b('address-text')} onClick={() => onClickAddress?.()}>
+          {selectedAddress || text.noAddress}
+        </Text>
+        <Text className={b('address-modify')} onClick={() => onClickAddress?.()}>
+          {text.modify}
+        </Text>
+      </View>
+    </View>
+  )
+
+  const renderFilterAttrs = () =>
+    filterAttrs && filterAttrs.length > 0 ? (
+      <View className={b('chunk')}>
+        <View className={b('options')}>
+          {filterAttrs.map((attr, index) => (
+            <View key={`${attr.id ?? index}`} className={b('option-cell')}>
+              <View
+                className={b('option', {
+                  active: isFilterAttrSelected(state.filterAttrs, attr),
+                })}
+                onClick={() => handleFilterAttr(attr)}
+              >
+                {attr.name}
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+    ) : null
+
+  const renderPrice = () => (
+    <View className={b('chunk')}>
+      <View className={b('label')}>{priceRangeTitle ?? text.priceRangeTitle}</View>
+      <View className={b('price-range')}>
+        <View className={b('price-input-box')}>
+          <InputNum
+            className={b('price-input', { low: true })}
+            placeholderClass={b('price-placeholder')}
+            placeholder={text.lowPrice}
+            value={priceLow}
+            onNumInput={(val) => handlePriceInput(val, 'low')}
+          />
+        </View>
+        <View className={b('price-cable')} />
+        <View className={b('price-input-box')}>
+          <InputNum
+            className={b('price-input', { high: true })}
+            placeholderClass={b('price-placeholder')}
+            placeholder={text.highPrice}
+            value={priceHigh}
+            onNumInput={(val) => handlePriceInput(val, 'high')}
+          />
+        </View>
+      </View>
+      {ranges.length > 0 && (
+        <View className={b('options', { recommend: true })}>
+          {ranges.map((range) => (
+            <View key={`${range.id}`} className={b('option-cell')}>
+              <View
+                className={b('recommend', { active: priceId === range.id })}
+                onClick={() => handleRecPrice(range)}
+              >
+                <Text className={b('recommend-range')}>
+                  {range.low}-{range.high}
+                </Text>
+                <Text className={b('recommend-desc')}>{range.desc}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  )
+
+  const renderGoodsAttrs = () =>
+    goodsAttrs && goodsAttrs.length > 0 ? (
+      <View className={b('list')}>
+        {goodsAttrs.map((group) => {
+          const selection = state.goodsAttrs[String(group.id)]
+          const expanded = isGoodsAttrExpanded(state.goodsAttrs, group.id)
+          const values = getVisibleValues(group.values || [], expanded, maxLine, VALUES_PER_ROW)
+          const hasMore = (group.values || []).length > values.length || expanded
+          return (
+            <View key={`${group.id}`} className={b('list-item')}>
+              <View className={b('list-item-top')} onClick={() => handleExpand(group)}>
+                <Text className={b('list-item-title')}>{group.title}</Text>
+                {selectedSpecShow ? (
+                  <Text className={b('list-item-subtitle')}>
+                    {getSelectedNames(group.values || [], selection)}
+                  </Text>
+                ) : (
+                  <View className={b('list-item-subtitle')} />
+                )}
+                {hasMore && (
+                  <View className={b('list-item-icon', { expand: expanded })}>
+                    {icon ?? <ArrowDown size={10} />}
+                  </View>
+                )}
+              </View>
+              <View className={b('options', { values: true })}>
+                {values.map((value, index) => (
+                  <View key={`${value.id ?? index}`} className={b('option-cell')}>
+                    <View
+                      className={b('option', {
+                        active:
+                          value.id !== undefined &&
+                          isGoodsAttrSelected(state.goodsAttrs, group.id, value.id),
+                      })}
+                      style={specStyle}
+                      onClick={() => handleGoodsAttr(group, value)}
+                    >
+                      {value.name}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )
+        })}
+      </View>
+    ) : null
 
   return (
     <Popup
       visible={visible}
-      position='right'
+      position="right"
       round
       style={{ width: '80%', height: '100%' }}
-      onClose={()=>onClose?.()}
+      onClose={() => onClose?.()}
     >
-      <div className={classNames([b(), className])} style={style} {...rest}  >
-        {/* 地址选择 */}
-        <div className={`${b('chunk')} ${b('chunk')}--address`}>
-          <div className={b('chunk__label')}>{ addressTitle }</div>
-          <div className={b('chunk__group')}>
-            <Icon
-              className={b('chunk__group__icon')}
-              name='location2'
-              size="12"
-            ></Icon>
-            <div className={b('chunk__group__address')} onClick={chooseAddress}>
-              {
-                <span>{selectedAddress ? selectedAddress : '您还没有选中的地址'}</span>
-              }
-            </div>
-            <div className={b('chunk__group__modify')} onClick={chooseAddress}>修改</div>
-          </div>
-        </div>
-        {/* 类型选择 */}
-        <div className={b('chunk')}>
-         
-          <div className={b('chunk__type')}>
-            {
-              filterAttrs && filterAttrs?.map((attr) => {
-                return <div
-                  key={attr?.id}
-                  className={ selectedValues.filterAttrs && selectedValues.filterAttrs.some((cAttr) => { return cAttr.id === attr.id }) ? 'active' : '' }
-                  onClick={() => filterAttrsHandler(attr)}
-                >
-                  { attr?.name }
-                </div>
-              })
-            }
-          </div>
-        </div>
-
-        {/* 价格 */}
-        <div className={b('chunk')}>
-          <div className={b('chunk__label')}>{ priceRangeTitle }</div>
-          <div className={b('chunk__price')}>
-            <div className={b('chunk__price--range')}>
-              <div className={`${b('chunk__price--range__item')} ${b('chunk__price--range__item')}--low`}>
-                {
-                  priceLow === '' ? <span className={`${b('chunk__price--range__item')} ${b('chunk__price--range__item')}--placeholder`}>最低价</span> : ''
-                }
-                <InputNum onNumInput={(val: string) => handleInput(val, 'low')} value={priceLow}></InputNum>
-              </div>
-              <span className={b('chunk__price--range__cable')}></span>
-              <div className={`${b('chunk__price--range__item')} ${b('chunk__price--range__item')}--high`}>
-                {
-                  priceHigh === '' ? <span className={`${b('chunk__price--range__item')} ${b('chunk__price--range__item')}--placeholder`}>最高价</span> : ''
-                }
-                <InputNum onNumInput={(val: string) => handleInput(val, 'high')} value={priceHigh}></InputNum>
-              </div>
-            </div>
-            {/* 推荐价格范围 */}
-            {
-              norPriceRanges?.length ? <div className={b('chunk__price--recommend')}>
-                {
-                  norPriceRanges.map((range) => {
-                    return <div
-                      className={classNames([b('chunk__price--recommend__item'), priceId==range.id?'active':'' ])}
-                      key={range.id}
-                      onClick={() => onClickRecPrice(range)}
-                    >
-                      <div>{ range.low }-{ range.high }</div>
-                      <div>{ range.desc }</div>
-                    </div>
-                  })
-                }
-              </div> : ''
-            }
-          </div>
-        </div>
-
-        {/* 间隔 */}
-        <div className={b('chunk__gap')}></div>
-        {/* 折叠面板 */}
-        {
-          norGoodsAttrs && norGoodsAttrs.length > 0 && <div className={b('chunk__list')}>
-            {
-              norGoodsAttrs.map((attrs) => {
-                return <div
-                  className={b('chunk__list--item')}
-                  key={attrs.id}
-                >
-                  <div className={b('chunk__list--item__top')}>
-                    <div className={b('chunk__list--item__title')}>{attrs.title}</div>
-                    {
-                      selectedSpecShow && <div className={b('chunk__list--item__subTitle')}>{renderSelectedValues(attrs)}</div>
-                    }
-                    <Icon name={icon} className={b('chunk__list--item__icon') + (attrs.isExpand ? ' expand' : '')}onClick={() => onClickIcon(attrs)}></Icon>
-                  </div>
-                 
-                  <div className={b('chunk__groups')}>
-                    {
-                      (attrs.isExpand ? attrs.values : attrs.values.slice(0, 3 * maxLine)).map((attr: valueType) => {
-                        return <div
-                          key={attr.id}
-                          className={b('chunk__groups--item') +
-                            (selectedValues.goodsAttrs[attrs.id] && selectedValues.goodsAttrs[attrs.id].values.includes(attr.id) ? ' active' : '')
-                          }
-                          style={specStyle}
-                          onClick={() => selectedGoodsAttr(attrs, attr)}
-                        >{ attr.name }</div>
-                      })
-                    }
-                  </div>
-                </div>
-              })
-            }
-          </div>
-        }
-        {/* 操作 */}
-        <div className={b('operate')}>
-          {
-            bottom ? bottom : <>
-              <div className={`${b('operate__btn')} ${b('operate__btn')}--reset`} onClick={reset}>{ resetText }</div>
-              <div className={`${b('operate__btn')} ${b('operate__btn')}--confirm`} onClick={confirm}>{ confirmText }</div>
+      <View className={classNames(b(), className)} style={style}>
+        <ScrollView className={b('body')} scrollY enhanced showScrollbar={false}>
+          {renderAddress()}
+          {renderFilterAttrs()}
+          {renderPrice()}
+          <View className={b('gap')} />
+          {renderGoodsAttrs()}
+        </ScrollView>
+        <View className={b('operate')}>
+          {bottom ?? (
+            <>
+              <View
+                className={b('btn', { reset: true, disabled: resetDisable })}
+                onClick={reset}
+              >
+                {resetText ?? text.reset}
+              </View>
+              <View className={b('btn', { confirm: true })} onClick={confirm}>
+                {confirmText ?? text.confirm}
+              </View>
             </>
-          }
-        </div>
-      </div>
+          )}
+        </View>
+      </View>
     </Popup>
   )
 }
 
-GoodsFilter.defaultProps = defaultProps
-GoodsFilter.displayName = 'NutGoodsFilter'
+GoodsFilter.displayName = 'NbGoodsFilter'

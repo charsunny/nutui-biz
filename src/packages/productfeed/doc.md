@@ -1,437 +1,155 @@
-#  ProductFeed 商品 Feed 流
+# ProductFeed 商品 Feed 流
 
 ### 介绍
 
-商品 Feed 流组件可配置下拉刷新、列表加载、上滑加载功能，适用于商品信息展示，常见于页面的底部。
+用于展示商品列表 (单列 / 双列瀑布流), 内置上拉加载与下拉刷新。
 
 ### 安装
-``` javascript
-import { ProductFeed } from "@nutui/nutui-biz";
+
+```ts
+import { ProductFeed } from 'nutui-biz-taro'
 ```
+
+开启上拉加载 (`openInfiniteloading`, 默认开启) 时, 组件内部是 NutUI 3 的 `InfiniteLoading` (一个高度 100% 的 `ScrollView`),
+**需要给组件或其父节点一个确定的高度**; 滚动发生在组件内部, 而不是页面。
 
 ## 代码演示
 
 ### 双列
 
-商品数据通过 `data` 传入，商品图片下方区域内容用 `customProduct` 传递。
+```tsx
+import { useState } from 'react'
+import { View } from '@tarojs/components'
+import { Price } from '@nutui/nutui-react-taro'
+import { ProductFeed } from 'nutui-biz-taro'
 
-:::demo
-
-```ts
-import  React from "react";
-import { Price } from "@nutui/nutui-react";
-import { ProductFeed } from "@nutui/nutui-biz";
-import React, { useEffect, useState } from "react"
-import "@nutui/nutui-biz/dist/styles/demo.css";
-
-interface dataType {
-  id: number,
-  imgUrl: string,
-  name: string,
-  desc: string,
-  tag: string | boolean,
-  price: string,
-  label: string
-}
+const TOTAL = 18
+const all = Array.from({ length: TOTAL }, (_, i) => ({
+  id: i + 1,
+  imgUrl:
+    'https://img13.360buyimg.com/imagetools/jfs/t1/190855/7/12881/42147/60eb0cabE0c3b7234/d523d551413dc853.png',
+  name: '我是标题我是标题我是标题',
+  price: '388',
+}))
 
 const App = () => {
+  const [list, setList] = useState(all.slice(0, 6))
 
-  const [data, setData] = useState<dataType[]>([])
-  const [listDouble, setListDouble] = useState([] as any)
-  const [hasMoreDouble, setHasMoreDouble] = useState(true)
-
-  useEffect(() => {
-    initData()
-  }, [])
-
-  const init = () => {
-    for (let i = 0; i < 6; i++) {
-      listDouble.push(data[i])
-    }
-    setListDouble([...listDouble])
-  }
-
-  const initData = () => {
-    for(var i = 0; i < 12; i++) {
-      data.push({
-        id: i + 1,
-        imgUrl: "//img13.360buyimg.com/imagetools/jfs/t1/190855/7/12881/42147/60eb0cabE0c3b7234/d523d551413dc853.png",
-        name: "我是标题我是标题我是标题我是标题我是标题",
-        desc: "更多买点更多买点",
-        tag: i == 3 && '标签标签',
-        price: "388",
-        label: "自营",
-      })
-    }
-    init()
-  }
-
-  const loadMore = (list: any) => {
-    const curLen = list.length
-    
-    if (list.length >= data.length) {
-       setHasMoreDouble(false);
-    } else {
-      for (let i = curLen; i < (curLen + 6 > data.length ? data.length : curLen + 6) ; i++) {
-        list.push(data[i])
-      }
-      setListDouble([...list]) 
-    }
-  }
-
-  const loadMoreDouble = (done: () => void) => {
-    setTimeout(() => {
-      loadMore(listDouble)
-      done()
-    }, 500)
-  }
-
-  const handleClick = (item: object, index: number) => {
-    console.log("click", item, index)
-  }
-
-  const handleImageClick = (item: object, index: number) => {
-    console.log("click image", item, index)
-  }
-
-  const customProductDouble = (item: any) => {
-    return (
-      <>
-        <div className="name-box">{item.name}</div>
-        {item.tag && <div className="name-box">
-          {item.tag}
-        </div>}
-        <div className="bottom">
-          <div className="price-box">
-            <div className="price">
-              <Price price={item.price} />
-            </div>
-          </div>
-        </div>
-      </>
-    )
+  const loadMore = async () => {
+    await new Promise((r) => setTimeout(r, 500))
+    setList((prev) => all.slice(0, prev.length + 6))
   }
 
   return (
-    <div className="demo product-feed-demo">
+    <View style={{ height: '100vh' }}>
       <ProductFeed
-        infiniteloadingProps={{
-          hasMore: hasMoreDouble,
-          onLoadMore: loadMoreDouble
-        }}
-        customProduct={customProductDouble}
-        data={listDouble}
+        data={list}
+        infiniteloadingProps={{ hasMore: list.length < TOTAL, onLoadMore: loadMore }}
+        customProduct={(item) => (
+          <>
+            <View>{item.name}</View>
+            <Price price={item.price} />
+          </>
+        )}
         col={2}
         imgUrl="imgUrl"
         imgWidth="144"
         imgHeight="144"
-        imgTag={<div className="img-label"><img src="https://img12.360buyimg.com/imagetools/jfs/t1/186347/7/7338/1009/60c0806bE0b6c7207/97fd04b48d689ffe.png" /></div>}
-        onClick={handleClick}
-        onImageClick={handleImageClick}
+        onClick={(item, index) => console.log('click', item, index)}
+        onImageClick={(item, index) => console.log('click image', item, index)}
       />
-    </div>
-  );
-};
-export default App;
+    </View>
+  )
+}
+export default App
 ```
-
-:::
 
 ### 单列
 
-:::demo
-
-```ts
-import  React from "react";
-import { Price } from "@nutui/nutui-react";
-import { ProductFeed } from "@nutui/nutui-biz";
-import React, { useEffect, useState } from "react"
-import "@nutui/nutui-biz/dist/styles/demo.css";
-
-interface dataType {
-  id: number,
-  imgUrl: string,
-  name: string,
-  desc: string,
-  tag: string | boolean,
-  price: string,
-  label: string
-}
-
-const App = () => {
-
-  const [data, setData] = useState<dataType[]>([])
-  const [listSingle, setListSingle] = useState([] as any)
-  const [hasMoreSingle, setHasMoreSingle] = useState(true)
-
-  useEffect(() => {
-    initData()
-  }, [])
-
-  const init = () => {
-    for (let i = 0; i < 6; i++) {
-      listSingle.push(data[i])
-    }
-    setListSingle([...listSingle])
-  }
-
-  const initData = () => {
-    for(var i = 0; i < 12; i++) {
-      data.push({
-        id: i + 1,
-        imgUrl: "//img13.360buyimg.com/imagetools/jfs/t1/190855/7/12881/42147/60eb0cabE0c3b7234/d523d551413dc853.png",
-        name: "我是标题我是标题我是标题我是标题我是标题",
-        desc: "更多买点更多买点",
-        tag: i == 3 && '标签标签',
-        price: "388",
-        label: "自营",
-      })
-    }
-    init()
-  }
-
-  const loadMore = (list: any) => {
-    const curLen = list.length
-    
-    if (list.length >= data.length) {
-      setHasMoreSingle(false);
-    } else {
-      for (let i = curLen; i < (curLen + 6 > data.length ? data.length : curLen + 6) ; i++) {
-        list.push(data[i])
-      }
-      setListSingle([...list]) 
-    }
-  }
-
-  const loadMoreSingle = (done: () => void) => {
-    setTimeout(() => {
-      loadMore(listSingle)
-      done()
-    }, 500)
-  }
-
-  const handleClick = (item: object, index: number) => {
-    console.log("click", item, index)
-  }
-
-  const handleImageClick = (item: object, index: number) => {
-    console.log("click image", item, index)
-  }
-
-  const customProductSingle = (item: any) => {
-    return (
-      <>
-        <div className="name-box">
-          <div className="label">{item.label}</div>
-          {item.name}
-        </div>
-        <div className="name-box desc-box">
-          {item.desc}
-        </div>
-        <div className="bottom">
-          <div className="price-box">
-            <div className="price">
-              <Price price={item.price} />
-            </div>
-          </div>
-        </div>
-      </>
-    )
-  }
-
-  return (
-    <div className="demo product-feed-demo">
-      <ProductFeed
-        className="product-feed-demo2"
-        data={listSingle}
-        infiniteloadingProps={{
-          hasMore: hasMoreSingle,
-          onLoadMore: loadMoreSingle
-        }}
-        customProduct={customProductSingle}
-        col={1}
-        imgUrl="imgUrl"
-        imgWidth="100"
-        imgHeight="100"
-        imgTag={<div className="img-label"><img src="https://img12.360buyimg.com/imagetools/jfs/t1/186347/7/7338/1009/60c0806bE0b6c7207/97fd04b48d689ffe.png" /></div>}
-        onClick={handleClick}
-        onImageClick={handleImageClick}
-      />
-    </div>
-  );
-};
-export default App;
+```tsx
+<ProductFeed
+  data={list}
+  col={1}
+  imgUrl="imgUrl"
+  imgWidth="100"
+  imgHeight="100"
+  infiniteloadingProps={{ hasMore, onLoadMore: loadMore }}
+  customProduct={customProduct}
+/>
 ```
-
-:::
-
 
 ### 下拉刷新
 
-`isOpenRefresh` 可开启下拉刷新功能
-
-:::demo
-
-```ts
-import  React from "react";
-import { Price } from "@nutui/nutui-react";
-import { ProductFeed } from "@nutui/nutui-biz";
-import React, { useEffect, useState } from "react"
-import "@nutui/nutui-biz/dist/styles/demo.css";
-
-interface dataType {
-  id: number,
-  imgUrl: string,
-  name: string,
-  desc: string,
-  tag: string | boolean,
-  price: string,
-  label: string
-}
-
-const App = () => {
-
-  const [data, setData] = useState<dataType[]>([])
-  const [list3, setList3] = useState([] as any)
-  const [hasMore3, setHasMore3] = useState(true)
-
-  useEffect(() => {
-    initData()
-  }, [])
-
-  const init = () => {
-    for (let i = 0; i < 6; i++) {
-      list3.push(data[i])
-    }
-    setList3([...list3])
-  }
-
-  const initData = () => {
-    for(var i = 0; i < 12; i++) {
-      data.push({
-        id: i + 1,
-        imgUrl: "//img13.360buyimg.com/imagetools/jfs/t1/190855/7/12881/42147/60eb0cabE0c3b7234/d523d551413dc853.png",
-        name: "我是标题我是标题我是标题我是标题我是标题",
-        desc: "更多买点更多买点",
-        tag: i == 3 && '标签标签',
-        price: "388",
-        label: "自营",
-      })
-    }
-    init()
-  }
-
-  const loadMore = (list: any) => {
-    const curLen = list.length
-    
-    if (list.length >= data.length) {
-      setHasMore3(false);
-    } else {
-      for (let i = curLen; i < (curLen + 6 > data.length ? data.length : curLen + 6) ; i++) {
-        list.push(data[i])
-      }
-      setList3([...list]) 
-    }
-  }
-
-  const loadMore3 = (done: () => void) => {
-    setTimeout(() => {
-      loadMore(list3)
-      done()
-    }, 500)
-  }
-
-  const handleClick = (item: object, index: number) => {
-    console.log("click", item, index)
-  }
-
-  const handleImageClick = (item: object, index: number) => {
-    console.log("click image", item, index)
-  }
-
-  const refresh = (done: () => void) => {
-    setTimeout(() => {
-      console.log("refresh")
-      done()
-    }, 1000)
-  }
-
-  const customProductDouble = (item: any) => {
-    return (
-      <>
-        <div className="name-box">{item.name}</div>
-        {item.tag && <div className="name-box">
-          {item.tag}
-        </div>}
-        <div className="bottom">
-          <div className="price-box">
-            <div className="price">
-              <Price price={item.price} />
-            </div>
-          </div>
-        </div>
-      </>
-    )
-  }
-
-  return (
-    <div className="demo product-feed-demo">
-      <ProductFeed
-        data={list3}
-        infiniteloadingProps={{
-          hasMore: hasMore3,
-          isOpenRefresh: true,
-          onLoadMore: loadMore3,
-          onRefresh: refresh
-        }}
-        customProduct={customProductDouble}
-        col={2}
-        imgUrl="imgUrl"
-        imgWidth="144"
-        imgHeight="144"
-        imgTag={<div className="img-label"><img src="https://img12.360buyimg.com/imagetools/jfs/t1/186347/7/7338/1009/60c0806bE0b6c7207/97fd04b48d689ffe.png" /></div>}
-        onClick={handleClick}
-        onImageClick={handleImageClick}
-      />
-    </div>
-  );
-};
-export default App;
+```tsx
+<ProductFeed
+  data={list}
+  infiniteloadingProps={{
+    hasMore,
+    pullRefresh: true,
+    onLoadMore: loadMore,
+    onRefresh: async () => {
+      await fetchFirstPage()
+    },
+  }}
+  customProduct={customProduct}
+/>
 ```
-
-:::
-
-
-
 
 ## API
 
 ### Props
 
-| 字段         | 说明                           | 类型     | 默认值    |
-|-------------|--------------------------------|---------|-----------|
-| data        | 商品数据                        | Array   | -         |
-| itemKey     | 商品循环key值字段                | string   | `id`   |
-| customProduct | 商品图片下方区域内容            | (item) => ReactNode | - |
-| openInfiniteloading| 是否开启下拉加载功能       | boolean | `true`    |
-| infiniteloadingProps       | [infiniteloading 组件的 props](https://nutui.jd.com/h5/react/1x/#/zh-CN/component/infiniteloading)    | InfiniteloadingProps | - |
-| initProductNum | 初始展示商品个数               | number | `6`    |
-| col         | 每行商品数量，可选值有 `1`、 `2`| number \| string | `2`    |
-| padding     | 商品内边距，默认单位 `px`   | number \| string  | `10px`  |
-| borderRadius | 商品圆角，默认单位 `px`    | number \| string  | `8px`  |
-| imgUrl      | 商品图片Url                | string           | -     |
-| imgWidth    | 商品图片宽度，默认单位 `px`  | string           | `150px` |
-| imgHeight   | 商品图片高度，默认单位 `px`  | string           | `150px` |
-| imgTag      | 商品图片标签               | ReactNode        | -      |
-| isImageLazy | 是否开启商品图片懒加载       | boolean         | `true` |
-| loadingImg  | 商品图片加载时的图片        | string           | `//img12.360buyimg.com/imagetools/jfs/t1/180776/26/8319/4587/60c094a8E1ef2ec9d/940780b87700b1d3.png` |
-| errorImg    | 商品图片错误时的图片        | string           | `//img12.360buyimg.com/imagetools/jfs/t1/180776/26/8319/4587/60c094a8E1ef2ec9d/940780b87700b1d3.png`  |
+| 参数 | 说明 | 类型 | 默认值 |
+| --- | --- | --- | --- |
+| data | 商品数据 | any[] | `[]` |
+| itemKey | 商品唯一 key 的字段名 (缺失时回落到序号) | string | `id` |
+| customProduct | 商品图片下方区域内容 | (item) => ReactNode | - |
+| openInfiniteloading | 是否开启上拉加载 | boolean | `true` |
+| infiniteloadingProps | 透传给 NutUI 3 [InfiniteLoading](https://nutui.jd.com/taro/react/3x/#/zh-CN/component/infiniteloading) 的 props | Partial\<InfiniteLoadingProps\> | - |
+| col | 每行商品数量, 可选值: `1`、`2` | number \| string | `2` |
+| padding | 商品内边距, 数字默认单位 px | number \| string | `10px` |
+| borderRadius | 商品圆角, 数字默认单位 px | number \| string | `8px` |
+| imgUrl | 商品图片地址所在的**字段名** | string | `''` |
+| imgWidth | 商品图片宽度, 数字默认单位 px | number \| string | `150px` |
+| imgHeight | 商品图片高度, 数字默认单位 px | number \| string | `150px` |
+| imgTag | 商品图片左上角标签 | ReactNode | - |
+| isImageLazy | 商品图片是否懒加载 | boolean | `true` |
+| loadingImg | 图片加载中的占位图 | string | 京东默认占位图 |
+| errorImg | 图片加载失败的占位图 | string | 京东默认占位图 |
+| initProductNum | 已废弃, 不再生效 (见下方差异说明) | number | - |
+| className | 自定义类名 | string | - |
+| style | 自定义样式 | CSSProperties | - |
+
+### infiniteloadingProps 常用字段 (NutUI 3)
+
+| 字段 | 说明 | 类型 |
+| --- | --- | --- |
+| hasMore | 是否还有更多数据 | boolean |
+| threshold | 距底部多远触发加载 (px) | number |
+| onLoadMore | 上拉加载回调, 返回 Promise, resolve 后结束加载状态 | () => Promise\<void\> |
+| pullRefresh | 是否开启下拉刷新 | boolean |
+| onRefresh | 下拉刷新回调, 返回 Promise | () => Promise\<void\> |
+| onScroll | 滚动回调 | (scrollTop: number) => void |
+| loadingText / loadMoreText / pullingText | 各状态文案 | ReactNode |
 
 ### Events
-| 字段        | 说明            | 回调参数             |
-|----------- | --------------- | -------------------|
-| onLoadMore | 继续加载的回调函数 |  done 函数，用于关闭加载中状态 |
-| onRefresh  | 下拉刷新事件回调   |  done 函数，用于关闭加载中状态 |
-| onScrollChange  | 实时监听滚动高度   |  滚动高度 |
-| onClick  | 点击商品时触发 | item, index |
-| onImageClick  | 点击商品图片时触发 | item, index |
+
+| 事件名 | 说明 | 回调参数 |
+| --- | --- | --- |
+| onClick | 点击商品时触发 | `item, index` |
+| onImageClick | 点击商品图片时触发 (不会再触发 onClick) | `item, index` |
+
+### 与 1.x 的差异
+
+- `infiniteloadingProps` 改为 NutUI 3 的 `InfiniteLoadingProps`: `onLoadMore(done)` / `onRefresh(done)` 回调改为返回 Promise;
+  `isOpenRefresh` → `pullRefresh`; `containerId` / `useWindow` 不再需要 (滚动容器就是组件自身, 需给定高度)。
+- `initProductNum` 废弃: 1.x 中它表示"每次 data 变化时最多追加展示的条数", 双列时会导致部分数据不展示; 现在 `data` 全部展示。
+- `padding` / `borderRadius` / `isImageLazy` / `loadingImg` / `errorImg` 在 1.x 中未生效, 现已生效。
+
+## 主题定制
+
+| 名称 | 说明 | 默认值 |
+| --- | --- | --- |
+| --nb-productfeed-gap | 双列时每列左右内边距 | `4px` |
+| --nb-productfeed-item-background | 商品背景色 | `var(--nb-color-surface)` |
+| --nb-productfeed-item-margin | 商品之间的间距 | `8px` |
