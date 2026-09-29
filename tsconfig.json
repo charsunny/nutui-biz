@@ -1,35 +1,24 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "rootDir": ".",
-    "target": "ESNext",
-    "types": ["vite/client", "jest"],
-    "allowJs": false,
-    "declaration": true,
-    "declarationDir": "./dist/esm/types",
-    "emitDeclarationOnly": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    "target": "es2017",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "jsx": "react-jsx",
     "strict": true,
-    // "alwaysStrict": true,
-    // "strictNullChecks": true,
-    // "strictFunctionTypes": true,
-    // "noImplicitAny": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "noImplicitAny": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    // "noUnusedParameters": true,
-    // "noUnusedLocals": true,
-    "jsx": "react",
-    "lib": ["esnext", "dom"],
-    // "outDir": "./tsc/test",
+    "types": ["node", "webpack-env"],
     "paths": {
-      "@/*": ["src/*"]
+      "nutui-biz-taro": ["./src/index.ts"],
+      "nutui-biz-taro/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx"],
-  "exclude": ["./node_modules/*", "src/sites/*", "src/**/*.taro.tsx"]
+  "include": ["src", "demo", "types", "config"],
+  "exclude": ["node_modules", "dist"]
 }

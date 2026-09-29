@@ -3,7 +3,18 @@ import {
   useConfig,
   setDefaultConfig,
   getDefaultConfig,
+  themeToCssVars,
 } from './configprovider'
 
-export { useConfig, setDefaultConfig, getDefaultConfig }
+export type {
+  ConfigProviderProps,
+  ConfigProviderTheme,
+} from './configprovider'
+export {
+  ConfigProvider,
+  useConfig,
+  setDefaultConfig,
+  getDefaultConfig,
+  themeToCssVars,
+}
 export default ConfigProvider
