@@ -63,6 +63,7 @@ const App = () => (
 | ---------------- | -------------------------------------------- | -------------------------------------- | --------------------- |
 | data             | 初始数据，变化时会回填表单                   | Partial\<Idata\>                       | -                     |
 | invoiceType      | 发票类型，可选 `normal` `special`            | string                                 | `special`             |
+| fields           | 展示的字段 (按此顺序)；未展示的字段不渲染、不参与校验 | InvoiceTitleField[]              | 全部 (`INVOICE_TITLE_FIELDS`) |
 | bottom           | 表单与提交按钮之间的自定义内容               | ReactNode                              | -                     |
 | submitButtonText | 提交按钮文案                                 | string                                 | `提交审批` (随语言包) |
 | submitFixed      | 提交按钮是否固定在页面底部                   | boolean                                | `true`                |
