@@ -31,6 +31,12 @@ export interface InvoiceTitleEditProps extends IComponent {
   /** 提交按钮是否固定在页面底部 */
   submitFixed: boolean
   data: Partial<Idata>
+  /**
+   * 展示哪些字段 (按此顺序), 默认全部。
+   * 未展示的字段不渲染、不参与校验 —— 业务后端不收的字段 (如注册地址 / 开户行)
+   * 不该让用户填。
+   */
+  fields: InvoiceTitleField[]
   /** 校验通过时参数为表单值; 校验失败时参数为错误数组 (可用 Array.isArray 区分) */
   onSubmit: (arg: any) => void
   /** 发票抬头输入 */
@@ -55,6 +61,7 @@ export const InvoiceTitleEdit: FunctionComponent<Partial<InvoiceTitleEditProps>>
   submitButtonText,
   submitFixed = true,
   data,
+  fields = INVOICE_TITLE_FIELDS,
   onSubmit,
   onInput,
 }) => {
@@ -110,7 +117,7 @@ export const InvoiceTitleEdit: FunctionComponent<Partial<InvoiceTitleEditProps>>
             </Radio.Group>
           </Form.Item>
         ) : null}
-        {INVOICE_TITLE_FIELDS.map((field) => {
+        {fields.map((field) => {
           const [label, placeholder] = labels[field]
           const readOnly = isInvoiceTitleFieldReadOnly(field, invoiceType)
           return (
