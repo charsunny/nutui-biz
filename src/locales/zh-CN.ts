@@ -25,6 +25,7 @@ const zhCN: BaseLang = {
     totalText: "合计",
     settleButtonText: "去结算",
     selectAll: "全选",
+    colon: "：",
   },
   address: {
     selectRegion: "请选择所在地区",
@@ -59,6 +60,7 @@ const zhCN: BaseLang = {
   },
   skuheader: {
     skuId: "商品编号",
+    colon: "：",
   },
   addresslist: {
     addAddress: "新建地址",

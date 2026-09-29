@@ -1,98 +1,138 @@
-@import '../../styles/base.scss';
-@import '../../styles/mixins/text-ellipsis.scss';
+@import '../../styles/variables';
+
+$nb-settle-bar-background: var(--nb-settle-bar-background, $nb-color-surface);
+$nb-settle-bar-z-index: var(--nb-settle-bar-z-index, 100);
+$nb-settle-bar-warning-height: var(--nb-settle-bar-warning-height, 38px);
+$nb-settle-bar-warning-background: var(--nb-settle-bar-warning-background, $nb-color-warning);
+$nb-settle-bar-warning-opacity: var(--nb-settle-bar-warning-opacity, 0.1);
+$nb-settle-bar-total-color: var(--nb-settle-bar-total-color, $nb-color-title);
+$nb-settle-bar-total-font-size: var(--nb-settle-bar-total-font-size, $nb-font-size-base);
+$nb-settle-bar-price-color: var(--nb-settle-bar-price-color, $nb-color-price);
+$nb-settle-bar-button-width: var(--nb-settle-bar-button-width, 113px);
+$nb-settle-bar-button-height: var(--nb-settle-bar-button-height, 38px);
+$nb-settle-bar-button-background: var(--nb-settle-bar-button-background, $nb-color-primary-gradient);
+$nb-settle-bar-button-color: var(--nb-settle-bar-button-color, $nb-color-primary-text);
+$nb-settle-bar-button-font-size: var(--nb-settle-bar-button-font-size, $nb-font-size-base);
+$nb-settle-bar-button-disabled-opacity: var(--nb-settle-bar-button-disabled-opacity, 0.3);
 
 .nb-settle-bar {
+  width: 100%;
+  background: $nb-settle-bar-background;
+  box-sizing: border-box;
+
+  &--fixed {
     position: fixed;
+    right: 0;
     bottom: 0;
     left: 0;
-    right: 0;
+    z-index: $nb-settle-bar-z-index;
+  }
 
-    &__warning {
-        position: relative;
-        height: 38px;
+  &--safe-area {
+    padding-bottom: constant(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 
-        &-mask,
-        &-content {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 100%;
-        }
+  &__warning {
+    position: relative;
+    height: $nb-settle-bar-warning-height;
+  }
 
-        &-mask {
-            z-index: 1;
-            background-color: #fffbe8;
-            opacity: .8;
-        }
+  &__warning-mask,
+  &__warning-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
 
-        &-content {
-            z-index: 2;
-        }
+  &__warning-mask {
+    z-index: 1;
+    background: $nb-settle-bar-warning-background;
+    opacity: $nb-settle-bar-warning-opacity;
+  }
+
+  &__warning-content {
+    z-index: 2;
+  }
+
+  &__main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $nb-spacing-xs $nb-spacing-base;
+  }
+
+  &__select-all {
+    flex-shrink: 0;
+    margin-right: $nb-spacing-base;
+  }
+
+  &__total {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    margin-right: $nb-spacing-base;
+    color: $nb-settle-bar-total-color;
+    font-size: $nb-settle-bar-total-font-size;
+
+    &--right {
+      align-items: flex-end;
+      text-align: right;
     }
 
-    &__main {
-        padding: 6px 12px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        .nut-checkbox {
-            cursor: pointer;
-
-            &__label {
-                margin-left: 10px;
-            }
-        }
-
-        &-select-all {
-            margin-right: 12px;
-            flex-shrink: 0;
-        }
-    
-        &-total {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            margin-right: 12px;
-
-            &-inner {
-                max-width: 120px;
-                @include text-ellipsis();
-            }
-        }
-
-        .btn {
-            border: 1px solid #8c8c8c;
-            border-radius: 15px;
-            font-size: 12px;
-            line-height: 30px;
-            padding: 0 19px;
-        }
-    
-        &-buy {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f2270c;
-            background-image: linear-gradient(135deg,#f2140c,#f2270c 70%,#f24d0c);
-            border-radius: 20px;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 700;
-            height: 38px;
-            width: 113px;
-            cursor: pointer;
-            flex-shrink: 0;
-    
-            &.disabled {
-                opacity: .3;
-                cursor: not-allowed;
-            }
-        }
-    
-        &-num {
-            font-weight: 400;
-        }
+    &--left {
+      align-items: flex-start;
+      text-align: left;
     }
+  }
+
+  &__total-inner {
+    @include text-ellipsis();
+    max-width: 100%;
+  }
+
+  &__total-price {
+    color: $nb-settle-bar-price-color;
+    font-weight: $nb-font-weight-bold;
+  }
+
+  &__button {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: $nb-settle-bar-button-width;
+    height: $nb-settle-bar-button-height;
+    border-radius: $nb-radius-pill;
+    background: $nb-settle-bar-button-background;
+    color: $nb-settle-bar-button-color;
+    font-size: $nb-settle-bar-button-font-size;
+    font-weight: $nb-font-weight-bold;
+
+    &--disabled {
+      opacity: $nb-settle-bar-button-disabled-opacity;
+    }
+  }
+
+  &__button-loading {
+    margin-right: $nb-spacing-xxs;
+    animation: nb-settle-bar-rotate 1s linear infinite;
+  }
+
+  &__button-count {
+    font-weight: $nb-font-weight;
+  }
+}
+
+@keyframes nb-settle-bar-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }

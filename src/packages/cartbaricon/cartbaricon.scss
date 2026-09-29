@@ -1,23 +1,34 @@
+@import '../../styles/variables';
+
+$nb-cart-bar-icon-width: var(--nb-cart-bar-icon-width, 44px);
+$nb-cart-bar-icon-size: var(--nb-cart-bar-icon-size, 20px);
+$nb-cart-bar-icon-color: var(--nb-cart-bar-icon-color, $nb-color-title);
+$nb-cart-bar-icon-text-color: var(--nb-cart-bar-icon-text-color, $nb-color-text);
+$nb-cart-bar-icon-text-font-size: var(--nb-cart-bar-icon-text-font-size, $nb-font-size-xxs);
+
 .nb-cart-bar-icon {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: $nb-cart-bar-icon-width;
+  color: $nb-cart-bar-icon-color;
+
+  &__icon {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex: 1;
+    height: $nb-cart-bar-icon-size;
+    font-size: $nb-cart-bar-icon-size;
+    line-height: 1;
+  }
 
-    &-icon {
-        vertical-align: -4px;
-    }
-
-    .txt {
-        font-size: 9px;
-        height: 16px;
-        overflow: hidden;
-    }
-
-    .nut-badge {
-        margin-right: 0;
-        width: auto;
-        height: auto;
-    }
+  &__text {
+    margin-top: 2px;
+    color: $nb-cart-bar-icon-text-color;
+    font-size: $nb-cart-bar-icon-text-font-size;
+    line-height: 14px;
+    white-space: nowrap;
+  }
 }

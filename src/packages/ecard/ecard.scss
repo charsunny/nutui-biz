@@ -1,152 +1,112 @@
-.nut-theme-dark {
-  .nut-ecard {
-    color: $dark-color3;
+@import '../../styles/variables';
 
-    ::placeholder {
-      color: rgb(29, 31, 32);
-    }
-
-    .nut-ecard__list__item {
-      background: $dark-background5;
-
-      &.active {
-        background: $dark-background6;
-        outline: 1px solid $dark-color2;
-        color: $dark-color2;
-      }
-    }
-
-    .nut-ecard__list__input {
-      color: $dark-color3;
-      background: $dark-background7;
-
-      &.active {
-        background: $dark-background7;
-
-        > view > input {
-          background: $dark-background7;
-        }
-      }
-
-      .nut-ecard__list__input--con > input {
-        background-color: transparent;
-        color: $dark-color3;
-      }
-    }
-  }
-}
+$nb-ecard-title-color: var(--nb-ecard-title-color, $nb-color-title);
+$nb-ecard-title-font-size: var(--nb-ecard-title-font-size, 15px);
+$nb-ecard-item-height: var(--nb-ecard-item-height, 46px);
+$nb-ecard-item-background: var(--nb-ecard-item-background, $nb-color-background);
+$nb-ecard-item-color: var(--nb-ecard-item-color, $nb-color-title);
+$nb-ecard-item-radius: var(--nb-ecard-item-radius, $nb-radius-xs);
+$nb-ecard-item-active-background: var(--nb-ecard-item-active-background, $nb-color-surface);
+$nb-ecard-item-active-color: var(--nb-ecard-item-active-color, $nb-color-primary);
+$nb-ecard-item-active-border-color: var(--nb-ecard-item-active-border-color, $nb-color-primary);
+$nb-ecard-money-color: var(--nb-ecard-money-color, $nb-color-price);
+$nb-ecard-money-font-size: var(--nb-ecard-money-font-size, $nb-font-size-xxl);
 
 .nb-ecard {
   width: 100%;
+  box-sizing: border-box;
 
   &__title {
+    color: $nb-ecard-title-color;
+    font-size: $nb-ecard-title-font-size;
     line-height: 1;
-    font-size: 15px;
-    font-family: PingFangSC;
-    font-weight: normal;
   }
 
   &__list {
     display: flex;
-    justify-content: space-between;
     flex-wrap: wrap;
+    justify-content: space-between;
     margin-top: 15px;
+  }
 
-    &__item {
-      width: 48%;
-      height: 46px;
-      background: $ecard-bg-color;
-      border-radius: 4px;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: $nb-ecard-item-height;
+    margin-bottom: $nb-spacing-base;
+    border: 1px solid transparent;
+    border-radius: $nb-ecard-item-radius;
+    background: $nb-ecard-item-background;
+    color: $nb-ecard-item-color;
+    font-size: $nb-font-size-base;
+    box-sizing: border-box;
 
-      &.active {
-        background: $white;
-        outline: 1px solid $primary-color;
-        border-radius: 4px;
-      }
-    }
-
-    &__input {
-      width: 100%;
-      height: 46px;
-      background: $ecard-bg-color;
-      color: rgba(0, 0, 0, 0.8);
-      border-radius: 4px;
-      display: flex;
-      padding: 0 15px 0 20px;
-      font-size: 14px;
-      justify-content: space-between;
-      align-items: center;
-
-      &--input {
-        background: transparent;
-        padding: 0;
-      }
-
-      &--con {
-        flex: 1;
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-
-        input {
-          caret-color: $primary-color; //光标颜色
-          text-align: right;
-          background: transparent;
-          margin-right: 10px;
-          outline: 0 none;
-          border: 0;
-          text-decoration: none;
-        }
-
-        .nut-ecard-input {
-          caret-color: $primary-color; //光标颜色
-          text-align: right;
-          background: transparent;
-          margin-right: 10px;
-          outline: 0 none;
-          border: 0;
-          text-decoration: none;
-        }
-      }
-
-      &.active {
-        background: $white;
-        outline: 1px solid $primary-color;
-
-        > view > input {
-          background: $white;
-        }
-      }
-      .nut-input{
-        background: inherit;
-      }
-      // .suffix{
-      //   margin-right: 15px;
-      // }
-    }
-
-    &__step {
-      width: 100%;
-      margin-top: 17px;
-      display: flex;
-      justify-content: space-between;
-      &--price{
-        font-size: 20px;
-        font-family: PingFangSC;
-        font-weight: normal;
-        color: $primary-color;
-      }
+    &--active {
+      border-color: $nb-ecard-item-active-border-color;
+      background: $nb-ecard-item-active-background;
+      color: $nb-ecard-item-active-color;
     }
   }
-  input::-webkit-outer-spin-button,
-  input::-webkit-inner-spin-button {
-    -webkit-appearance: none !important;
+
+  &__input {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: $nb-ecard-item-height;
+    padding: 0 15px 0 20px;
+    border: 1px solid transparent;
+    border-radius: $nb-ecard-item-radius;
+    background: $nb-ecard-item-background;
+    color: $nb-ecard-item-color;
+    font-size: $nb-font-size-base;
+    box-sizing: border-box;
+
+    &--active {
+      border-color: $nb-ecard-item-active-border-color;
+      background: $nb-ecard-item-active-background;
+    }
   }
-  input[type='number'] {
-    -moz-appearance: textfield;
+
+  &__input-label {
+    flex-shrink: 0;
+  }
+
+  &__input-con {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  &__input-field {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    margin-right: 10px;
+    background: transparent;
+    color: $nb-ecard-item-color;
+    font-size: $nb-font-size-base;
+    text-align: right;
+    caret-color: $nb-color-primary;
+  }
+
+  &__input-placeholder {
+    color: $nb-color-text-disabled;
+  }
+
+  &__step {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 17px;
+  }
+
+  &__money {
+    color: $nb-ecard-money-color;
+    font-size: $nb-ecard-money-font-size;
   }
 }
