@@ -1,79 +1,54 @@
-import React, {
-  FunctionComponent
-} from 'react'
-import { useConfig } from '@/packages/configprovider'
-import { Icon } from '@nutui/nutui-react'
+import type { FunctionComponent } from 'react'
+import { View, Text } from '@tarojs/components'
+import type { ITouchEvent } from '@tarojs/components'
+import { Del, Edit } from '@nutui/icons-react-taro'
+import bem from '../../utils/bem'
+import { useConfig } from '../configprovider'
+import type { AddressListHandler, IDataInfo } from './types'
 
-import { IComponent } from '@/utils/typings'
-import bem from '@/utils/bem'
-import { IDataInfo, functionType } from './addresslist'
-
-export interface ItemContentsProps extends IComponent {
+export interface ItemContentsProps {
   item: IDataInfo
-  onDelIcon?: functionType
-  onEditIcon?: functionType
-  onClickItem?: functionType
-  onTouchStart: () => void,
-  onTouchEnd: () => void,
-  onTouchMove: () => void
+  onDelIcon?: AddressListHandler
+  onEditIcon?: AddressListHandler
+  onClickItem?: AddressListHandler
 }
 
-const defaultProps = {
-  item: {}
-} as ItemContentsProps
-
-export const ItemContents: FunctionComponent<
-  Partial<ItemContentsProps>
-> = (props) => {
+export const ItemContents: FunctionComponent<ItemContentsProps> = ({
+  item,
+  onDelIcon,
+  onEditIcon,
+  onClickItem,
+}) => {
   const { locale } = useConfig()
-  const {
-    item,
-    onDelIcon,
-    onEditIcon,
-    onClickItem,
-    ...rest
-  } = {
-    ...defaultProps,
-    ...props,
-  }
-
   const b = bem('address-list')
 
-  const delClick = (event: any) => {
-    onDelIcon?.(event, item)
-    event.stopPropagation();
-  }
-
-  const editClick = (event: any) => {
-    onEditIcon?.(event, item)
-    event.stopPropagation();
-  }
-
-  const contentsClick = (event: any) => {
-    onClickItem?.(event, item)
-    event.stopPropagation();
+  const handle = (fn?: AddressListHandler) => (event: ITouchEvent) => {
+    event.stopPropagation()
+    fn?.(event, item)
   }
 
   return (
-    <div className={b('item')} onClick={contentsClick} {...rest}>
-      <div className={b('item-info')}>
-        <div className={b('item-info-contact')}>
-          <div className={b('item-info-contact-name')}>{ item.addressName }</div>
-          <div className={b('item-info-contact-tel')}>{ item.phone }</div>
-          {item.defaultAddress && <div className={b('item-info-contact-default')}>{locale.itemContents.default}</div>}
-        </div>
-        <div className={b('item-info-handle')}>
-          <Icon name="del" className={b('item-info-handle-del')} onClick={delClick}></Icon>
-          <Icon name="edit" className={b('item-info-handle-edit')} onClick={editClick}></Icon>
-        </div>
-      </div>
-      <div className={b('item-addr')}>
-        { item.fullAddress }
-      </div>
-    </div>
+    <View className={b('item')} onClick={handle(onClickItem)}>
+      <View className={b('item-info')}>
+        <View className={b('item-contact')}>
+          <Text className={b('item-name')}>{item.addressName}</Text>
+          <Text className={b('item-tel')}>{item.phone}</Text>
+          {item.defaultAddress && (
+            <Text className={b('item-default')}>{locale.itemContents.default}</Text>
+          )}
+        </View>
+        <View className={b('item-handle')}>
+          <View className={b('item-del')} onClick={handle(onDelIcon)}>
+            <Del size={16} />
+          </View>
+          <View className={b('item-edit')} onClick={handle(onEditIcon)}>
+            <Edit size={16} />
+          </View>
+        </View>
+      </View>
+      <View className={b('item-addr')}>{item.fullAddress}</View>
+    </View>
   )
 }
-  
-ItemContents.defaultProps = defaultProps
-ItemContents.displayName = 'NutItemContents'
-  
+
+ItemContents.displayName = 'NbAddressListItemContents'

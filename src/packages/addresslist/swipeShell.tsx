@@ -1,94 +1,72 @@
-import React, {
-  FunctionComponent,
-  useState
-} from 'react'
-import { useConfig } from '@/packages/configprovider'
-import { Button, Swipe } from '@nutui/nutui-react'
-import { IComponent } from '@/utils/typings'
+import { useRef } from 'react'
+import type { FunctionComponent } from 'react'
+import { View } from '@tarojs/components'
+import { Button, Swipe } from '@nutui/nutui-react-taro'
+import bem from '../../utils/bem'
+import { useConfig } from '../configprovider'
 import { ItemContents } from './itemContents'
-import bem from '@/utils/bem'
-import { IDataInfo, functionType } from './addresslist'
+import type { AddressListHandler, IDataInfo } from './types'
 
-export interface SwipeShellProps extends IComponent {
+export interface SwipeShellProps {
   item: IDataInfo
-  onDelIcon?: functionType
-  onEditIcon?: functionType
-  onItemClick?: functionType
-  onSwipeDel?: functionType
+  onDelIcon?: AddressListHandler
+  onEditIcon?: AddressListHandler
+  onItemClick?: AddressListHandler
+  onSwipeDel?: AddressListHandler
 }
 
-export const SwipeShell: FunctionComponent<
-  Partial<SwipeShellProps>
-> = (props) => {
+export const SwipeShell: FunctionComponent<SwipeShellProps> = ({
+  item,
+  onDelIcon,
+  onEditIcon,
+  onItemClick,
+  onSwipeDel,
+}) => {
   const { locale } = useConfig()
-  const {
-    item,
-    onDelIcon,
-    onEditIcon,
-    onItemClick,
-    onSwipeDel,
-    ...rest
-  } = {
-    ...props,
-  }
-
   const b = bem('address-list')
+  // 滑动过程中不触发点击
+  const moved = useRef(false)
 
-  const [moveRef, setMoveRef] = useState<boolean>(false)
-
-  const stop = (event: Event) => {
-    event.stopPropagation();
-  }
-
-  const delClick = (event: Event) => {
-    if(item) {
-      onDelIcon?.(event, item)
-    }
-    stop(event);
-  }
-
-  const editClick = (event: Event) => {
-    if(item) {
-      onEditIcon?.(event, item)
-    }
-    stop(event);
-  }
-
-  const itemClick = (event: Event) => {
-    if(moveRef) return;
-    
-    if(item) {
-      onItemClick?.(event, item)
-    }
-    stop(event);
-  }
-
-  const swiper = (isMove: boolean) => {
-    setMoveRef(isMove)
-  }
-
-  const swipeDelClick = (event: Event) => {
-    if(item) {
-      onSwipeDel?.(event, item)
-    }
-    event.stopPropagation();
+  const handleItemClick: AddressListHandler = (event, data) => {
+    if (moved.current) return
+    onItemClick?.(event, data)
   }
 
   return (
-    <Swipe rightAction={<Button shape="square" style={{height: '100%'}} type="danger" onClick={swipeDelClick}>{locale.swipeShell.delete}</Button>}>
-      <div className={b('swipe')}>
+    <Swipe
+      className={b('swipe-wrap')}
+      rightAction={
+        <Button
+          className={b('swipe-del')}
+          shape="square"
+          type="primary"
+          onClick={(event: any) => {
+            event?.stopPropagation?.()
+            onSwipeDel?.(event, item)
+          }}
+        >
+          {locale.swipeShell.delete}
+        </Button>
+      }
+    >
+      <View
+        className={b('swipe')}
+        onTouchStart={() => {
+          moved.current = false
+        }}
+        onTouchMove={() => {
+          moved.current = true
+        }}
+      >
         <ItemContents
           item={item}
-          onDelIcon={delClick}
-          onEditIcon={editClick}
-          onClickItem={itemClick}
-          onTouchMove={() => swiper(true)}
-          onTouchStart={() => swiper(false)}
+          onDelIcon={onDelIcon}
+          onEditIcon={onEditIcon}
+          onClickItem={handleItemClick}
         />
-      </div>
+      </View>
     </Swipe>
   )
 }
 
-SwipeShell.displayName = 'NutSwipeShell'
-  
+SwipeShell.displayName = 'NbAddressListSwipeShell'

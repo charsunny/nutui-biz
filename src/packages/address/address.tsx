@@ -1,42 +1,61 @@
-import React, { FunctionComponent, useEffect, useState } from 'react';
-import { Icon, Popup } from '@nutui/nutui-react';
-import bem from '@/utils/bem';
-import { ExistRender } from './existRender';
-import { CustomRender } from './customRender';
-import { useConfig } from '@/packages/configprovider';
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { FunctionComponent } from 'react'
+import { View } from '@tarojs/components'
+import { Popup } from '@nutui/nutui-react-taro'
+import { ArrowLeft, Close } from '@nutui/icons-react-taro'
+import classNames from 'classnames'
+import bem from '../../utils/bem'
+import { useConfig } from '../configprovider'
+import { CustomRender } from './customRender'
+import { ExistRender } from './existRender'
 import {
-  RegionData,
-  NextListObj,
-  SelectedRegionObj,
-  CloseCallBack,
+  REGION_KEYS,
+  buildRegionResult,
+  canAdvance,
+  emptySelectedRegion,
+  getLevels,
+  nextRegionKey,
+  resetRegionsAfter,
+  resolveSelection,
+  selectExistAddress,
+  selectRegionItem,
+} from './region'
+import type {
   AddressList,
+  AddressProps,
   AddressType,
-  AddressProps
-} from './type';
+  ChangeCallBack,
+  CloseCallBack,
+  RegionData,
+  SelectedRegionObj,
+} from './type'
 
-export type { AddressProps } from './type';
+const EMPTY: never[] = []
+
 export const Address: FunctionComponent<Partial<AddressProps>> = (props) => {
-  const { locale } = useConfig();
+  const { locale } = useConfig()
   const {
+    className,
+    style,
     modelValue = false,
-    modelSelect = [],
-    children,
+    modelSelect = EMPTY,
     type = 'custom',
     height = '200px',
     customAddressTitle = locale.address.selectRegion,
-    existAddress = [],
-    // hotCities = [],
+    existAddress = EMPTY,
     existAddressTitle = locale.address.deliveryTo,
-    province = [],
-    city = [],
-    country = [],
-    town = [],
+    province = EMPTY,
+    city = EMPTY,
+    country = EMPTY,
+    town = EMPTY,
     isShowCustomAddress = true,
-    customAndExistTitle = '选择其他地址',
-    selectedIcon = '',
-    defaultIcon = '',
-    closeBtnIcon = 'circle-close',
-    backBtnIcon = 'left',
+    customAndExistTitle = locale.address.chooseAnotherAddress,
+    selectedIcon,
+    defaultIcon,
+    closeBtnIcon = <Close size={16} />,
+    backBtnIcon = <ArrowLeft size={16} />,
+    loading = false,
+    bottom,
     onChange,
     onSelected,
     onClose,
@@ -44,204 +63,146 @@ export const Address: FunctionComponent<Partial<AddressProps>> = (props) => {
     onCloseMask,
     onSwitchModule,
     onTabChecked,
-    style,
-    className,
-    iconClassPrefix,
-    iconFontClassName,
-    loading = false,
-    bottom = '',
-    ...rest
-  } = {
-    ...props
-  };
-  const b = bem('address');
+  } = props
+  const b = bem('address')
 
-  const [privateType, setPrivateType] = useState<AddressType>(type);
-  const [tabName] = useState<string[]>(['province', 'city', 'country', 'town']);
-  const [showPopup, setShowPopup] = useState(modelValue);
-  const [selectedRegion, setSelectedRegion] = useState<SelectedRegionObj>({
-    province: { name: '' },
-    city: { name: '' },
-    country: { name: '' },
-    town: { name: '' }
-  }); // 已选择的 省、市、县、镇
+  const lists = { province, city, country, town }
+  const levels = useMemo(() => getLevels({ town }), [town])
+  const levelsRef = useRef(levels)
+  levelsRef.current = levels
 
-  const [selectedExistAddress, setSelectedExistAddress] = useState({}); // 当前选择的地址
+  const [privateType, setPrivateType] = useState<AddressType>(type)
+  const [visible, setVisible] = useState(modelValue)
+  const [tabIndex, setTabIndex] = useState(0)
+  const [selected, setSelected] = useState<SelectedRegionObj>(emptySelectedRegion)
+  const [clicked, setClicked] = useState<RegionData | null>(null)
+  const [existList, setExistList] = useState<AddressList[]>(existAddress)
+  const [selectedExist, setSelectedExist] = useState<AddressList>({} as AddressList)
 
-  // 手动关闭 点击叉号(cross)，或者蒙层(mask)
-  const handClose = () => {
-    setShowPopup(false);
-    // closeFun();
-  };
-  // 点击遮罩层关闭
-  const clickOverlay = () => {
-    onCloseMask && onCloseMask({ closeWay: 'mask' });
-  };
-  // 切换下一级列表
-  const nextAreaList = (item: NextListObj, resStatus: boolean) => {
-    // onchange 接收的参数
-    const callbackParams = {
-      next: item.next,
-      value: item.value,
-      custom: item.custom
-    };
+  useEffect(() => setVisible(modelValue), [modelValue])
+  useEffect(() => setPrivateType(type), [type])
+  useEffect(() => setExistList(existAddress), [existAddress])
 
-    setSelectedRegion({
-      ...(item.selectedRegion as typeof selectedRegion)
-    });
+  // modelSelect 变化时还原已选地区
+  const selectKey = modelSelect.join('_')
+  useEffect(() => {
+    const res = resolveSelection(modelSelect, lists, levels)
+    if (!res) return
+    setSelected(res.selected)
+    setTabIndex(res.tabIndex)
+  }, [selectKey])
 
-    onChange && onChange(callbackParams);
-    if (!resStatus && onClickItem) {
-      handClose();
+  // 选择地区, 支持 onClickItem 异步加载下一级
+  const handleSelectRegion = async (item: RegionData) => {
+    const index = tabIndex
+    setSelected(selectRegionItem(selected, index, item))
+    setClicked(item)
+    const cal: ChangeCallBack = {
+      next: nextRegionKey(index),
+      value: item,
+      custom: REGION_KEYS[index],
     }
-  };
-  // 选择现有地址
-  const selectedExist = (prevExistAdd: AddressList, item: AddressList, copyExistAdd: AddressList[]) => {
-    setSelectedExistAddress(item);
-    onSelected && onSelected(prevExistAdd, item, copyExistAdd);
-    handClose();
-  };
-  // 初始化 重置已选择数据
-  const initAddress = () => {
-    for (let i = 0; i < tabName.length; i++) {
-      setSelectedRegion({
-        ...selectedRegion,
-        [tabName[i]]: {}
-      });
+    let ok = true
+    if (onClickItem) {
+      ok = await new Promise<boolean>((resolve) => {
+        onClickItem({ ...cal }, resolve)
+      })
     }
-  };
-  // 关闭
-  const closeFun = () => {
-    const resCopy = {
-      addressIdStr: '',
-      addressStr: '',
-      ...selectedRegion
-    };
-    const res: CloseCallBack = {
-      data: {
-        addressIdStr: '',
-        addressStr: '',
-        ...selectedRegion
-      },
-      type: privateType
-    };
-    if (privateType === 'custom' || privateType === 'elevator') {
-      const { province, city, country, town } = resCopy;
-      resCopy.addressIdStr = [
-        (province as RegionData).id || 0,
-        (city as RegionData).id || 0,
-        (country as RegionData).id || 0,
-        (town as RegionData).id || 0
-      ].join('_');
-      resCopy.addressStr = [
-        (province as RegionData).name,
-        (city as RegionData).name,
-        (country as RegionData).name,
-        (town as RegionData).name
-      ].join('');
-      res.data = resCopy;
-    } else {
-      res.data = selectedExistAddress as AddressList;
-    }
+    if (ok && canAdvance(index, levelsRef.current)) setTabIndex(index + 1)
+    onChange?.(cal)
+    if (!ok && onClickItem) setVisible(false)
+  }
 
-    initAddress();
+  const handleTabClick = (index: number) => {
+    if (index > tabIndex) return
+    setTabIndex(index)
+    setSelected(resetRegionsAfter(selected, index))
+    onTabChecked?.(REGION_KEYS[index])
+  }
 
-    onClose && onClose(res);
-  };
-  // 选择其他地址
+  const handleSelectExist = (index: number) => {
+    const res = selectExistAddress(existList, index)
+    setExistList(res.list)
+    setSelectedExist(res.item)
+    onSelected?.(res.prev, res.item, res.list)
+    setVisible(false)
+  }
+
   const handleSwitchModule = () => {
-    setPrivateType(privateType === 'exist' ? 'custom' : 'exist');
-    initAddress();
-    onSwitchModule && onSwitchModule({ type: privateType });
-  };
-  const initSelectValue = (selectedRegion: SelectedRegionObj) => {
-    setSelectedRegion({
-      ...selectedRegion
-    });
-  };
-  const headerRender = () => {
-    return (
-      <div className={b('header')}>
-        <div className="arrow-back" onClick={handleSwitchModule}>
-          {type == 'exist' && privateType == 'custom' && backBtnIcon && (
-            <Icon classPrefix={iconClassPrefix} fontClassName={iconFontClassName} name={backBtnIcon} color="#cccccc" />
-          )}
-        </div>
+    const nextType: AddressType = privateType === 'exist' ? 'custom' : 'exist'
+    setPrivateType(nextType)
+    onSwitchModule?.({ type: nextType })
+  }
 
-        <div className={b('header__title')}>{privateType === 'custom' ? customAddressTitle : existAddressTitle}</div>
+  // Popup 关闭 (遮罩 / 关闭按钮 / 选择完成 / modelValue=false) 时统一回调 onClose
+  const handlePopupClose = () => {
+    setVisible(false)
+    const res: CloseCallBack =
+      privateType === 'exist'
+        ? { type: privateType, data: selectedExist }
+        : { type: privateType, data: buildRegionResult(selected) }
+    onClose?.(res)
+  }
 
-        <div onClick={() => handClose()}>
-          {closeBtnIcon && (
-            <Icon
-              classPrefix={iconClassPrefix}
-              fontClassName={iconFontClassName}
-              name={closeBtnIcon}
-              color="#cccccc"
-              size="18px"
-            />
-          )}
-        </div>
-      </div>
-    );
-  };
+  const handleCrossClick = () => {
+    onCloseMask?.({ closeWay: 'cross' })
+    setVisible(false)
+  }
 
-  useEffect(() => {
-    setShowPopup(modelValue);
-  }, [modelValue]);
-  useEffect(() => {
-    setPrivateType(type);
-  }, [type]);
+  const showBack = type === 'exist' && privateType !== 'exist' && !!backBtnIcon
 
   return (
     <Popup
-      visible={showPopup}
+      visible={visible}
       position="bottom"
-      onClickOverlay={clickOverlay}
-      onClose={() => {
-        closeFun();
-      }}>
-      <div className={`${b()} ${className || ''}`} style={{ ...style }} {...rest}>
-        {headerRender()}
-        {(privateType === 'custom' || privateType === 'elevator') && (
-          <CustomRender
-            modelValue={modelSelect}
-            type={privateType}
-            province={province}
-            city={city}
-            country={country}
-            town={town}
-            loading={loading}
-            // hotCities={hotCities}
-            height={height}
-            onNextArea={(cal, resStatus) => {
-              nextAreaList && nextAreaList(cal, resStatus);
-            }}
-            onTabClick={(type) => {
-              onTabChecked && onTabChecked(type);
-            }}
-            emitSelectedRegion={(cal) => {
-              initSelectValue(cal);
-            }}
-            onClose={handClose}
-            onClickItem={onClickItem}
-          />
-        )}
-        {privateType === 'exist' && (
+      round
+      onOverlayClick={() => {
+        onCloseMask?.({ closeWay: 'mask' })
+        return true
+      }}
+      onClose={handlePopupClose}
+    >
+      <View className={classNames(b(), className)} style={style}>
+        <View className={b('header')}>
+          <View className={b('header-left')} onClick={showBack ? handleSwitchModule : undefined}>
+            {showBack && backBtnIcon}
+          </View>
+          <View className={b('header-title')}>
+            {privateType === 'exist' ? existAddressTitle : customAddressTitle}
+          </View>
+          <View className={b('header-right')} onClick={closeBtnIcon ? handleCrossClick : undefined}>
+            {closeBtnIcon}
+          </View>
+        </View>
+
+        {privateType === 'exist' ? (
           <ExistRender
-            type={privateType}
-            existAddress={existAddress}
+            existAddress={existList}
             selectedIcon={selectedIcon}
             defaultIcon={defaultIcon}
             isShowCustomAddress={isShowCustomAddress}
-            customAndExistTitle={customAndExistTitle || locale.address.chooseAnotherAddress}
-            onSelected={selectedExist}
+            customAndExistTitle={customAndExistTitle}
+            onSelect={handleSelectExist}
             onSwitchModule={handleSwitchModule}
+          />
+        ) : (
+          <CustomRender
+            {...lists}
+            type={privateType}
+            levels={levels}
+            tabIndex={tabIndex}
+            selected={selected}
+            height={height}
+            loading={loading}
+            clicked={clicked}
+            onSelect={handleSelectRegion}
+            onTabClick={handleTabClick}
           />
         )}
         {bottom}
-      </div>
+      </View>
     </Popup>
-  );
-};
+  )
+}
 
-Address.displayName = 'NutAddress';
+Address.displayName = 'NbAddress'
