@@ -1,147 +1,102 @@
-import React, {
-  FunctionComponent,
-  useState,
-  useRef,
-  CSSProperties,
-} from "react";
-import {
-  Popup,
-  Checkbox,
-  Button,
-  TextArea,
-  TextAreaProps,
-  ButtonProps,
-  PopupProps,
-  Switch,
-} from "@nutui/nutui-react";
-import { IComponent } from "@/utils/typings";
-import bem from "@/utils/bem";
+import { memo, useState } from 'react'
+import type { FunctionComponent, ReactNode } from 'react'
+import { View } from '@tarojs/components'
+import { Button, Checkbox, Popup, Switch, TextArea } from '@nutui/nutui-react-taro'
+import type { ButtonProps, PopupProps, TextAreaProps } from '@nutui/nutui-react-taro'
+import classNames from 'classnames'
+import bem from '../../utils/bem'
+import type { IComponent } from '../../utils/typings'
+import { useConfig } from '../configprovider'
+import { buildSubmitPayload, INITIAL_REASON_STATE, toggleReason } from './utils'
+import type { IreasonsObject, ReasonState } from './utils'
 
-export type ICheckboxPosition = "front" | "back";
-export interface IreasonsObject {
-  key: string;
-  value: string;
-  [x: string]: any;
-}
+export type { IreasonsObject } from './utils'
+
+export type ICheckboxPosition = 'front' | 'back'
+
 export interface OrderCancelPanelProps extends IComponent {
-  showCancelPanel: boolean;
-  warmTips: string[];
-  cancelReason: Array<IreasonsObject>;
-  canCancelReason: boolean;
-  popupTitle: React.ReactNode;
-  reasonTitle: React.ReactNode;
-  submitText: string;
-  tipsTitle: React.ReactNode;
-  buttonProps: Partial<ButtonProps>;
-  textAreaProps: Partial<Omit<TextAreaProps, "defaultValue">>;
-  popupProps: Partial<PopupProps>;
-  checkboxType: ICheckboxPosition;
-  safeAreaCancelBottom: boolean;
-  showBtntips: boolean;
-  onClose: () => void;
+  showCancelPanel: boolean
+  warmTips: string[]
+  cancelReason: IreasonsObject[]
+  canCancelReason: boolean
+  popupTitle: ReactNode
+  reasonTitle: ReactNode
+  submitText: ReactNode
+  tipsTitle: ReactNode
+  /** 提交按钮的 props (NutUI 3.x Button) */
+  buttonProps: Partial<ButtonProps>
+  /** "其它原因" 输入框的 props (NutUI 3.x TextArea) */
+  textAreaProps: Partial<Omit<TextAreaProps, 'defaultValue' | 'value' | 'onChange'>>
+  /** 弹窗的 props (NutUI 3.x Popup) */
+  popupProps: Partial<PopupProps>
+  checkboxType: ICheckboxPosition
+  safeAreaCancelBottom: boolean
+  showBtntips: boolean
+  /** 按钮区域提示文案 */
+  btnTipsText: ReactNode
+  onClose: () => void
+  /** 未选择原因时 selectedReason 为 undefined */
   onSubmitBtn: (
     selectedReason: IreasonsObject,
     textAreaValue: string,
     switchStatus: boolean
-  ) => void;
+  ) => void
 }
 
-const defaultProps = {
-  showCancelPanel: false,
-  canCancelReason: false,
-  submitText: "提交",
-  tipsTitle: "温馨提示",
-  checkboxType: "back",
-  safeAreaCancelBottom: false,
-  showBtntips: false,
-} as OrderCancelPanelProps;
+const OrderCancelPanelInner: FunctionComponent<Partial<OrderCancelPanelProps>> = ({
+  popupProps,
+  showCancelPanel = false,
+  className,
+  style,
+  warmTips,
+  cancelReason,
+  reasonTitle,
+  popupTitle,
+  canCancelReason = false,
+  submitText,
+  tipsTitle,
+  buttonProps,
+  textAreaProps,
+  showBtntips = false,
+  btnTipsText,
+  safeAreaCancelBottom = false,
+  checkboxType = 'back',
+  onClose,
+  onSubmitBtn,
+}) => {
+  const { locale } = useConfig()
+  const b = bem('ordercancel')
+  const [reasonState, setReasonState] = useState<ReasonState>(INITIAL_REASON_STATE)
+  const [textAreaValue, setTextAreaValue] = useState('')
+  const [switchStatus, setSwitchStatus] = useState(false)
 
-export const OrderCancelPanel: FunctionComponent<
-  Partial<OrderCancelPanelProps> & React.HTMLAttributes<HTMLDivElement>
-> = React.memo((props) => {
-  const {
-    popupProps,
-    showCancelPanel,
-    className,
-    warmTips,
-    cancelReason,
-    reasonTitle,
-    popupTitle,
-    canCancelReason,
-    submitText,
-    tipsTitle,
-    buttonProps,
-    textAreaProps,
-    style,
-    showBtntips,
-    safeAreaCancelBottom,
-    checkboxType,
-    onClose,
-    onSubmitBtn,
-  } = {
-    ...defaultProps,
-    ...props,
-  };
-  const b = bem("ordercancel");
-  const [currActivedKey, setCurrActivedKey] = useState("");
-  const preChecked = useRef("");
-  //其它文本框输入
-  const [textAreaValue, setTextAreaValue] = useState("");
-  //其它文本框是否显示
-  const [showOtherText, setShowOtherText] = useState(false);
-
-  //处理切换原因list，复选框是否被选中
   const checkedReason = (item: IreasonsObject) => {
-    setShowOtherText(false);
+    setReasonState((prev) => toggleReason(prev, item.key, canCancelReason))
+  }
 
-    if (item.key === preChecked.current) {
-      if (canCancelReason) {
-        setCurrActivedKey(preChecked.current ? "" : item.key);
-        preChecked.current = "";
-      } else {
-        if (item.key === "other") {
-          setShowOtherText(true);
-        }
-      }
-    } else {
-      setCurrActivedKey(item.key);
-      preChecked.current = item.key;
-      if (item.key === "other") {
-        setShowOtherText(true);
-      }
-    }
-  };
-
-  //提交原因
   const submitContent = () => {
-    let currTextarea = textAreaValue;
-    if (currActivedKey !== "other") {
-      currTextarea = "";
-      setTextAreaValue("");
-    }
-    const selectedReason = cancelReason.filter((item) => {
-      return item.key === currActivedKey;
-    });
-    onSubmitBtn?.(selectedReason[0], currTextarea, switchStatus);
-  };
-  //关闭弹窗的时候清空数据
-  const clearStatus = () => {
-    setCurrActivedKey("");
-    setTextAreaValue("");
-    setShowOtherText(false);
-    setSwitchStatus(false);
-    preChecked.current = "";
-  };
-  //关闭相关事件
+    const { reason, text } = buildSubmitPayload(cancelReason, reasonState.activeKey, textAreaValue)
+    if (!text) setTextAreaValue('')
+    onSubmitBtn?.(reason as IreasonsObject, text, switchStatus)
+  }
+
+  // 关闭弹窗时清空选择
   const closePopup = () => {
-    onClose?.();
-    clearStatus();
-  };
-  //点击切换事件
-  const [switchStatus, setSwitchStatus] = useState(false);
-  const changeSwitch = (value: boolean) => {
-    setSwitchStatus(value);
-  };
+    setReasonState(INITIAL_REASON_STATE)
+    setTextAreaValue('')
+    setSwitchStatus(false)
+    popupProps?.onClose?.()
+    onClose?.()
+  }
+
+  const tipsHeader = tipsTitle ?? locale.orderCancelPanel.tipsTitle
+
+  const renderCheckbox = (item: IreasonsObject, front: boolean) => (
+    <View className={b('reason-checkbox', { front })}>
+      <Checkbox checked={reasonState.activeKey === item.key} />
+    </View>
+  )
+
   return (
     <Popup
       {...popupProps}
@@ -149,89 +104,69 @@ export const OrderCancelPanel: FunctionComponent<
       position="bottom"
       round
       closeable
-      style={style}
+      style={{ ...popupProps?.style, ...style }}
+      className={classNames(b(), popupProps?.className, className)}
       onClose={closePopup}
-      className={`${b()} ${className} `}
     >
-      <div className={b("main")}>
-        {popupTitle && <div className={b("header")}>{popupTitle}</div>}
-        {warmTips?.length > 0 && (
-          <div className={b("tips")}>
-            {tipsTitle && <div className={b("tips-header")}>{tipsTitle}</div>}
-            {warmTips.map((item, index) => {
-              return (
-                <p key={index} className={b("tips-list")}>
-                  {item}
-                </p>
-              );
-            })}
-          </div>
-        )}
-        {reasonTitle && <h1 className={b("reason-header")}>{reasonTitle}</h1>}
-        {cancelReason && (
-          <div className={b("reason")}>
+      <View className={b('main')}>
+        {popupTitle ? <View className={b('header')}>{popupTitle}</View> : null}
+        {warmTips && warmTips.length > 0 ? (
+          <View className={b('tips')}>
+            {tipsHeader ? <View className={b('tips-header')}>{tipsHeader}</View> : null}
+            {warmTips.map((item, index) => (
+              <View key={index} className={b('tips-list')}>
+                {item}
+              </View>
+            ))}
+          </View>
+        ) : null}
+        {reasonTitle ? <View className={b('reason-header')}>{reasonTitle}</View> : null}
+        {cancelReason ? (
+          <View className={b('reason')}>
             {cancelReason.map((item) => {
+              const front = checkboxType === 'front'
               return (
-                <div key={item.key} className={b("reason--list")}>
-                  {checkboxType === "front" ? (
-                    <>
-                      <div
-                        className={b("reason--list__checkbox", {
-                          post: "front",
-                        })}
-                      >
-                        <Checkbox checked={currActivedKey === item.key} />
-                      </div>
-                      <div className={b("reason--list__label")}>
-                        {item.value}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className={b("reason--list__label")}>
-                        {item.value}
-                      </div>
-                      <div className={b("reason--list__checkbox")}>
-                        <Checkbox checked={currActivedKey === item.key} />
-                      </div>
-                    </>
-                  )}
-
-                  <div
-                    className={b("reason--list__overlay")}
-                    onClick={() => checkedReason(item)}
-                  ></div>
-                </div>
-              );
+                <View key={item.key} className={b('reason-item')} onClick={() => checkedReason(item)}>
+                  {front ? renderCheckbox(item, true) : null}
+                  <View className={b('reason-label')}>{item.value}</View>
+                  {front ? null : renderCheckbox(item, false)}
+                </View>
+              )
             })}
-            {showOtherText && (
-              <TextArea
-                {...textAreaProps}
-                className={b("area")}
-                defaultValue={textAreaValue}
-                onChange={(val) => setTextAreaValue(val)}
-              />
-            )}
-          </div>
-        )}
-      </div>
-      <div className={b("btns")}>
-        {showBtntips && (
-          <div className={b("btns--tips")}>
-            <div>提交后，将本单商品放回购物车中</div>
-            <Switch onChange={changeSwitch} />
-          </div>
-        )}
-        <div className={b("btns--button")}>
-          <Button {...buttonProps} onClick={submitContent}>
-            {submitText}
+            {reasonState.showOtherText ? (
+              <View className={b('area')}>
+                <TextArea
+                  {...textAreaProps}
+                  className={classNames(b('area-input'), textAreaProps?.className)}
+                  value={textAreaValue}
+                  onChange={(val) => setTextAreaValue(val)}
+                />
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+      <View className={b('btns', { safe: safeAreaCancelBottom })}>
+        {showBtntips ? (
+          <View className={b('btns-tips')}>
+            <View className={b('btns-tips-text')}>
+              {btnTipsText ?? locale.orderCancelPanel.btnTipsText}
+            </View>
+            <Switch checked={switchStatus} onChange={(val) => setSwitchStatus(val)} />
+          </View>
+        ) : null}
+        <View className={b('btns-button')}>
+          <Button type="primary" block {...buttonProps} onClick={submitContent}>
+            {submitText ?? locale.orderCancelPanel.submitText}
           </Button>
-        </div>
-        {safeAreaCancelBottom && <div className={b("btns--safe")}></div>}
-      </div>
+        </View>
+      </View>
     </Popup>
-  );
-});
+  )
+}
 
-OrderCancelPanel.defaultProps = defaultProps;
-OrderCancelPanel.displayName = "NutOrderCancelPanel";
+export const OrderCancelPanel = memo(OrderCancelPanelInner) as FunctionComponent<
+  Partial<OrderCancelPanelProps>
+>
+
+OrderCancelPanel.displayName = 'NbOrderCancelPanel'

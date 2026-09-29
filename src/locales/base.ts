@@ -79,6 +79,12 @@ export interface BaseLang {
     // eslint-disable-next-line @typescript-eslint/ban-types
     additionalImages: Function;
   };
+  delivery: {
+    title: string;
+    deliveryTimeTitle: string;
+    jdExpress: string;
+    buttonText: string;
+  };
   orderRemark: {
     placeholderText: string;
     title: string;
@@ -88,7 +94,12 @@ export interface BaseLang {
   horizontalscrolling: {
     more: string;
   };
-  orderCancelPanel: { otherText: string };
+  orderCancelPanel: {
+    otherText: string;
+    submitText: string;
+    tipsTitle: string;
+    btnTipsText: string;
+  };
   addressedit: {
     nameText: string;
     namePlaceholder: string;

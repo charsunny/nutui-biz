@@ -79,6 +79,12 @@ const zhCN: BaseLang = {
     additionalReview: (day: number) => `购买${day}天后追评`,
     additionalImages: (length: number) => `${length}张追评图片`,
   },
+  delivery: {
+    title: "配送",
+    deliveryTimeTitle: "送货时间",
+    jdExpress: "京东快递",
+    buttonText: "确定",
+  },
   orderRemark: {
     placeholderText: "请输入备注内容",
     title: "订单备注",
@@ -90,6 +96,9 @@ const zhCN: BaseLang = {
   },
   orderCancelPanel: {
     otherText: "其他",
+    submitText: "提交",
+    tipsTitle: "温馨提示",
+    btnTipsText: "提交后，将本单商品放回购物车中",
   },
   addressedit: {
     nameText: "收货人",

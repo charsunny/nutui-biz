@@ -80,6 +80,12 @@ const enUS: BaseLang = {
     additionalImages: (length: number) =>
       `There are ${length} follow-up comments`,
   },
+  delivery: {
+    title: "Delivery",
+    deliveryTimeTitle: "Delivery Time",
+    jdExpress: "JD Express",
+    buttonText: "Confirm",
+  },
   orderRemark: {
     placeholderText: "Please enter the content of the remarks",
     title: "Order Remarks",
@@ -91,6 +97,9 @@ const enUS: BaseLang = {
   },
   orderCancelPanel: {
     otherText: "other",
+    submitText: "Submit",
+    tipsTitle: "Tips",
+    btnTipsText: "Put the items of this order back into the cart after submitting",
   },
   addressedit: {
     nameText: "Consignee",
