@@ -1,113 +1,135 @@
-@import "../../styles/mixins/text-ellipsis.scss";
+@import '../../styles/variables';
 
-.nb-coupon__box {
-  display: flex;
-  background-size: 100% 100%;
-  position: relative;
-  .nb-coupon__main {
+$nb-coupon-color: var(--nb-coupon-color, $nb-color-primary);
+$nb-coupon-label-color: var(--nb-coupon-label-color, $nb-color-primary);
+$nb-coupon-label-background: var(--nb-coupon-label-background, $nb-color-surface);
+$nb-coupon-small-height: var(--nb-coupon-small-height, 81px);
+
+.nb-coupon {
+  &__box {
     position: relative;
     display: flex;
-    padding: 16px;
-    align-items: center;
-    text-align: left;
-    &-price {
-      display: flex;
-      align-items: baseline;
-      margin-right: 15px;
-      font-size: 32px;
-      &--currency {
-        font-size: 16px;
-      }
-    }
-    &-content {
-      overflow: hidden;
-      &--maintitle {
-        font-size: 14px;
-        @include text-ellipsis;
-      }
-      &--subtitle,
-      &--timerange {
-        font-size: 12px;
-        width: 100%;
-        @include text-ellipsis;
-      }
-    }
-    &-usedicon {
-      position: absolute;
-      top: 0px;
-      right: 7px;
-    }
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    box-sizing: border-box;
   }
-  .nb-coupon__btns {
-    flex: 1;
+
+  &__main {
+    position: relative;
     display: flex;
-    justify-content: center;
     align-items: center;
+    padding: 16px;
+    text-align: left;
+    box-sizing: border-box;
   }
-  .nb-coupon__label {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    height: 14px;
-    line-height: 14px;
-    padding: 0 2px;
-    font-size: 10px;
-    font-weight: 400;
-    color: red;
-    background: #fff;
-    border-radius: 6px 0;
-    max-width: 100px;
+
+  &__main-price {
+    display: flex;
+    align-items: baseline;
+    flex-shrink: 0;
+    margin-right: 15px;
+    font-size: 32px;
+    line-height: 1.2;
+  }
+
+  &__main-price-currency {
+    font-size: $nb-font-size-l;
+  }
+
+  &__main-content {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  &__main-maintitle {
+    font-size: $nb-font-size-base;
     @include text-ellipsis;
   }
-}
-.nb-coupon__box--small {
-  height: 81px;
-  .nb-coupon__main {
-    color: red;
-    flex-direction: column;
-    text-align: center;
-    padding: 13px 7px 10px;
 
-    &-price {
-      //   width: 100%;
-      font-size: 18px;
-      display: flex;
+  &__main-subtitle,
+  &__main-timerange {
+    width: 100%;
+    font-size: $nb-font-size-s;
+    @include text-ellipsis;
+  }
+
+  &__main-usedicon {
+    position: absolute;
+    top: 0;
+    right: 7px;
+  }
+
+  &__btns {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    max-width: 100px;
+    height: 14px;
+    padding: 0 2px;
+    line-height: 14px;
+    font-size: $nb-font-size-xxs;
+    font-weight: $nb-font-weight;
+    color: $nb-coupon-label-color;
+    background: $nb-coupon-label-background;
+    border-radius: 6px 0;
+    @include text-ellipsis;
+  }
+
+  // 小卡片
+  &__box--small {
+    height: $nb-coupon-small-height;
+
+    .nb-coupon__main {
+      flex-direction: column;
+      justify-content: center;
+      padding: 13px 7px 10px;
+      text-align: center;
+      color: $nb-coupon-color;
+    }
+
+    .nb-coupon__main-price {
       justify-content: center;
       margin-right: 0;
-      &--currency {
-        font-size: 12px;
-      }
-      &--number {
-        // width: 100%;
-        font-size: 18px;
-        // @include ellipsis;
-      }
+      font-size: $nb-font-size-xl;
     }
-    &-content {
+
+    .nb-coupon__main-price-currency {
+      font-size: $nb-font-size-s;
+    }
+
+    .nb-coupon__main-content {
       width: 100%;
-      @include text-ellipsis;
-      &--maintitle {
-        font-size: 10px;
-      }
-      &--subtitle {
-        color: rgba(250, 44, 25, 0.5);
-        font-size: 10px;
-        @include text-ellipsis;
-      }
     }
-  }
-  .nb-coupon__btns {
-    &-vertcal {
+
+    .nb-coupon__main-maintitle {
+      font-size: $nb-font-size-xxs;
+    }
+
+    .nb-coupon__main-subtitle {
+      font-size: $nb-font-size-xxs;
+      opacity: 0.5;
+    }
+
+    .nb-coupon__btns-vertical {
       display: flex;
       align-items: center;
       height: 100%;
-      font-size: 10px;
       padding: 0 7px;
-      color: red;
+      font-size: $nb-font-size-xxs;
+      color: $nb-coupon-color;
     }
-  }
-  .nb-coupon__label {
-    background: red;
-    color: #fff;
+
+    .nb-coupon__label {
+      color: $nb-color-primary-text;
+      background: $nb-coupon-color;
+    }
   }
 }

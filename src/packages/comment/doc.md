@@ -2,279 +2,162 @@
 
 ### 介绍
 
-用于进行评论列表的展示。
+用于评论列表中单条评论的展示: 用户信息、星级、评论内容、图片/视频、追评、底部操作与商家回复。
 
 ### 安装
 
-```javascript
-import { Comment } from "@nutui/nutui-biz";
+```tsx
+import { Comment } from 'nutui-biz-taro'
 ```
 
 ## 代码演示
 
 ### 评论图片单行展示
 
-默认情况下，单个商品的评论的图片是按照单行滑动进行展示的。
+默认情况下，评论的图片/视频按单行横向滑动展示。
 
-:::demo
+```tsx
+import { previewImage } from '@tarojs/taro'
+import { Image } from '@tarojs/components'
+import { Comment } from 'nutui-biz-taro'
 
-```js
-import React, { useState,useEffect } from 'react';
-import { Comment } from '@nutui/nutui-biz';
-import { Cell } from "@nutui/nutui-react";
-
-const App = () => {
-
-  const [cmt, setCmt] = useState({} as any);
-
-  const getData = () => {
-    fetch("//storage.360buyimg.com/nutui/3x/comment_data.json")
-      .then((response) => response.json())
-      .then((res) => {
-        res.Comment.info.avatar =
-          "https://img14.360buyimg.com/imagetools/jfs/t1/167902/2/8762/791358/603742d7E9b4275e3/e09d8f9a8bf4c0ef.png";
-        setCmt(res.Comment);
-      })
-      .catch((err) => console.log("Oh, error", err));
-  };
-
-  useEffect(() => {
-    getData();
-  }, []);
-
-  const onClickImages = (imgs: any) => {
-    console.log("进行图片展示", imgs);
-  };
-
-  const onHandleClick = (info: any) => {
-    console.log("进行跳转", info);
-  };
-
-  return (
-    <Cell>
-      <Comment
-        images={cmt.images}
-        videos={cmt.videos}
-        info={cmt.info}
-        onClick={onHandleClick}
-        onClickImages={onClickImages}
-        onClickOperate={(type: string) => {
-          console.log(type);
-        }}
-        operation={["reply"]}
-        commentLabels={
-          <img
-            style={{
-              height: "20px",
-            }}
-            src="https://img11.360buyimg.com/imagetools/jfs/t1/211858/17/4258/12101/618e6f78Ed0edcadc/e83a673555edf59f.jpg"
-          />
-        }
-      />
-    </Cell>
-  );
-};
-export default App;
+const App = () => (
+  <Comment
+    images={images}
+    videos={videos}
+    info={info}
+    operation={['reply']}
+    onClick={(info) => console.log('点击评论', info)}
+    onClickImages={({ type, value }) => {
+      if (type !== 'video') {
+        previewImage({ urls: images.map((i) => i.imgUrl), current: value.imgUrl })
+      }
+    }}
+    onClickOperate={(type) => console.log(type)}
+    commentLabels={
+      <Image style={{ width: '60px', height: '20px' }} mode="aspectFit" src="https://img11.360buyimg.com/imagetools/jfs/t1/211858/17/4258/12101/618e6f78Ed0edcadc/e83a673555edf59f.jpg" />
+    }
+  />
+)
 ```
-
-:::
 
 ### 评论图片多行展示
 
-通过 `type` 的值可以设置图片多行展示。
+`imagesRows="multi"` 时以三列九宫格展示, 最多 9 格, 超出时第 9 格展示 "共 N 张" 遮罩 (点击回调 `type` 为 `more`)。
+`type="complex"` 时头部展示为昵称 + 标签, 星级与规格单独一行。
 
-:::demo
+```tsx
+import { Text, View } from '@tarojs/components'
+import { Comment } from 'nutui-biz-taro'
 
-```js
-import React,{useEffect,useState} from 'react';
-import { Comment } from '@nutui/nutui-biz';
-import { Cell } from "@nutui/nutui-react";
-
-const App = () => {
-
-  const [cmt, setCmt] = useState({} as any);
-
-  const getData = () => {
-    fetch("//storage.360buyimg.com/nutui/3x/comment_data.json")
-      .then((response) => response.json())
-      .then((res) => {
-        res.Comment.info.avatar =
-          "https://img14.360buyimg.com/imagetools/jfs/t1/167902/2/8762/791358/603742d7E9b4275e3/e09d8f9a8bf4c0ef.png";
-        setCmt(res.Comment);
-      })
-      .catch((err) => console.log("Oh, error", err));
-  };
-
-  useEffect(() => {
-    getData();
-  }, []);
-
-  const onClickImages = (imgs: any) => {
-    console.log("进行图片展示", imgs);
-  };
-
-  const onHandleClick = (info: any) => {
-    console.log("进行跳转", info);
-  };
-
-  return (
-    <Cell>
-      <Comment
-        type="complex"
-        imagesRows="multi"
-        images={cmt.images}
-        videos={cmt.videos}
-        info={cmt.info}
-        ellipsis="6"
-        onClickImages={onClickImages}
-        commentLabels={
-          <img
-            src="https://storage.360buyimg.com/imgtools/78925d9440-f9e874d0-e93d-11eb-8e5c-0da9e18a13b1.png"
-            style={{ height: "12px" }}
-          />
-        }
-        commentShopReply={
-          <div className="nut-comment-shop">
-            <span>京东美妆国际：</span>
-            尊敬的客户您好，非常抱歉给您带来不愉快的购物体验，关于过敏，什么成分都不存在个别性和普遍性。
-          </div>
-        }
-      />
-    </Cell>
-  );
-};
-export default App;
+const App = () => (
+  <Comment
+    type="complex"
+    imagesRows="multi"
+    images={images}
+    videos={videos}
+    info={info}
+    ellipsis={6}
+    commentShopReply={
+      <View>
+        <Text style={{ color: '#ff0f23' }}>京东美妆国际：</Text>
+        尊敬的客户您好，非常抱歉给您带来不愉快的购物体验。
+      </View>
+    }
+  />
+)
 ```
-
-:::
 
 ### 追评展示
 
-:::demo
-
-```js
-import React,{useEffect,useState} from 'react';
-import { Comment } from '@nutui/nutui-biz';
-import { Cell } from "@nutui/nutui-react";
-
-const App = () => {
-
-  const [cmt, setCmt] = useState({} as any);
-
-  const getData = () => {
-    fetch("//storage.360buyimg.com/nutui/3x/comment_data.json")
-      .then((response) => response.json())
-      .then((res) => {
-        res.Comment.info.avatar =
-          "https://img14.360buyimg.com/imagetools/jfs/t1/167902/2/8762/791358/603742d7E9b4275e3/e09d8f9a8bf4c0ef.png";
-        setCmt(res.Comment);
-      })
-      .catch((err) => console.log("Oh, error", err));
-  };
-
-  useEffect(() => {
-    getData();
-  }, []);
-
-  const onClickImages = (imgs: any) => {
-    console.log("进行图片展示", imgs);
-  };
-
-  return (
-    <Cell>
-      <Comment
-        imagesRows="multi"
-        images={cmt.images}
-        videos={cmt.videos}
-        info={cmt.info}
-        follow={cmt.follow}
-        onClickImages={onClickImages}
-      />
-    </Cell>
-  );
-};
-export default App;
+```tsx
+<Comment imagesRows="multi" images={images} videos={videos} info={info} follow={follow} />
 ```
-
-:::
 
 ## API
 
 ### Props
 
-| 参数        | 说明                                          | 类型             | 默认值                      |
-| ----------- | --------------------------------------------- | ---------------- | --------------------------- |
-| type | 头部样式展示类型，可选： `default`，`complex` | string           | `default`                   |
-| imagesRows | 评论图片展示行数，可选： `one`，`multi`       | string           | `one`                       |
-| ellipsis    | 设置评论内容省略行数                          | string \| number | `2`                         |
-| videos      | 视频信息                                      | Array            | `[]`                        |
-| images      | 图片信息                                      | Array            | `[]`                        |
-| info        | 评论详情                                      | object           | `{}`                        |
-| follow      | 追评内容                                      | object           | `{}`                        |
-| operation   | 配置底部按钮                                  | Array            | `["reply", "like", "more"]` |
-| commentLabels | 评论用户的标签 | ReactNode | - |
-| commentShopReply | 评论最底部，用于展示商家回复 | ReactNode | - |
+| 参数             | 说明                                          | 类型             | 默认值                      |
+| ---------------- | --------------------------------------------- | ---------------- | --------------------------- |
+| type             | 头部样式展示类型，可选 `default` `complex`    | string           | `default`                   |
+| imagesRows       | 评论图片展示行数，可选 `one` `multi`          | string           | `one`                       |
+| ellipsis         | 评论内容省略行数                              | string \| number | `2`                         |
+| videos           | 视频信息                                      | VideosType[]     | `[]`                        |
+| images           | 图片信息                                      | ImagesType[]     | `[]`                        |
+| info             | 评论详情                                      | CommentInfo      | -                           |
+| follow           | 追评内容, `days > 0` 时展示                   | CommentFollow    | -                           |
+| operation        | 底部按钮，可选 `reply` `like` `more`          | string[]         | `['reply', 'like', 'more']` |
+| commentLabels    | 评论用户的标签                                | ReactNode        | -                           |
+| commentShopReply | 评论最底部内容，一般用于展示商家回复 (组件会包一层带上边框的容器) | ReactNode        | -                           |
+| className        | 根节点类名                                    | string           | -                           |
+| style            | 根节点样式                                    | CSSProperties    | -                           |
 
 ### Events
 
-| 事件名        | 说明                     | 回调参数             |
-| ------------- | ------------------------ | -------------------- |
-| onClickOperate | 点击底部操作按钮回调函数 | `type` 底部按钮类型，同 `operation`             |
-| onClick         | 点击评论内容回调函数     | 传入的 `info` 参数            |
-| onClickImages  | 点击图片或视频触发       | `{type,index,value}` |
+| 事件名         | 说明                     | 回调参数                                                                 |
+| -------------- | ------------------------ | ------------------------------------------------------------------------ |
+| onClickOperate | 点击底部操作按钮         | `type`: `reply` \| `like` \| `more`；点击 `more` 弹出的 "我要投诉" 时为 `popover` |
+| onClick        | 点击评论头部 / 内容 / 追评 | 传入的 `info`                                                          |
+| onClickImages  | 点击图片或视频           | `{ type: 'video' \| 'img' \| 'more', index, value }`，`index` 为在 `videos` / `images` 各自数组中的下标 |
 
-### images 数组
+组件不内置大图预览, 可在 `onClickImages` 里调用 `Taro.previewImage`。
 
-images 数组中存放的是图片对象。
+### VideosType
 
-```javascript
-const images = [
-  {
-    id: "", // key
-    smallImgUrl: "", // 小图，列表展示时使用
-    bigImgUrl: "", // 大图，大图展示使用
-    imgUrl: "", // 兜底图
-  },
-];
+```ts
+interface VideosType {
+  id?: string | number // key
+  mainUrl?: string // 视频封面
+  videoUrl?: string // 视频链接
+}
 ```
 
-### videos 数组
+### ImagesType
 
-```javascript
-const videos = [
-  {
-    id: "", // key
-    mainUrl: "", // 视频遮罩图片
-    videoUrl: "", // 视频链接
-  },
-];
+```ts
+interface ImagesType {
+  id?: string | number // key
+  smallImgUrl?: string // 小图，列表展示时优先使用
+  bigImgUrl?: string // 大图，大图展示使用
+  imgUrl?: string // 兜底图
+}
 ```
 
-### info 对象
+### CommentInfo
 
-用于存放评论相关的信息。
-
-```javascript
-const info = {
-  content: "", // 评论详情
-  nickName: "", // 评论人的姓名
-  score: 5, // 评论星星数
-  avatar: "", // 评论人头像
-  time: "", // 评论时间
-  size: "", // 评论人购买的商品规格
-  reply: 23, // 此评论的回复数
-  like: 1, // 此评论的点赞数
-};
+```ts
+interface CommentInfo {
+  content: string // 评论详情
+  nickName: string // 评论人昵称
+  score: number // 星级
+  avatar: string // 头像
+  time: string // 评论时间
+  size?: string // 购买的商品规格
+  reply?: number // 回复数
+  like?: number // 点赞数
+}
 ```
 
-### follow 对象
+### CommentFollow
 
-用于存放追评相关的信息。
-
-```javascript
-const follow = {
-  days: 0, // 购买多少天后进行追评
-  content: "", // 追评内容
-  images: [], // 追评图片
-};
+```ts
+interface CommentFollow {
+  days: number // 购买多少天后进行追评
+  content: string // 追评内容
+  images?: string[] // 追评图片
+}
 ```
+
+## 主题定制
+
+| 名称                                   | 默认值                   |
+| -------------------------------------- | ------------------------ |
+| --nb-comment-font-size                 | `$nb-font-size-s`        |
+| --nb-comment-color                     | `$nb-color-title`        |
+| --nb-comment-header-user-name-color    | `$nb-color-title`        |
+| --nb-comment-header-time-color         | `$nb-color-text-help`    |
+| --nb-comment-bottom-label-color        | `$nb-color-text-help`    |
+| --nb-comment-image-size                | `80px`                   |
+| --nb-comment-image-radius              | `$nb-radius-s`           |
+| --nb-comment-popover-background        | `$nb-color-surface`      |

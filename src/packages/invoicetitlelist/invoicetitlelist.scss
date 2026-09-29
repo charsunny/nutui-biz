@@ -1,102 +1,112 @@
-%ellipsis {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+@import '../../styles/variables';
+
+$nb-invoice-title-list-background: var(--nb-invoice-title-list-background, $nb-color-surface);
+$nb-invoice-title-list-radius: var(--nb-invoice-title-list-radius, 10px);
+$nb-invoice-title-list-title-color: var(--nb-invoice-title-list-title-color, $nb-color-title);
+$nb-invoice-title-list-label-color: var(--nb-invoice-title-list-label-color, $nb-color-text-help);
+$nb-invoice-title-list-default-background: var(--nb-invoice-title-list-default-background, $nb-color-primary);
+$nb-invoice-title-list-checked-color: var(--nb-invoice-title-list-checked-color, $nb-color-primary);
+$nb-invoice-title-list-veto-color: var(--nb-invoice-title-list-veto-color, $nb-color-primary);
+$nb-invoice-title-list-approval-color: var(--nb-invoice-title-list-approval-color, $nb-color-warning);
 
 .nb-invoice-title-list {
-    background-color: #fff;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    padding: 15px 15px 0;
+  margin-bottom: 10px;
+  padding: 15px 15px 0;
+  border-radius: $nb-invoice-title-list-radius;
+  background-color: $nb-invoice-title-list-background;
+  box-sizing: border-box;
 
-    &__main {
-        border-bottom: 1px solid #eee;
-        padding-bottom: 15px;
-        display: flex;
-        align-items: center;
+  &__main {
+    display: flex;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid $nb-color-border;
+  }
 
-        .nut-icon-checked::before {
-            margin-left: 5px;
-        }
+  &__checked {
+    flex-shrink: 0;
+    margin-left: 5px;
+    color: $nb-invoice-title-list-checked-color;
+  }
 
-        &-title {
-            display: flex;
+  &__body {
+    flex: 1;
+    min-width: 0;
 
-            .nut-icon-edit {
-                cursor: pointer;
-            }
-        }
-    
-        &-default,
-        &-status {
-            flex-shrink: 0;
-        }
-    
-        &-default {
-            width: 32px;
-            line-height: 18px;
-            text-align: center;
-            background: #F0250F;
-            border-radius: 3px;
-            font-size: 12px;
-            font-weight: 500;
-            margin-right: 6px;
-            color: #fff;
-            align-self: flex-start;
-        }
-    
-        &-text {
-            flex: 1;
-            font-size: 14px;
-            font-weight: 600;
-            margin-right: 10px;
-            color: #333;
-        }
-    
-        &-status {
-            font-size: 13px;
+    &--selected {
+      margin-left: 17px;
+    }
+  }
 
-            &.pass {
-                color: #333;
-            }
+  &__main-title {
+    display: flex;
+  }
 
-            &.veto {
-                color: #F0250F;
-            }
+  &__main-default,
+  &__main-status {
+    flex-shrink: 0;
+  }
 
-            &.approval {
-                color: #FFA029;
-            }
-        }
+  &__main-default {
+    align-self: flex-start;
+    width: 32px;
+    margin-right: 6px;
+    border-radius: 3px;
+    background: $nb-invoice-title-list-default-background;
+    color: $nb-color-primary-text;
+    font-size: $nb-font-size-s;
+    font-weight: $nb-font-weight-medium;
+    line-height: 18px;
+    text-align: center;
+  }
+
+  &__main-text {
+    flex: 1;
+    min-width: 0;
+    margin-right: 10px;
+    color: $nb-invoice-title-list-title-color;
+    font-size: $nb-font-size-base;
+    font-weight: $nb-font-weight-bold;
+  }
+
+  &__main-status {
+    font-size: 13px;
+    color: $nb-invoice-title-list-title-color;
+
+    &--veto {
+      color: $nb-invoice-title-list-veto-color;
     }
 
-    &__info {
-        margin-top: 15px;
-        font-size: 13px;
-        display: flex;
-
-        &-title {
-            color: #999;
-            width: 108px;
-            flex-shrink: 0;
-        }
-
-        &-content {
-            color: #333;
-            font-weight: 500;
-            @extend %ellipsis;
-        }
+    &--approval {
+      color: $nb-invoice-title-list-approval-color;
     }
+  }
 
-    &__buttons {
-        display: flex;
-        justify-content: flex-end;
-        padding-top: 10px;
-        padding-bottom: 10px;
+  &__info {
+    display: flex;
+    margin-top: 15px;
+    font-size: 13px;
+  }
 
-        > .nut-button {
-            margin-left: 12px;
-        }
-    }
+  &__info-title {
+    flex-shrink: 0;
+    width: 108px;
+    color: $nb-invoice-title-list-label-color;
+  }
+
+  &__info-content {
+    flex: 1;
+    min-width: 0;
+    color: $nb-invoice-title-list-title-color;
+    font-weight: $nb-font-weight-medium;
+    @include text-ellipsis;
+  }
+
+  &__buttons {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+  }
 }

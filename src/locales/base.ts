@@ -18,6 +18,7 @@ export interface BaseLang {
     deleteAll: string;
     finish: string;
     hidden: string;
+    placeholder: string;
   };
   settleBar: {
     totalText: string;
@@ -76,10 +77,43 @@ export interface BaseLang {
   };
   comment: {
     complaintsText: string;
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    additionalReview: Function;
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    additionalImages: Function;
+    additionalReview: (day: number) => string;
+    additionalImages: (length: number) => string;
+    totalImages: (length: number) => string;
+  };
+  coupon: {
+    btnText: string;
+  };
+  invoiceTitleEdit: {
+    titleTypeText: string;
+    personalText: string;
+    enterpriseText: string;
+    titleText: string;
+    titlePlaceholder: string;
+    companyCodeText: string;
+    companyCodePlaceholder: string;
+    addressText: string;
+    addressPlaceholder: string;
+    companyPhoneText: string;
+    companyPhonePlaceholder: string;
+    bankDepositText: string;
+    bankDepositPlaceholder: string;
+    bankAccountText: string;
+    bankAccountPlaceholder: string;
+    submitButtonText: string;
+  };
+  invoiceTitleList: {
+    defaultText: string;
+    statusPass: string;
+    statusVeto: string;
+    statusApproval: string;
+    companyCodeText: string;
+    addressText: string;
+    companyPhoneText: string;
+    bankDepositText: string;
+    bankAccountText: string;
+    deleteText: string;
+    editText: string;
   };
   delivery: {
     title: string;

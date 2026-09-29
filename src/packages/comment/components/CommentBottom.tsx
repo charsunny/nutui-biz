@@ -1,90 +1,81 @@
-import React, { FunctionComponent, HTMLAttributes, useEffect, useState } from "react";
-import { IComponent } from "@/utils/typings";
-import { Icon } from "@nutui/nutui-react";
-import classNames from 'classnames';
-import bem from '@/utils/bem'
-import { CommentInfo } from "../comment";
-export interface CommentBottomProps extends IComponent {
-  type: "default" | "complex";
-  info: CommentInfo;
-  operation: Array<string>;
-  onHandleClick: () => void;
-  onClickOperate: (type: string) => void;
+import { useState } from 'react'
+import type { FunctionComponent } from 'react'
+import { View, Text } from '@tarojs/components'
+import { Comment as CommentIcon, Fabulous, More } from '@nutui/icons-react-taro'
+import { useConfig } from '../../configprovider'
+import bem from '../../../utils/bem'
+import type { CommentInfo } from '../comment'
+
+export interface CommentBottomProps {
+  type: 'default' | 'complex'
+  info?: CommentInfo
+  operation: string[]
+  onHandleClick?: () => void
+  onClickOperate?: (type: string) => void
 }
 
-const defaultProps = {
-  type: "default",
-  operation: ["reply", "like", "more"],
-} as CommentBottomProps;
-
-export const CommentBottom: FunctionComponent<
-  Partial<CommentBottomProps> & HTMLAttributes<HTMLDivElement>
-> = (props) => {
-  const { type, info, operation, onHandleClick, onClickOperate } = {
-    ...defaultProps,
-    ...props,
-  };
-
+export const CommentBottom: FunctionComponent<CommentBottomProps> = ({
+  type,
+  info,
+  operation,
+  onHandleClick,
+  onClickOperate,
+}) => {
+  const { locale } = useConfig()
   const b = bem('comment-bottom')
+  const [showPopover, setShowPopover] = useState(false)
 
-  const [showPopver, setShowPopover] = useState(false);
-
-  const [mergeOp, setMergeOp] = useState<Array<string>>([]);
-
-  const operate = (type: string) => {
-    if (type === "more") {
-      setShowPopover(!showPopver);
-    }
-    onClickOperate && onClickOperate(type);
-  };
-
-  const handleClick = () => {
-    onHandleClick && onHandleClick();
-  };
-
-  useEffect(() => {
-    setMergeOp(operation)
-  }, []);
+  const operate = (name: string) => {
+    if (name === 'more') setShowPopover((v) => !v)
+    onClickOperate?.(name)
+  }
 
   return (
-    <div className={b()}>
-      <div className={b('lable')} onClick={handleClick}>
-        {type !== "complex" && <span>{info?.size}</span>}
-      </div>
-      <div className={b('cpx')}>
-        {mergeOp.map((name, i) => {
-          return (
-            <div
-              className={classNames([b('cpx-item'),b(`cpx-item--${name}`)])}
-              onClick={() => operate(name)}
-              key={i}
-            >
-              {
-                name == 'reply' && (<><span>{info?.reply}</span><Icon name="comment"></Icon></>)
-              }
-              {
-                name == 'like' &&  (<><span>{info?.like}</span><Icon name="fabulous"></Icon></>)
-              }
-              {name == "more" && (
-                <>
-                  <Icon name="more-x"></Icon>
-                  {showPopver && (
-                    <div
-                      className={b('cpx-item-popover')}
-                      onClick={() => operate("popover")}
-                    >
-                      我要投诉
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
+    <View className={b()}>
+      <View className={b('label')} onClick={() => onHandleClick?.()}>
+        {type !== 'complex' && info?.size ? <Text>{info.size}</Text> : null}
+      </View>
+      <View className={b('cpx')}>
+        {operation.map((name) => (
+          <View
+            className={b('cpx-item', { [name]: true })}
+            onClick={() => operate(name)}
+            key={name}
+          >
+            {name === 'reply' ? (
+              <>
+                <Text className={b('cpx-count')}>{info?.reply}</Text>
+                <CommentIcon size={14} />
+              </>
+            ) : null}
+            {name === 'like' ? (
+              <>
+                <Text className={b('cpx-count')}>{info?.like}</Text>
+                <Fabulous size={14} />
+              </>
+            ) : null}
+            {name === 'more' ? (
+              <>
+                <More size={14} />
+                {showPopover ? (
+                  <View
+                    className={b('popover')}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowPopover(false)
+                      onClickOperate?.('popover')
+                    }}
+                  >
+                    {locale.comment.complaintsText}
+                  </View>
+                ) : null}
+              </>
+            ) : null}
+          </View>
+        ))}
+      </View>
+    </View>
+  )
+}
 
-CommentBottom.defaultProps = defaultProps;
-CommentBottom.displayName = "NutCommentBottom";
+CommentBottom.displayName = 'NbCommentBottom'

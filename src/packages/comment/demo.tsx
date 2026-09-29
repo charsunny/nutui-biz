@@ -1,121 +1,96 @@
-import React, { useState, useEffect } from "react";
-import { Comment } from "./comment";
-import { Cell } from "@nutui/nutui-react";
-import { useTranslate } from "../../sites/assets/locale";
+import { previewImage } from '@tarojs/taro'
+import { View, Text, Image } from '@tarojs/components'
+import { Comment } from './index'
+import type { CommentFollow, CommentInfo, GoodsClickParams, ImagesType, VideosType } from './index'
+import { DemoBlock, DemoPage } from '../../../demo/components/DemoBlock'
+import data from './data.json'
 
-interface T {
-  [props: string]: string;
+const https = (url: string) => (url.startsWith('//') ? `https:${url}` : url)
+
+const cmt = data.Comment as {
+  videos: VideosType[]
+  images: ImagesType[]
+  info: CommentInfo
+  follow: CommentFollow
+}
+const follow: CommentFollow = { ...cmt.follow, images: (cmt.follow.images || []).map(https) }
+
+const previewImages = ({ type, value }: GoodsClickParams) => {
+  console.log('点击图片', type, value)
+  if (type === 'video') return
+  const urls = cmt.images.map((img) => https(img.bigImgUrl || img.imgUrl || ''))
+  const current = https((value as ImagesType).bigImgUrl || (value as ImagesType).imgUrl || '')
+  previewImage({ urls, current })
 }
 
+const block = { padding: '12px' }
+
 const CommentDemo = () => {
-  const [translated] = useTranslate<T>({
-    "zh-CN": {
-      basic: "基础用法",
-      single: "评论图片单行展示",
-      multiRow: "评论图片多行展示",
-      additionalReviewd: "追评展示",
-    },
-    "en-US": {
-      basic: "Basic Usage",
-      single: "Single Line Image",
-      multiRow: "Multi Line Image ",
-      review: "Additional Review",
-    },
-  });
-
-  const [cmt, setCmt] = useState({} as any);
-
-  const getData = () => {
-    fetch("//storage.360buyimg.com/nutui/3x/comment_data.json")
-      .then((response) => response.json())
-      .then((res) => {
-        res.Comment.info.avatar =
-          "https://img14.360buyimg.com/imagetools/jfs/t1/167902/2/8762/791358/603742d7E9b4275e3/e09d8f9a8bf4c0ef.png";
-        setCmt(res.Comment);
-      })
-      .catch((err) => console.log("Oh, error", err));
-  };
-
-  useEffect(() => {
-    getData();
-  }, []);
-
-  const onClickImages = (imgs: any) => {
-    console.log("进行图片展示", imgs);
-  };
-
-  const onHandleClick = (info: any) => {
-    console.log("进行跳转", info);
-  };
-
   return (
-    <>
-      <div className="demo">
-        <h2>{translated.single}</h2>
-        <Cell>
+    <DemoPage>
+      <DemoBlock title="评论图片单行展示">
+        <View style={block}>
           <Comment
             images={cmt.images}
             videos={cmt.videos}
             info={cmt.info}
-            onClick={onHandleClick}
-            onClickImages={onClickImages}
-            onClickOperate={(type: string) => {
-              console.log(type);
-            }}
-            operation={["reply"]}
+            operation={['reply']}
+            onClick={(info) => console.log('点击评论', info)}
+            onClickImages={previewImages}
+            onClickOperate={(type) => console.log('操作', type)}
             commentLabels={
-              <img
-                style={{
-                  height: "20px",
-                }}
+              <Image
+                style={{ width: '60px', height: '20px' }}
+                mode="aspectFit"
                 src="https://img11.360buyimg.com/imagetools/jfs/t1/211858/17/4258/12101/618e6f78Ed0edcadc/e83a673555edf59f.jpg"
               />
             }
-          ></Comment>
-        </Cell>
+          />
+        </View>
+      </DemoBlock>
 
-        <h2>{translated.multiRow}</h2>
-        <Cell>
+      <DemoBlock title="评论图片多行展示">
+        <View style={block}>
           <Comment
             type="complex"
             imagesRows="multi"
             images={cmt.images}
             videos={cmt.videos}
             info={cmt.info}
-            ellipsis="6"
-            onClickImages={onClickImages}
-            onClickOperate={(type: string) => {
-              console.log(type);
-            }}
+            ellipsis={6}
+            onClickImages={previewImages}
+            onClickOperate={(type) => console.log('操作', type)}
             commentLabels={
-              <img
+              <Image
+                style={{ width: '50px', height: '12px' }}
+                mode="aspectFit"
                 src="https://storage.360buyimg.com/imgtools/78925d9440-f9e874d0-e93d-11eb-8e5c-0da9e18a13b1.png"
-                style={{ height: "12px" }}
               />
             }
             commentShopReply={
-              <div className="nut-comment-shop">
-                <span>京东美妆国际：</span>
+              <View>
+                <Text style={{ color: '#ff0f23' }}>京东美妆国际：</Text>
                 尊敬的客户您好，非常抱歉给您带来不愉快的购物体验，关于过敏，什么成分都不存在个别性和普遍性。
-              </div>
+              </View>
             }
-          ></Comment>
-        </Cell>
+          />
+        </View>
+      </DemoBlock>
 
-        <h2>{translated.additionalReviewd}</h2>
-        <Cell>
+      <DemoBlock title="追评展示">
+        <View style={block}>
           <Comment
             imagesRows="multi"
             images={cmt.images}
             videos={cmt.videos}
             info={cmt.info}
-            follow={cmt.follow}
-            onClickImages={onClickImages}
-          ></Comment>
-        </Cell>
-      </div>
-    </>
-  );
-};
+            follow={follow}
+            onClickImages={previewImages}
+          />
+        </View>
+      </DemoBlock>
+    </DemoPage>
+  )
+}
 
-export default CommentDemo;
+export default CommentDemo

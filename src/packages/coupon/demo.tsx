@@ -1,186 +1,109 @@
-import React, { useState, CSSProperties } from "react";
-import { Coupon, ICouponType } from "./coupon";
-import { useTranslate } from "../../sites/assets/locale";
-import { ButtonProps } from "@nutui/nutui-react";
-interface T {
-  basic: string;
-  mulText: string;
-  btnText: string;
-  receivedBtnText: string;
-  mainTitle: string;
-  subTitle: string;
-  label: React.ReactNode;
-  mulDesc: string;
+import { useState } from 'react'
+import type { CSSProperties } from 'react'
+import { View, Image, ScrollView } from '@tarojs/components'
+import type { ButtonProps } from '@nutui/nutui-react-taro'
+import { Coupon } from './index'
+import type { ICouponType } from './index'
+import { DemoBlock, DemoPage } from '../../../demo/components/DemoBlock'
+
+const buttonProps: Partial<ButtonProps> = {
+  type: 'primary',
+  size: 'small',
+  fill: 'outline',
+  className: 'cancel-btn',
+}
+
+const usedIcon = (
+  <Image
+    style={{ width: '45px', height: '42px' }}
+    src="https://storage.360buyimg.com/jdcdkh/open/1.0.0/assets/use-mask.60dc7c10.png"
+  />
+)
+
+const baseCoupon: ICouponType = {
+  price: '9.212',
+  currency: '¥',
+  mainTitle: '满100元可用',
+  subTitle: '仅可购买满折券测试',
+  label: <View style={{ color: '#ff0f23' }}>内购专享</View>,
+  timeRange: '2022.03.01-2022.04.01',
+}
+
+const couponBaseStyle: CSSProperties = {
+  width: '100%',
+  height: 'auto',
+  backgroundImage:
+    'url(https://storage.360buyimg.com/jdcdkh/open/1.0.0/assets/bg-coupon-red.f6ae2e19.png)',
+}
+const couponMainBaseStyle: CSSProperties = { width: '69%', color: '#fff' }
+
+const couponSmallStyle: CSSProperties = {
+  width: '127px',
+  height: 'auto',
+  backgroundImage:
+    'url(https://static.360buyimg.com/jdcdkh/open/1.0.0/assets/bg-coupon.6df5b4ed.png)',
+  marginRight: '10px',
+  marginBottom: '10px',
+}
+const couponMainSmallStyle: CSSProperties = { width: '80%', color: '#ff0f23' }
+
+const smallCoupon: ICouponType = {
+  price: 9,
+  currency: '¥',
+  mainTitle: '满100元可用',
+  subTitle: '仅可购买满折券测试',
+  label: '618',
 }
 
 const CouponDemo = () => {
-  const [translated] = useTranslate<T>({
-    "zh-CN": {
-      basic: "基本用法",
-      mulText: "小卡片类型的优惠组件",
-      btnText: "立即领取",
-      receivedBtnText: "已领取",
-      mainTitle: "满100元可用",
-      subTitle: "仅可购买满折券测试",
-      label: <div style={{ color: "red" }}>内购专享</div>,
-      mulDesc: "多行优惠券，在组件外层包裹元素上设置样式",
-    },
-    "en-US": {
-      basic: "Basic Usage",
-      mulText: "Coupon components of small card type",
-      btnText: "Get it now",
-      receivedBtnText: "Received",
-      mainTitle: "Main title content",
-      subTitle: "Used to render subtitle text",
-      label: "Exclusive for internal purchase",
-      mulDesc:
-        "Multiline coupon, set the style on the outer package element of the component",
-    },
-  });
-
-  //组件共有变量
-  //按钮props
-  const buttonProps: Partial<ButtonProps> = React.useMemo(() => {
-    return {
-      type: "primary",
-      size: "small",
-      plain: true,
-      className: "cancel-btn",
-    };
-  }, []);
-
-  //已经使用的icon标记
-  const usedIcon = React.useMemo(() => {
-    return (
-      <img
-        src="https://storage.360buyimg.com/jdcdkh/open/1.0.0/assets/use-mask.60dc7c10.png"
-        width="45px"
-        height="42px"
-      />
-    );
-  }, []);
-  //渲染组件文案内容
-  const baseCouponObj = React.useMemo(() => {
-    return {
-      price: "9.212",
-      currency: "¥",
-      mainTitle: translated.mainTitle,
-      subTitle: translated.subTitle,
-      label: translated.label,
-      timeRange: "2022.03.01-2022.04.01",
-    };
-  }, []);
-
-  //基本用法
-  const couponBaseStyle: CSSProperties = React.useMemo(() => {
-    return {
-      width: "100%",
-      height: "auto",
-      backgroundImage: `url(https://storage.360buyimg.com/jdcdkh/open/1.0.0/assets/bg-coupon-red.f6ae2e19.png)`,
-    };
-  }, []);
-  const couponMainBaseStyle: CSSProperties = React.useMemo(() => {
-    return {
-      width: "69%",
-      color: "#fff",
-    };
-  }, []);
-  //按钮文案
-  const [btnText, setBtnText] = useState(translated.btnText);
-  //是否点击了立即领取按钮
-  const [receivedStatus, setReceivedStatus] = useState(false);
-
-  const basedOnClick = React.useCallback(() => {
-    setBtnText(translated.receivedBtnText);
-    setReceivedStatus(true);
-  }, [btnText, receivedStatus]);
-
-  //多行展示小卡片优惠券组件
-  const couponSmallStyle: CSSProperties = React.useMemo(() => {
-    return {
-      width: "127px",
-      height: "auto",
-      backgroundImage: `url(https://static.360buyimg.com/jdcdkh/open/1.0.0/assets/bg-coupon.6df5b4ed.png)`,
-      marginRight: `10px`,
-      marginBottom: `10px`,
-    };
-  }, []);
-  const couponMainSmallStyle: CSSProperties = React.useMemo(() => {
-    return {
-      width: "80%",
-      color: "red",
-    };
-  }, []);
-
-  const couponObj = React.useMemo(() => {
-    return {
-      price: 9,
-      currency: "¥",
-      mainTitle: translated.mainTitle,
-      subTitle: translated.subTitle,
-      label: "618",
-    };
-  }, []);
-
-  const [arrReceived, setArrReceived] = useState<Array<number>>([]);
-  //点击小优惠券领取按钮交互
-  const receivedBtn = React.useCallback(
-    (item: ICouponType) => {
-      console.log(item);
-      if (!arrReceived.includes(item.item)) {
-        arrReceived.push(item.item);
-      }
-      setArrReceived([...arrReceived]);
-    },
-    [arrReceived]
-  );
+  const [received, setReceived] = useState(false)
+  const [receivedList, setReceivedList] = useState<number[]>([])
 
   return (
-    <>
-      <div className="demo">
-        <h2>{translated.basic}</h2>
+    <DemoPage>
+      <DemoBlock title="基本用法" plain>
         <Coupon
           pricePosition="back"
           couponStyle={couponBaseStyle}
           couponMainStyle={couponMainBaseStyle}
-          couponData={baseCouponObj}
-          btnText={btnText}
-          isReceived={receivedStatus}
+          couponData={baseCoupon}
+          btnText={received ? '已领取' : '立即领取'}
+          isReceived={received}
           usedIcon={usedIcon}
           buttonProps={buttonProps}
-          onBtnClick={basedOnClick}
-        ></Coupon>
-        <h2>{translated.mulText}</h2>
-        <div style={{ width: "100%", overflow: "scroll" }}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              flexWrap: "wrap",
-              width: "700px",
-            }}
-          >
+          onBtnClick={() => setReceived(true)}
+        />
+      </DemoBlock>
+      <DemoBlock title="小卡片类型的优惠券 (多行, 在外层元素上设置布局)" plain>
+        <ScrollView scrollX style={{ width: '100%' }}>
+          <View style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', width: '700px' }}>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => {
+              const isReceived = receivedList.includes(item)
               return (
                 <Coupon
                   key={item}
-                  pricePosition="front"
                   type="small"
+                  pricePosition="front"
                   usedIcon={usedIcon}
-                  isReceived={arrReceived.includes(item)}
-                  couponMainStyle={couponMainSmallStyle}
+                  isReceived={isReceived}
                   couponStyle={couponSmallStyle}
-                  couponData={{ ...couponObj, item }}
-                  btnText={arrReceived.includes(item) ? "已领取" : "立即领取"}
-                  onBtnClick={receivedBtn}
-                ></Coupon>
-              );
+                  couponMainStyle={couponMainSmallStyle}
+                  couponData={{ ...smallCoupon, item }}
+                  btnText={isReceived ? '已领取' : '立即领取'}
+                  onBtnClick={(data) => {
+                    console.log('领取', data)
+                    if (!receivedList.includes(data.item)) {
+                      setReceivedList([...receivedList, data.item])
+                    }
+                  }}
+                />
+              )
             })}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
+          </View>
+        </ScrollView>
+      </DemoBlock>
+    </DemoPage>
+  )
+}
 
-export default CouponDemo;
+export default CouponDemo
