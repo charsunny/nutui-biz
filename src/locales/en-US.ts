@@ -25,6 +25,7 @@ const enUS: BaseLang = {
     totalText: "Total",
     settleButtonText: "To Settle",
     selectAll: "Select All",
+    colon: ": ",
   },
   address: {
     selectRegion: "Select Region",
@@ -59,6 +60,7 @@ const enUS: BaseLang = {
   },
   skuheader: {
     skuId: "Sku Number",
+    colon: ": ",
   },
   addresslist: {
     addAddress: "Add New Address",

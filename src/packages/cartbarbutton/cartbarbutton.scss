@@ -1,7 +1,31 @@
-.nb-cart-bar-button {
-    margin-right: 5px;
+@import '../../styles/variables';
 
-    &:last-child {
-        margin-right: 0;
-    }
+$nb-cart-bar-button-gap: var(--nb-cart-bar-button-gap, $nb-spacing-xs);
+$nb-cart-bar-button-capsule-radius: var(--nb-cart-bar-button-capsule-radius, $nb-radius-pill);
+
+.nb-cart-bar-button {
+  flex: 1;
+  min-width: 0;
+  margin-left: $nb-cart-bar-button-gap;
+
+  &--capsule {
+    margin-left: 0;
+    overflow: hidden;
+  }
+
+  &--capsule-first {
+    margin-left: $nb-cart-bar-button-gap;
+    border-top-left-radius: $nb-cart-bar-button-capsule-radius;
+    border-bottom-left-radius: $nb-cart-bar-button-capsule-radius;
+  }
+
+  &--capsule-last {
+    border-top-right-radius: $nb-cart-bar-button-capsule-radius;
+    border-bottom-right-radius: $nb-cart-bar-button-capsule-radius;
+  }
+
+  &--capsule-only {
+    margin-left: $nb-cart-bar-button-gap;
+    border-radius: $nb-cart-bar-button-capsule-radius;
+  }
 }

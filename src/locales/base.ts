@@ -23,6 +23,7 @@ export interface BaseLang {
     totalText: string;
     settleButtonText: string;
     selectAll: string;
+    colon: string;
   };
   address: {
     selectRegion: string;
@@ -57,6 +58,7 @@ export interface BaseLang {
   };
   skuheader: {
     skuId: string;
+    colon: string;
   };
   addresslist: {
     addAddress: string;

@@ -1,3 +1,6 @@
-import { SettleBar } from './settlebar'
+import '@nutui/nutui-react-taro/dist/es/packages/checkbox/style/css'
+import './settlebar.scss'
 
-export default SettleBar
+export { SettleBar } from './settlebar'
+export type { SettleBarProps } from './settlebar'
+export { SettleBar as default } from './settlebar'

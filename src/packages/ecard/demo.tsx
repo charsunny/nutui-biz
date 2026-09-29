@@ -1,105 +1,59 @@
-import React, { useState } from "react";
-import { useTranslate } from "../../sites/assets/locale";
-import { Ecard, DataListItem } from "./ecard";
-import { Cell } from "@nutui/nutui-react";
-import mathMethods from '@/utils/math'
+import { useState } from 'react'
+import { Text } from '@tarojs/components'
+import { Ecard } from './index'
+import type { DataListItem } from './index'
+import mathMethods from '../../utils/math'
+import { DemoBlock, DemoPage } from '../../../demo/components/DemoBlock'
+
 const { accurateMultiply } = mathMethods
-interface T {
-  [props: string]: string;
-}
+
+const dataList: DataListItem[] = [{ price: 10 }, { price: 20 }, { price: 30 }, { price: 40 }]
+const dataList6: DataListItem[] = [...dataList, { price: 50 }, { price: 60 }]
+
+const blockStyle = { padding: '16px' }
 
 const EcardDemo = () => {
-  const [translated] = useTranslate<T>({
-    "zh-CN": {
-      basic: "基本用法",
-      handleMoney: "自定义函数处理总面值",
-      discountText: '100以内打九折,超过100打八折!',
-      row: '自定义一行展示电子卡数量'
-    },
-    "en-US": {
-      basic: "Basic Usage",
-      handleMoney: "A custom function to deal with the total price",
-      discountText: '100 of less than ninety percent, more than 100 eighty percent discount! ',
-      row: 'Custom line number display an e-card '
-    },
-  });
-  const [dataList] = useState<Array<DataListItem>>([
-    {
-      price: 10,
-    },
-    {
-      price: 20,
-    },
-    {
-      price: 30,
-    },
-    {
-      price: 40
-    }
-  ]);
-  const onChangeInput = (val: number, money: number) => {
-    console.log('onChangeInput', { val, money });
-  };
-  const onChange = (item: DataListItem, money: number) => {
-    console.log('onChange', { item, money });
-  };
-  const onChangeStep = (num: number, price: number, money: number) => {
-    console.log('onChangeStep', { num, price, money });
-  };
-  return (
-    <>
-      <div className="demo">
-        <h2>{translated.basic}</h2>
-        <Cell>
-          <Ecard
-            onChangeInput={onChangeInput}
-            onChange={onChange}
-            onChangeStep={onChangeStep}
-            dataList={dataList}
-          ></Ecard>
-        </Cell>
-        <h2>{translated.handleMoney}</h2>
-        <Cell>
-          <Ecard
-            chooseText={<span>{translated.discountText}</span>}
-            onChangeInput={onChangeInput}
-            onChange={onChange}
-            handleMoney={(money) => {
-              if (money < 100) return accurateMultiply(money, 0.9)
-              if (money >= 100) return accurateMultiply(money, 0.8)
-              return 0
-            }}
-            onChangeStep={onChangeStep}
-            dataList={dataList}
-          ></Ecard>
-        </Cell>
-        <h2>{translated.row}</h2>
-        <Cell>
-          <Ecard
-            chooseText={<span>请选择电子卡面值</span>}
-            rowNum={3}
-            dataList={[{
-              price: 10,
-            },
-            {
-              price: 20,
-            },
-            {
-              price: 30,
-            },
-            {
-              price: 40
-            }, {
-              price: 50,
-            },
-            {
-              price: 60
-            }]}
-          ></Ecard>
-        </Cell>
-      </div>
-    </>
-  );
-};
+  const [log, setLog] = useState('')
 
-export default EcardDemo;
+  const onChangeInput = (val: number | '', money: number) =>
+    setLog(`onChangeInput: 面值 ${val}, 总价 ${money}`)
+  const onChange = (item: DataListItem, money: number) =>
+    setLog(`onChange: 面值 ${item.price}, 总价 ${money}`)
+  const onChangeStep = (num: number, price: number, money: number) =>
+    setLog(`onChangeStep: 数量 ${num}, 面值 ${price}, 总价 ${money}`)
+
+  return (
+    <DemoPage>
+      <DemoBlock title="基础用法">
+        <Ecard
+          style={blockStyle}
+          dataList={dataList}
+          onChangeInput={onChangeInput}
+          onChange={onChange}
+          onChangeStep={onChangeStep}
+        />
+        {log && (
+          <Text style={{ display: 'block', padding: '0 16px 12px', fontSize: '12px', color: '#888b94' }}>
+            {log}
+          </Text>
+        )}
+      </DemoBlock>
+      <DemoBlock title="自定义价格处理函数">
+        <Ecard
+          style={blockStyle}
+          chooseText="100以内打九折, 超过100打八折!"
+          dataList={dataList}
+          handleMoney={(money) => {
+            if (money < 100) return accurateMultiply(money, 0.9)
+            return accurateMultiply(money, 0.8)
+          }}
+        />
+      </DemoBlock>
+      <DemoBlock title="自定义一行展示电子卡数量">
+        <Ecard style={blockStyle} chooseText="请选择电子卡面值" rowNum={3} dataList={dataList6} />
+      </DemoBlock>
+    </DemoPage>
+  )
+}
+
+export default EcardDemo

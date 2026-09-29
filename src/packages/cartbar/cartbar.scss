@@ -1,39 +1,32 @@
+@import '../../styles/variables';
 @import '../cartbaricon/cartbaricon.scss';
 @import '../cartbarbutton/cartbarbutton.scss';
-@import '../../styles/base.scss';
+
+$nb-cart-bar-background: var(--nb-cart-bar-background, $nb-color-surface);
+$nb-cart-bar-padding: var(--nb-cart-bar-padding, $nb-spacing-xs $nb-spacing-base);
+$nb-cart-bar-z-index: var(--nb-cart-bar-z-index, 100);
 
 .nb-cart-bar {
+  width: 100%;
+  background-color: $nb-cart-bar-background;
+  box-sizing: border-box;
+
+  &--fixed {
     position: fixed;
+    right: 0;
     bottom: 0;
     left: 0;
-    right: 0;
+    z-index: $nb-cart-bar-z-index;
+  }
 
-    .nb-cart-bar__inner {
-        display: flex;
-        align-items: center;
+  &--safe-area {
+    padding-bottom: constant(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 
-        &.has-capsule-buttons {
-            > p {
-                margin-right: 0;
-
-                .nut-button--round {
-                    border-radius: 0;
-                }
-    
-                &:first-of-type {
-                    .nut-button--round {
-                        border-top-left-radius: 25px;
-                        border-bottom-left-radius: 25px;
-                    }
-                }
-            
-                &:last-of-type {
-                    .nut-button--round {
-                        border-top-right-radius: 25px;
-                        border-bottom-right-radius: 25px;
-                    }
-                }
-            }
-        }
-    }
+  &__inner {
+    display: flex;
+    align-items: center;
+    padding: $nb-cart-bar-padding;
+  }
 }

@@ -1,650 +1,272 @@
-#  Sku 商品规格选择
+# Sku 商品规格选择
 
 ### 介绍
 
-常见于商详（单品）页，主要用来选择商品的规格。
+常见于商详（单品）页，在底部弹层中选择商品规格与购买数量。
 
 ### 安装
 
-```javascript
-import { Sku } from '@nutui/nutui-biz';
+```tsx
+import { Sku } from 'nutui-biz-taro'
 ```
 
 ## 代码演示
 
 ### 基本用法
 
-:::demo
+组件本身不维护规格选中状态: 点击规格值时触发 `onSelectSku`, 由业务方更新 `sku` 数据。
+可以直接用导出的纯函数 `selectSkuItem` 完成「同类目单选」。
 
-```ts
-import  React, { useState, useEffect } from 'react';
-import { Sku } from '@nutui/nutui-biz';
-import { Cell } from '@nutui/nutui-react'
+```tsx
+import { useState } from 'react'
+import { Cell } from '@nutui/nutui-react-taro'
+import { Sku, selectSkuItem } from 'nutui-biz-taro'
+import type { SkuGoods, SkuSelectInfo, SkuSpec } from 'nutui-biz-taro'
 
-interface Skus {
-  id: number;
-  name: string;
-  list: SkuItem[];
-  [key: string]: any;
-}
-
-interface SkuItem {
-  id: number;
-  name: string;
-  imagePath: string;
-  [key: string]: any;
-}
-
-interface goods {
-  price: number
-  imagePath: string
-  skuId: string
-}
+const initialSku: SkuSpec[] = [
+  {
+    id: 1,
+    name: '颜色',
+    list: [
+      { id: 100016015112, name: '亮黑色', active: true },
+      { id: 100016015142, name: '釉白色' },
+    ],
+  },
+  {
+    id: 2,
+    name: '版本',
+    list: [
+      { id: 100016015102, name: '8GB+128GB', active: true },
+      { id: 100016015122, name: '8GB+256GB', disable: true },
+    ],
+  },
+]
 
 const App = () => {
-  const [base, setBase] = useState<boolean>(false)
-  const [skuData, setSkuData] = useState<Skus[]>([])
-  const [goodsInfo, setGoodsInfo] = useState({} as goods)
-  const [imagePathMap, setImagePathMap] = useState<any>({})
+  const [visible, setVisible] = useState(false)
+  const [sku, setSku] = useState(initialSku)
+  const [goods, setGoods] = useState<SkuGoods>({
+    skuId: '100016015112',
+    price: '4599.00',
+    imagePath: 'https://img14.360buyimg.com/n4/jfs/t1/216079/14/3895/201095/618a5c0cEe0b9e2ba/cf5b98fb6128a09e.jpg',
+  })
 
-  const getData = () => {
-    fetch('//storage.360buyimg.com/nutui/3x/data.js')
-    .then((response) => response.json())
-    .then((res) => {
-      const { Sku, Goods, imagePathMap } = res;
-      setSkuData(Sku)
-      setGoodsInfo(Goods)
-      setImagePathMap(imagePathMap)
-    }) //执行结果是 resolve就调用then方法
-    .catch((err) => console.log('Oh, error', err)); //执行结果是 reject就调用catch方法
-  };
-
-  useEffect(() => {
-      getData()
-  }, [])
-
-  const selectSku = (s: any) => {
-    const { sku, parentIndex } = s;
-
-    if (sku.disable) return false;
-
-    let skuDataBck = skuData;
-
-    skuDataBck[parentIndex].list.forEach((s) => {
-      s.active = s.id == sku.id;
-    });
-
-    setSkuData(skuDataBck)
-
-    setGoodsInfo({
-      skuId: sku.id,
-      imagePath: "//img14.360buyimg.com/n4/jfs/t1/216079/14/3895/201095/618a5c0cEe0b9e2ba/cf5b98fb6128a09e.jpg",
-      price: 4599.00 // 商品信息展示区，商品价格
-    })
-    
-    let goodsInfoBck = goodsInfo;
-    skuData[0]?.list.forEach((el) => {
-      if (el.active && !el.disable) {
-        goodsInfoBck['imagePath'] = imagePathMap[el.id];
-      }
-    });
-    
-    // setGoodsInfo(goodsInfoBck)
-  };
-
-  const clickBtnOperate = (op: string) => {
-    console.log('点击了操作按钮', op);
-  };
+  const onSelectSku = ({ sku: item, parentIndex }: SkuSelectInfo) => {
+    setSku((prev) => selectSkuItem(prev, parentIndex, item.id))
+    setGoods((prev) => ({ ...prev, skuId: String(item.id) }))
+  }
 
   return (
     <>
-      <Cell onClick={() => setBase(true)}>基本用法</Cell>
-      <Sku 
-        visible={base} 
-        sku={skuData}
-        goods={goodsInfo}
-        onSelectSku={selectSku}
-        onClickBtnOperate={clickBtnOperate}
-        onClose={() => setBase(false)} 
+      <Cell title="基本用法" clickable onClick={() => setVisible(true)} />
+      <Sku
+        visible={visible}
+        sku={sku}
+        goods={goods}
+        onSelectSku={onSelectSku}
+        onClickBtnOperate={({ type, value }) => console.log(type, value)}
+        onClose={() => setVisible(false)}
       />
     </>
-  );
-};
-export default App;
+  )
+}
+export default App
 ```
-
-:::
 
 ### 不可售
 
-:::demo
-
-```ts
-import  React, { useState, useEffect } from 'react';
-import { Sku } from '@nutui/nutui-biz';
-import { Cell, Button } from '@nutui/nutui-react'
-
-interface Skus {
-  id: number;
-  name: string;
-  list: SkuItem[];
-  [key: string]: any;
-}
-
-interface SkuItem {
-  id: number;
-  name: string;
-  imagePath: string;
-  [key: string]: any;
-}
-
-interface goods {
-  price: number
-  imagePath: string
-  skuId: string
-}
-
-const App = () => {
-  const [notSell, setNotSell] = useState<boolean>(false)
-  const [skuData, setSkuData] = useState<Skus[]>([])
-  const [goodsInfo, setGoodsInfo] = useState({} as goods)
-  const [imagePathMap, setImagePathMap] = useState<any>({})
-
-  const getData = () => {
-    fetch('//storage.360buyimg.com/nutui/3x/data.js')
-    .then((response) => response.json())
-    .then((res) => {
-      const { Sku, Goods, imagePathMap } = res;
-      setSkuData(Sku)
-      setGoodsInfo(Goods)
-      setImagePathMap(imagePathMap)
-    }) //执行结果是 resolve就调用then方法
-    .catch((err) => console.log('Oh, error', err)); //执行结果是 reject就调用catch方法
-  };
-
-  useEffect(() => {
-      getData()
-  }, [])
-
-  const changeStepper = (count: number) => {
-    console.log('购买数量', count);
-  };
-
-  const selectSku = (s: any) => {
-    const { sku, parentIndex } = s;
-
-    if (sku.disable) return false;
-
-    let skuDataBck = skuData;
-
-    skuDataBck[parentIndex].list.forEach((s) => {
-      s.active = s.id == sku.id;
-    });
-
-    setSkuData(skuDataBck)
-
-    setGoodsInfo({
-      skuId: sku.id,
-      imagePath: "//img14.360buyimg.com/n4/jfs/t1/216079/14/3895/201095/618a5c0cEe0b9e2ba/cf5b98fb6128a09e.jpg",
-      price: 4599.00 // 商品信息展示区，商品价格
-    })
-    
-    let goodsInfoBck = goodsInfo;
-    skuData[0]?.list.forEach((el) => {
-      if (el.active && !el.disable) {
-        goodsInfoBck['imagePath'] = imagePathMap[el.id];
-      }
-    });
-    
-    // setGoodsInfo(goodsInfoBck)
-  };
-
-  const skuOperateBoxStyle = {
-    width: '100%',
-    display: 'flex',
-    padding: '8px 10px',
-    boxSizing: 'border-box'
-  } as CSSProperties
-
-  const skuOperateBoxDisLastChildStyle = {
-    width: '100%',
-    flexShrink: 1
-  } as CSSProperties
-
-  const skuOperateBoxDisFirstChildStyle = {
-    ...skuOperateBoxDisLastChildStyle,
-    marginRight: '18px'
-  } as CSSProperties
-
-  return (
-  <>
-    <Cell onClick={() => setNotSell(true)}>不可售</Cell>
-    <Sku 
-      visible={notSell} 
-      sku={skuData}
-      goods={goodsInfo}
-      btnExtraText="抱歉，此商品在所选区域暂无存货"
-      onChangeStepper={changeStepper}
-      btnOptions={['buy', 'cart']}
-      onSelectSku={selectSku}
-      operateBtn = {
-        <div style={skuOperateBoxStyle}>
-          <Button style={skuOperateBoxDisFirstChildStyle} type="warning">查看相似商品</Button>
-          <Button style={skuOperateBoxDisLastChildStyle} type="info">到货通知</Button>
-        </div>
-      }
-      onClose={() => setNotSell(false)} 
-    />
-    </>
-  );
-};
-export default App;
+```tsx
+<Sku
+  visible={visible}
+  sku={sku}
+  goods={goods}
+  btnExtraText="抱歉，此商品在所选区域暂无存货"
+  operateBtn={
+    <View className="operate-box">
+      <Button type="warning">查看相似商品</Button>
+      <Button type="info">到货通知</Button>
+    </View>
+  }
+  onSelectSku={onSelectSku}
+  onClose={() => setVisible(false)}
+/>
 ```
-
-:::
 
 ### 自定义计步器
 
-:::demo
-
-```ts
-import  React, { useState, useEffect } from 'react';
-import { Sku } from '@nutui/nutui-biz';
-import { Cell } from '@nutui/nutui-react'
-
-interface Skus {
-  id: number;
-  name: string;
-  list: SkuItem[];
-  [key: string]: any;
-}
-
-interface SkuItem {
-  id: number;
-  name: string;
-  imagePath: string;
-  [key: string]: any;
-}
-
-interface goods {
-  price: number
-  imagePath: string
-  skuId: string
-}
-
-const App = () => {
-  const [customStepper, setCustomStepper] = useState<boolean>(false)
-  const [skuData, setSkuData] = useState<Skus[]>([])
-  const [goodsInfo, setGoodsInfo] = useState({} as goods)
-  const [count, setCount] = useState<number>(2)
-
-  const getData = () => {
-    fetch('//storage.360buyimg.com/nutui/3x/data.js')
-    .then((response) => response.json())
-    .then((res) => {
-      const { Sku, Goods, imagePathMap } = res;
-      setSkuData(Sku)
-      setGoodsInfo(Goods)
-      setImagePathMap(imagePathMap)
-    }) //执行结果是 resolve就调用then方法
-    .catch((err) => console.log('Oh, error', err)); //执行结果是 reject就调用catch方法
-  };
-
-  useEffect(() => {
-      getData()
-  }, [])
-
-  const stepperExtraText = () => {
-    return <div style={{width:"100%",textAlign:"right",color:"#F00"}}>{count} 件起售</div>;
-  };
-
-  const overLimit = () => {
-    console.log('已到极限值')
-  };
-
-  const changeStepper = (count: number) => {
-    setCount(count)
-  };
-
-  const selectSku = (s: any) => {
-    const { sku, parentIndex } = s;
-
-    if (sku.disable) return false;
-
-    let skuDataBck = skuData;
-
-    skuDataBck[parentIndex].list.forEach((s) => {
-      s.active = s.id == sku.id;
-    });
-
-    setSkuData(skuDataBck)
-
-    setGoodsInfo({
-      skuId: sku.id,
-      imagePath: "//img14.360buyimg.com/n4/jfs/t1/216079/14/3895/201095/618a5c0cEe0b9e2ba/cf5b98fb6128a09e.jpg",
-      price: 4599.00 // 商品信息展示区，商品价格
-    })
-    
-    let goodsInfoBck = goodsInfo;
-    skuData[0]?.list.forEach((el) => {
-      if (el.active && !el.disable) {
-        goodsInfoBck['imagePath'] = imagePathMap[el.id];
-      }
-    });
-    
-    // setGoodsInfo(goodsInfoBck)
-  };
-
-  const clickBtnOperate = (op: string) => {
-    console.log('点击了操作按钮', op);
-  };
-
-  return (
-    <>
-      <Cell onClick={() => setCustomStepper(true)}>自定义计步器</Cell>
-      <Sku 
-        visible={customStepper} 
-        sku={skuData}
-        goods={goodsInfo}
-        stepperMax={7}
-        stepperMin={2}
-        stepperExtraText={stepperExtraText}
-        onChangeStepper={changeStepper}
-        onOverLimit={overLimit}
-        btnOptions={['buy', 'cart']}
-        onSelectSku={selectSku}
-        onClickBtnOperate={clickBtnOperate}
-        onClose={() => setCustomStepper(false)} 
-      />
-    </>
-  );
-};
-export default App;
+```tsx
+<Sku
+  visible={visible}
+  sku={sku}
+  goods={goods}
+  stepperMax={7}
+  stepperMin={2}
+  stepperExtraText={() => <Text>2 件起售</Text>}
+  btnOptions={['buy', 'cart']}
+  onChangeStepper={(count) => console.log('购买数量', count)}
+  onOverLimit={() => console.log('已到极限值')}
+  onSelectSku={onSelectSku}
+  onClickBtnOperate={({ type, value }) => console.log(type, value)}
+  onClose={() => setVisible(false)}
+/>
 ```
-
-:::
 
 ### 自定义内容
 
-:::demo
-
-```ts
-import  React, { useState, useEffect, CSSProperties } from 'react';
-import { Sku, Address } from '@nutui/nutui-biz';
-import { Cell, Price, Button } from '@nutui/nutui-react'
-
-interface Skus {
-  id: number;
-  name: string;
-  list: SkuItem[];
-  [key: string]: any;
-}
-
-interface SkuItem {
-  id: number;
-  name: string;
-  imagePath: string;
-  [key: string]: any;
-}
-
-interface goods {
-  price: number
-  imagePath: string
-  skuId: string
-}
-
-interface RegionData {
-  name?: string;
-  [key: string]: any;
-}
-
-interface AddressList {
-  id?: string | number;
-  provinceName: string;
-  cityName: string;
-  countyName: string;
-  townName: string;
-  addressDetail: string;
-  selectedAddress: boolean;
-  name?: string;
-  phone?: string;
-}
-
-const App = () => {
-  const [customByContent, setCustomByContent] = useState<boolean>(false)
-  const [addressDesc, setAddressDesc] = useState<string>('(配送地会影响库存，请先确认)')
-  const [showAddressPopup, setShowAddressPopup] = useState<boolean>(false)
-  const [skuData, setSkuData] = useState<Skus[]>([])
-  const [goodsInfo, setGoodsInfo] = useState({} as goods)
-  const [imagePathMap, setImagePathMap] = useState<any>({})
-
-  const getData = () => {
-    fetch('//storage.360buyimg.com/nutui/3x/data.js')
-    .then((response) => response.json())
-    .then((res) => {
-      const { Sku, Goods, imagePathMap } = res;
-      setSkuData(Sku)
-      setGoodsInfo(Goods)
-      setImagePathMap(imagePathMap)
-    }) //执行结果是 resolve就调用then方法
-    .catch((err) => console.log('Oh, error', err)); //执行结果是 reject就调用catch方法
-  };
-
-  useEffect(() => {
-      getData()
-  }, [])
-
-  const clickBtnOperate = (op: string) => {
-    console.log('点击了操作按钮', op);
-  };
-
-  const tagStyle = {
-    display: 'inline-block',
-    width: '50px',
-    height: '15px',
-    fontSize: '12px',
-    marginLeft: '10px',
-    background:  `url('//storage.360buyimg.com/imgtools/bbdf6c9a2a-e3f6fbc0-fb4d-11eb-a27f-676da10c85f4.png') no-repeat
-    center center`,
-    backgroundSize: '100% 100%'
-  } as CSSProperties
-
-  const skuOperateBoxStyle = {
-    width: '100%',
-    display: 'flex',
-    padding: '8px 10px',
-    boxSizing: 'border-box'
-  } as CSSProperties
-
-  const skuOperateItemStyle = {
-    width: '100%',
-    flexShrink: 1
-  } as CSSProperties
-
-  const skuOperateItemFirstChildStyle = {
-    ...skuOperateItemStyle,
-    borderTopLeftRadius: '20px',
-    borderBottomLeftRadius: '20px'
-  } as CSSProperties
-
-  const skuOperateItemLastChildStyle = {
-    ...skuOperateItemStyle,
-    borderTopRightRadius: '20px',
-    borderBottomRightRadius: '20px'
-  } as CSSProperties
-
-  const existAddress = [
-    {
-      id: 1,
-      addressDetail: '科创十一街18号院',
-      cityName: '亦庄经济技术开发区',
-      countyName: '大兴',
-      provinceName: '北京',
-      selectedAddress: true,
-      townName: ''
-    },
-    {
-      id: 2,
-      addressDetail: '科创十一街19号院',
-      cityName: '亦庄经济技术开发区',
-      countyName: '大兴',
-      provinceName: '北京',
-      selectedAddress: false,
-      townName: ''
-    },
-    {
-      id: 3,
-      addressDetail: '科创十一街20号院',
-      cityName: '亦庄经济技术开发区',
-      countyName: '大兴',
-      provinceName: '北京',
-      selectedAddress: false,
-      townName: ''
-    },
-    {
-      id: 4,
-      addressDetail: '科创十一街21号院',
-      cityName: '亦庄经济技术开发区',
-      countyName: '大兴',
-      provinceName: '北京',
-      selectedAddress: false,
-      townName: ''
-    }
-  ];
-
-  const selectSku = (s: any) => {
-    const { sku, parentIndex } = s;
-
-    if (sku.disable) return false;
-
-    let skuDataBck = skuData;
-
-    skuDataBck[parentIndex].list.forEach((s) => {
-      s.active = s.id == sku.id;
-    });
-
-    setSkuData(skuDataBck)
-
-    setGoodsInfo({
-      skuId: sku.id,
-      imagePath: "//img14.360buyimg.com/n4/jfs/t1/216079/14/3895/201095/618a5c0cEe0b9e2ba/cf5b98fb6128a09e.jpg",
-      price: 4599.00 // 商品信息展示区，商品价格
-    })
-    
-    let goodsInfoBck = goodsInfo;
-    skuData[0]?.list.forEach((el) => {
-      if (el.active && !el.disable) {
-        goodsInfoBck['imagePath'] = imagePathMap[el.id];
-      }
-    });
-    
-    // setGoodsInfo(goodsInfoBck)
-  };
-
-  const selectedAddress = (prevExistAdd: any, nowExistAdd: any, arr: any[]) => {
-    console.log(prevExistAdd,nowExistAdd)
-    const { provinceName, countyName, cityName } = nowExistAdd;
-    setAddressDesc(`${provinceName}${countyName}${cityName}`)
+```tsx
+<Sku
+  visible={visible}
+  sku={sku}
+  goods={goods}
+  btnOptions={['buy', 'cart']}
+  skuHeaderPrice={<Price price={goods.price} symbol="¥" thousands={false} size="large" />}
+  skuHeaderExtra={<Text>重量：0.1kg 编号：{goods.skuId}</Text>}
+  skuSelectTop={<Cell title="送至" extra="北京市石景山区城区" />}
+  operateBtn={
+    <View className="operate-box">
+      <Button type="warning">加入购物车</Button>
+      <Button type="primary">立即购买</Button>
+    </View>
   }
-
-  const close = ()=>{setShowAddressPopup(false)}
-
-  return (
-    <div>
-      <Cell onClick={() => setCustomByContent(true)}>自定义内容</Cell>
-      <Sku 
-        visible={customByContent} 
-        sku={skuData}
-        goods={goodsInfo}
-        btnOptions={['buy', 'cart']}
-        skuHeaderPrice={<div>
-          <Price price={goodsInfo.price} needSymbol={true} thousands={false} />
-          <span style={tagStyle}></span>
-        </div>}
-        skuHeaderExtra={<span className='nut-sku-header-right-extra'>重量：0.1kg 编号：{ goodsInfo.skuId }</span>}
-        operateBtn = {
-          <div style={skuOperateBoxStyle}>
-            <Button style={skuOperateItemFirstChildStyle} shape="square" type="warning">加入购物车</Button>
-            <Button style={skuOperateItemLastChildStyle} shape="square" type="primary">立即购买</Button>
-          </div>
-        }
-        skuSelectTop={
-          <Cell
-            style={{boxShadow: 'none', padding: '13px 0'}}
-            title="送至"
-            desc={addressDesc}
-            onClick={() => setShowAddressPopup(true)}
-          />
-        }
-        onSelectSku={selectSku}
-        onClickBtnOperate={clickBtnOperate}
-        onClose={() => setCustomByContent(false)} 
-      />
-      <Address
-        modelValue={showAddressPopup}
-        type="exist"
-        existAddress={existAddress}
-        onClose={close}
-        isShowCustomAddress={false}
-        onSelected={(prevExistAdd: AddressList, nowExistAdd: RegionData, arr: AddressList[]) => selectedAddress(prevExistAdd, nowExistAdd, arr)}
-        existAddressTitle="配送至"
-      />
-    </div>
-  );
-};
-export default App;
+  onSelectSku={onSelectSku}
+  onClose={() => setVisible(false)}
+/>
 ```
 
-:::
+### 规格联动 (按可售组合置灰)
 
+`resolveSkuAvailability(sku, combos)` 根据「可售组合」重新计算每个规格值的 `disable`:
+某个规格值可选, 当且仅当存在一个组合同时包含它和其它类目当前选中的规格值。
+因此变为不可选的选中项会被取消选中。
+
+```tsx
+import { resolveSkuAvailability, selectSkuItem } from 'nutui-biz-taro'
+
+// 每个组合是一个可售 SKU 包含的规格值 id (与类目顺序无关)
+const combos = [
+  [100016015112, 100016015102],
+  [100016015142, 100016015122],
+]
+
+const [sku, setSku] = useState(() => resolveSkuAvailability(initialSku, combos))
+
+const onSelectSku = ({ sku: item, parentIndex }: SkuSelectInfo) => {
+  setSku((prev) => resolveSkuAvailability(selectSkuItem(prev, parentIndex, item.id), combos))
+}
+```
 
 ## API
 
 ### Props
 
-| 参数         | 说明                             | 类型   | 默认值           |
-|--------------|----------------------------------|--------|------------------|
-| visible         | 是否显示商品规格弹框               | boolean |  `false`              |
-| sku         | 商品 sku 数据 | Array | []               |
-| goods |  商品信息    | object | - |
-| stepperMax         | 设置 inputNumber 最大值  | string \| number | 99999               |
-| stepperMin         | 设置 inputNumber 最小值  | string \| number | 1               |
-| btnOptions        |           底部按钮设置。['confirm','buy','cart' ] 分别对应确定、立即购买、加入购物车              | Array | [`confirm`]           |
-| btnExtraText | 按钮上部添加文案，默认为空，有值时显示 | string | -            |
-| stepperTitle         | 数量选择组件左侧文案 | string | `购买数量`                |
-| stepperExtraText        |   inputNumber 与标题之间的文案       | () => ReactNode \| boolean | `false`              |
-| buyText |  立即购买按钮文案    | string | `立即购买` |
-| addCartText          |        加入购物车按钮文案                 | string | `加入购物车`             |
-| confirmText          |           确定按钮文案              | string | `确定`             |
-| skuHeader  | 商品信息展示区，包含商品图片、价格、编号 | ReactNode | -             |
-| skuHeaderPrice  | 商品信息展示区，价格区域展示| ReactNode | -             |
-| skuHeaderExtra  | 商品信息展示区，编号区域展示 | ReactNode | -             |
-| skuSelectTop | sku 展示区上方与商品信息展示区下方区域，无默认展示内容 | ReactNode | -             |
-| skuSelect | sku 展示区 | ReactNode | -             |
-| skuStepper  | 数量选择区 | ReactNode | -             |
-| skuStepperBottom  | 数量选择区下方区域 | ReactNode | -             |
-| skuOperate | 底部按钮操作区域 |ReactNode | -             |
+| 参数 | 说明 | 类型 | 默认值 |
+|------|------|------|--------|
+| visible | 是否显示商品规格弹层 | boolean | `false` |
+| sku | 商品规格数据 | `SkuSpec[]` | `[]` |
+| goods | 商品信息 | `Partial<SkuGoods>` | - |
+| stepperMax | 购买数量最大值 | string \| number | `99999` |
+| stepperMin | 购买数量最小值 (也是初始数量) | string \| number | `1` |
+| btnOptions | 底部按钮, 可选 `confirm` / `buy` / `cart`, 分别对应确定、立即购买、加入购物车 | `string[]` | `['confirm']` |
+| btnExtraText | 按钮上方的提示文案 | string | - |
+| stepperTitle | 数量选择区左侧文案 | string | `购买数量` |
+| stepperExtraText | 数量选择区标题与步进器之间的内容 | `(() => ReactNode) \| boolean` | `false` |
+| buyText | 立即购买按钮文案 | string | `立即购买` |
+| addCartText | 加入购物车按钮文案 | string | `加入购物车` |
+| confirmText | 确定按钮文案 | string | `确定` |
+| skuHeader | 替换整个商品信息区 (图片、价格、编号) | ReactNode | - |
+| skuHeaderPrice | 商品信息区的价格部分 | ReactNode | - |
+| skuHeaderExtra | 商品信息区的编号部分 | ReactNode | - |
+| skuSelectTop | 规格区上方内容 | ReactNode | - |
+| skuSelect | 替换规格区 | ReactNode | - |
+| skuStepper | 替换数量选择区 | ReactNode | - |
+| skuStepperBottom | 数量选择区下方内容 | ReactNode | - |
+| skuOperate | 底部按钮区上方的自定义内容 | ReactNode | - |
+| operateBtn | 替换底部按钮 | ReactNode | - |
+| popupProps | 透传给弹层的 props | `Partial<PopupProps>` (NutUI React Taro 3.x) | - |
 
 ### Events
 
-| 事件名 | 说明           | 回调参数     |
-|--------|----------------|--------------|
-| onSelectSku  | 切换规格类目时触发 | {sku,skuIndex,parentSku,parentIndex} |
-| onAdd  | inputNumber 点击增加按钮时触发 | value |
-| onReduce  | inputNumber 点击减少按钮时触发 | value |
-| overLimit  | inputNumber 点击不可用的按钮时触发 | value |
-| onChangeStepper  | 购买变化时触发 | value |
-| onClickBtnOperate  | 点击底部按钮时触发 | {type:'confirm',value:'inputNumber value'} |
-| onClickCloseIcon  | 点击左上角关闭 icon 时触发 | - |
-| onClickOverlay  | 点击遮罩时触发 | - |
-| onClose  | 关闭弹层时触发 | - |
+| 事件名 | 说明 | 回调参数 |
+|--------|------|----------|
+| onSelectSku | 点击可选的规格值时触发 | `SkuSelectInfo`: `{ sku, skuIndex, parentSku, parentIndex }` |
+| onAdd | 点击数量「+」时触发 | value: 点击后的数量 |
+| onReduce | 点击数量「-」时触发 | value: 点击后的数量 |
+| onOverLimit | 点击不可用的「+」/「-」时触发 | - |
+| onChangeStepper | 购买数量变化时触发 | value: number |
+| onClickBtnOperate | 点击底部按钮时触发 | `{ type: 'confirm' \| 'buy' \| 'cart', value: 购买数量 }` |
+| onClickCloseIcon | 点击关闭图标时触发 | - |
+| onClickOverlay | 点击遮罩时触发 | - |
+| onClose | 弹层关闭时触发 | - |
 
+### 数据结构
 
-### SkuInfo 
+```ts
+interface SkuSpec {
+  id: number | string // 类目 id
+  name: string // 类目名, 如「颜色」
+  list: SkuItem[]
+}
 
-| 字段    | 说明                                       | 类型    | 
-|---------|--------------------------------------------|---------|
-| name   | 规格名称                                | string |
-| id   | 商品编号            | number  | 
-| active   | 是否选中            | boolean  | 
-| disable   | 是否置灰            | boolean  | 
+interface SkuItem {
+  id: number | string // 规格值 id
+  name: string // 规格值名称
+  active?: boolean // 是否选中
+  disable?: boolean // 是否置灰
+}
+
+interface SkuGoods {
+  price: number | string
+  imagePath: string
+  skuId: string | number
+}
+```
+
+### 工具函数
+
+纯函数, 不修改入参, 返回新数组。
+
+| 函数 | 说明 |
+|------|------|
+| `selectSkuItem(sku, parentIndex, itemId)` | 在第 parentIndex 个类目中单选 itemId; 规格值置灰或不存在时原样返回 |
+| `getSelectedSkuItems(sku)` | 每个类目当前选中的规格值 (未选为 `undefined`) |
+| `isSkuComplete(sku)` | 是否每个类目都已选中 |
+| `resolveSkuAvailability(sku, combos)` | 按可售组合重新计算 `disable`, 并取消不可选的选中项 |
+
+## 主题定制
+
+| 名称 | 默认值 |
+|------|--------|
+| --nb-sku-background | `$nb-color-surface` |
+| --nb-sku-padding | `18px` |
+| --nb-sku-content-max-height | `50vh` |
+| --nb-sku-image-size | `100px` |
+| --nb-sku-image-radius | `8px` |
+| --nb-sku-extra-color | `$nb-color-text-help` |
+| --nb-sku-title-color | `$nb-color-title` |
+| --nb-sku-title-font-size | `13px` |
+| --nb-sku-item-height | `30px` |
+| --nb-sku-item-font-size | `12px` |
+| --nb-sku-item-color | `$nb-color-title` |
+| --nb-sku-item-background | `$nb-color-background` |
+| --nb-sku-item-active-color | `$nb-color-primary` |
+| --nb-sku-item-active-background | `$nb-color-primary-light` |
+| --nb-sku-item-active-border-color | `$nb-color-primary` |
+| --nb-sku-item-disable-color | `$nb-color-text-disabled` |
+| --nb-sku-desc-color | `$nb-color-warning` |
+| --nb-sku-desc-background | `$nb-color-surface-variant` |
+| --nb-sku-btn-height | `40px` |
+| --nb-sku-btn-color | `$nb-color-primary-text` |
+| --nb-sku-btn-font-size | `15px` |
+| --nb-sku-btn-background | `$nb-color-primary-gradient` |
+| --nb-sku-btn-cart-background | `$nb-color-warning` |
+
+## 从 1.x 迁移
+
+- 不再把 Sku 的全部 props 透传给 Popup; 需要的弹层配置改用 `popupProps` (NutUI React Taro 3.x `PopupProps`)。
+  `className` / `style` 只作用于弹层内的 `.nb-sku` 节点。
+- `onClickBtnOperate` 回调参数改为 `{ type, value }` (与旧文档一致; 旧实现实际只传了数量字符串)。
+- `onAdd` / `onReduce` 现在会真正触发 (旧实现未调用), 参数为点击后的数量。
+- 修正了旧实现在弹层未打开时首帧就触发 `onClose` 的问题。
+- 内部 class 从 `nut-sku-*` 改为 BEM 的 `nb-sku__*` (例如 `nut-sku-select-item-skus-sku.active` →
+  `nb-sku__select-sku--active`)。
+- 价格使用 NutUI 3.x `Price` (`needSymbol` 已移除, 使用 `symbol`)。

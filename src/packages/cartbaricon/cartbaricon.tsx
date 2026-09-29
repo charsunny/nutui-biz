@@ -1,63 +1,46 @@
-import React, {
-  FunctionComponent,
-  ReactNode
-} from 'react'
-import classNames from 'classnames';
-import bem from '@/utils/bem'
-import {Icon, Badge, IconProps, BadgeProps} from '@nutui/nutui-react'
-
-import { IComponent } from '@/utils/typings'
+import type { FunctionComponent, ReactNode } from 'react'
+import { View, Text } from '@tarojs/components'
+import { Badge } from '@nutui/nutui-react-taro'
+import type { BadgeProps } from '@nutui/nutui-react-taro'
+import classNames from 'classnames'
+import bem from '../../utils/bem'
+import type { IComponent } from '../../utils/typings'
 
 export interface CartBarIconProps extends IComponent {
+  /** 图标, 传 @nutui/icons-react-taro 的具名图标或任意节点 (替代 1.x 的 iconProps) */
+  icon: ReactNode
   text: ReactNode
-  iconProps: Partial<Omit<IconProps, "className">>
   badgeProps: Partial<BadgeProps>
   onClick: () => void
 }
 
-const defaultProps = {
-  onClick: () => {}
-} as CartBarIconProps
-
-export const CartBarIcon: FunctionComponent<
-  Partial<CartBarIconProps>
-> = (props) => {
-  const {
-    className,
-    style,
-    text,
-    iconProps,
-    badgeProps,
-    onClick,
-    ...rest
-  } = {
-    ...defaultProps,
-    ...props,
-  }
-
+export const CartBarIcon: FunctionComponent<Partial<CartBarIconProps>> = ({
+  className,
+  style,
+  icon,
+  text,
+  badgeProps,
+  onClick,
+}) => {
   const b = bem('cart-bar-icon')
 
-  const renderIcon = () => {
-    return <Icon className={b('icon')} {...iconProps} />
-  }
-
-  const renderText = () => {
-    return typeof text === 'string' ? <span className='txt'>{text}</span> : text
-  }
-
-  const handleClick = () => {
-    onClick()
-  }
+  const iconNode = <View className={b('icon')}>{icon}</View>
 
   return (
-    <div className={classNames(b(),className)} style={style} {...rest} onClick={handleClick}>
-      <Badge {...badgeProps}>
-        {renderIcon()}
-      </Badge>
-      {renderText()}
-    </div>
+    <View
+      className={classNames(b(), className)}
+      style={style}
+      onClick={() => onClick?.()}
+    >
+      {badgeProps ? <Badge {...badgeProps}>{iconNode}</Badge> : iconNode}
+      {text !== undefined && text !== null && text !== '' &&
+        (typeof text === 'string' || typeof text === 'number' ? (
+          <Text className={b('text')}>{text}</Text>
+        ) : (
+          text
+        ))}
+    </View>
   )
 }
 
-CartBarIcon.defaultProps = defaultProps
-CartBarIcon.displayName = 'NutCartBarIcon'
+CartBarIcon.displayName = 'NbCartBarIcon'

@@ -1,115 +1,106 @@
-import React from 'react'
-import { SettleBar } from './settlebar'
-import { useTranslate } from '../../sites/assets/locale'
-import { Toast } from '@nutui/nutui-react';
-import '../../styles/demo.css'
+import { useState } from 'react'
+import { View, Text } from '@tarojs/components'
+import { Toast } from '@nutui/nutui-react-taro'
+import { SettleBar } from './index'
+import { DemoBlock, DemoPage } from '../../../demo/components/DemoBlock'
+import '@nutui/nutui-react-taro/dist/es/packages/toast/style/css'
 
-interface tarnslatedOption {
-  basic: string;
-  title1: string;
-  title2: string;
-  title3: string;
-  title4: string;
-  title5: string;
-  title6: string;
-  title7: string;
-  totalText: string;
-  settleButtonText: string;
-  customWarningText: string;
-  reduced: string;
-  clicked: string;
-}
+const toast = (content: string) => Toast.show('settlebar-demo', { content })
 
 const SettleBarDemo = () => {
-  const [translated] = useTranslate<tarnslatedOption>({
-    'zh-CN': {
-      basic: '基本用法',
-      title1: '对齐方式',
-      title2: '禁用状态',
-      title3: '加载状态',
-      title4: '提交订单',
-      title5: '去结算数量',
-      title6: '自定义合计额外区域内容',
-      title7: '带有警告信息',
-      totalText: '总计',
-      settleButtonText: '提交订单',
-      customWarningText: '此商品无货！',
-      reduced: '已减',
-      clicked: '点击按钮'
-    },
-    'en-US': {
-      basic: 'Basic Usage',
-      title1: 'Alignment',
-      title2: 'Disabled',
-      title3: 'Loading',
-      title4: 'Submit Order',
-      title5: 'To Settle Quantity',
-      title6: 'Custom Total Extra Area Content',
-      title7: 'With Warning Message',
-      totalText: 'Total',
-      settleButtonText: 'Submit Order',
-      customWarningText: 'This product is out of stock！',
-      reduced: 'reduced',
-      clicked: 'Settle'
-    }
-  });
-  const customWarningHtml = () => {
-    return <div style={{display: 'flex', height: '100%', alignItems: 'center', fontSize: '12px', justifyContent: 'center', color: 'red'}}>{translated.customWarningText}</div>
-  }
+  const [checkedAll, setCheckedAll] = useState(false)
+  const [fixedCheckedAll, setFixedCheckedAll] = useState(true)
 
   return (
-    <>
-      <div className="demo">
-        <h2>{translated.basic}</h2>
-        <SettleBar 
-          total={100}
-          onClickButton={() => Toast.text(translated.clicked)} 
+    <DemoPage>
+      <DemoBlock title="基本用法">
+        <SettleBar
+          fixed={false}
+          total={checkedAll ? 100 : 0}
+          settleCount={checkedAll ? 2 : 0}
+          isCheckedAll={checkedAll}
+          onSelectAll={(checked) => setCheckedAll(checked)}
+          onClickButton={() => toast('点击按钮')}
         />
-        <h2>{translated.title1}</h2>
-        <SettleBar 
+      </DemoBlock>
+      <DemoBlock title="对齐方式">
+        <SettleBar
+          fixed={false}
           total={100}
-          totalAlign="left" 
-          onClickButton={() => Toast.text(translated.clicked)} 
+          totalAlign="left"
+          onClickButton={() => toast('点击按钮')}
         />
-        <h2>{translated.title2}</h2>
-        <SettleBar 
+      </DemoBlock>
+      <DemoBlock title="禁用状态">
+        <SettleBar fixed={false} total={100} disabled />
+      </DemoBlock>
+      <DemoBlock title="加载状态">
+        <SettleBar fixed={false} total={100} loading />
+      </DemoBlock>
+      <DemoBlock title="提交订单">
+        <SettleBar
+          fixed={false}
           total={100}
-          disabled 
+          customSelectAll=""
+          noCount
+          totalText="总计"
+          settleButtonText="提交订单"
+          onClickButton={() => toast('提交订单')}
         />
-        <h2>{translated.title3}</h2>
-        <SettleBar 
+      </DemoBlock>
+      <DemoBlock title="去结算数量">
+        <SettleBar
+          fixed={false}
           total={100}
-          loading 
+          settleCount="100"
+          onClickButton={() => toast('点击按钮')}
         />
-        <h2>{translated.title4}</h2>
-        <SettleBar 
+      </DemoBlock>
+      <DemoBlock title="自定义合计额外区域内容">
+        <SettleBar
+          fixed={false}
           total={100}
-          customSelectAll="" 
-          noCount={true} 
-          totalText={translated.totalText} 
-          settleButtonText={translated.settleButtonText} 
-          onClickButton={() => Toast.text(translated.clicked)} 
+          customTotalExtra={
+            <Text style={{ fontSize: '12px', color: '#888b94' }}>已减 ¥30.00</Text>
+          }
+          onClickButton={() => toast('点击按钮')}
         />
-        <h2>{translated.title5}</h2>
-        <SettleBar 
+      </DemoBlock>
+      <DemoBlock title="带有警告信息">
+        <SettleBar
+          fixed={false}
           total={100}
-          settleCount="100" 
-          onClickButton={() => Toast.text(translated.clicked)} 
+          customWarning={
+            <View
+              style={{
+                display: 'flex',
+                height: '100%',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: '12px', color: '#ff8200' }}>此商品无货！</Text>
+            </View>
+          }
+          onClickButton={() => toast('点击按钮')}
         />
-        <h2>{translated.title6}</h2>
-        <SettleBar 
-          total={100}
-          customTotalExtra={<div style={{fontSize: '12px'}}>{translated.reduced} ¥30.00</div>} 
-          onClickButton={() => Toast.text(translated.clicked)} 
-        />
-        <h2>{translated.title7}</h2>
-        <SettleBar 
-          total={100}
-          customWarning={customWarningHtml()} 
-          onClickButton={() => Toast.text(translated.clicked)} 
-        />
-      </div>
-    </>
+      </DemoBlock>
+      <DemoBlock title="固定在底部 (带占位)">
+        <View style={{ padding: '12px', fontSize: '12px', color: '#888b94' }}>
+          默认固定在页面底部, placeholder 会在原位置生成等高占位。
+        </View>
+      </DemoBlock>
+      <SettleBar
+        placeholder
+        total={fixedCheckedAll ? 299 : 0}
+        settleCount={fixedCheckedAll ? 3 : 0}
+        showZero={false}
+        isCheckedAll={fixedCheckedAll}
+        onSelectAll={(checked) => setFixedCheckedAll(checked)}
+        onClickButton={() => toast('去结算')}
+      />
+      <Toast id="settlebar-demo" />
+    </DemoPage>
   )
 }
 

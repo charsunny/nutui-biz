@@ -1,189 +1,151 @@
-import React, {
-  CSSProperties,
-  FunctionComponent,
-  ReactNode,
-  useState,
-  useRef,
-  useEffect
-} from "react";
-import { useConfig } from "@/packages/configprovider";
-import bem from "@/utils/bem";
-import { InputNumber, InputNumberProps } from "@nutui/nutui-react";
-import mathMethods from '@/utils/math'
+import { useMemo, useState } from 'react'
+import type { FunctionComponent, ReactNode } from 'react'
+import { View, Text, Input } from '@tarojs/components'
+import { InputNumber } from '@nutui/nutui-react-taro'
+import type { InputNumberProps } from '@nutui/nutui-react-taro'
 import classNames from 'classnames'
-import { numericProp } from '@/utils/props'
-const { accurateMultiply } = mathMethods
-const b = bem("ecard");
+import { useConfig } from '../configprovider'
+import bem from '../../utils/bem'
+import type { IComponent } from '../../utils/typings'
+import {
+  calcEcardMoney,
+  getEcardItemWidth,
+  getEcardPrice,
+  normalizeEcardCustomValue,
+} from './utils'
+
 export interface DataListItem {
-  price: number;
+  price: number
 }
 
-export interface EcardProps {
-  className?: string;
-  style?: CSSProperties;
-  chooseText: ReactNode;
-  suffix: string;
-  otherValueText: ReactNode;
-  dataList: Array<DataListItem>;
-  cardAmountMin: number;
-  cardAmountMax: number;
-  inputNumberProps: Partial<InputNumberProps>;
-  placeholder: string;
-  rowNum?: number
-  handleMoney?: (money: number) => any;
-  onChange?: (item: DataListItem, money: number) => void;
-  onChangeInput?: (val: number, money: number) => void;
-  onChangeStep?: (num: number, price: number, money: number) => void;
+export interface EcardProps extends IComponent {
+  chooseText: ReactNode
+  suffix: string
+  otherValueText: ReactNode
+  dataList: Array<DataListItem>
+  /** 其它面值最小值 */
+  cardAmountMin: number
+  /** 其它面值最大值 */
+  cardAmountMax: number
+  /** 数量步进器 props (NutUI React Taro 3.x InputNumber) */
+  inputNumberProps: Partial<InputNumberProps>
+  placeholder: string
+  rowNum: number
+  handleMoney: (money: number) => any
+  onChange: (item: DataListItem, money: number) => void
+  onChangeInput: (val: number | '', money: number) => void
+  onChangeStep: (num: number, price: number, money: number) => void
 }
 
-const defaultProps = {
-  className: "",
-  chooseText: "",
-  suffix: "¥",
-  otherValueText: "",
-  dataList: [],
-  inputNumberProps: {
-    min: 1,
-    max: 9999
-  },
-  cardAmountMin: 1,
-  cardAmountMax: 9999,
-  handleMoney: (money: number) => money,
-  placeholder: '请输入1-9999整数',
-  rowNum: 2
-} as EcardProps;
+const defaultInputNumberProps: Partial<InputNumberProps> = { min: 1, max: 9999 }
+const identity = (money: number) => money
 
-export const Ecard: FunctionComponent<
-  Partial<EcardProps> & Omit<React.HTMLAttributes<HTMLDivElement>, "onChange">
-> = (props) => {
-  const { locale } = useConfig();
-  const inputRef = useRef<HTMLInputElement>(null)
-  const {
-    className,
-    chooseText,
-    suffix,
-    otherValueText,
-    dataList,
-    cardAmountMin,
-    cardAmountMax,
-    inputNumberProps,
-    placeholder,
-    rowNum,
-    onChange,
-    onChangeInput,
-    handleMoney,
-    onChangeStep,
-    ...rest
-  } = {
-    ...defaultProps,
-    ...props,
-  };
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [currentPrice, setCurrentPrice] = useState<number>(dataList[0].price || 0); //当前非自定义面值
-  const [customValue, setCustomValue] = useState<numericProp>("");
-  const [cardAmount, setCardAmount] = useState(cardAmountMin);
-  const [money, setMoney] = useState<number>(accurateMultiply(dataList[0].price, 1))
-  const listItemWidth = rowNum ? Number((96 / rowNum).toFixed(0)) : 48
-  const getTotalPrice = () => {
-    let total = 0
-    if (!currentPrice && !customValue) total = 0
-    if (currentIndex >= 0 && cardAmount && currentPrice) total = accurateMultiply(currentPrice, cardAmount)
-    if (customValue && currentIndex === -1 && cardAmount) total = accurateMultiply(customValue, cardAmount)
-    return handleMoney ? handleMoney(total) : total
-  }
-  useEffect(() => {
-    setMoney(getTotalPrice())
-  }, [currentIndex, currentPrice, cardAmount, customValue])
+export const Ecard: FunctionComponent<Partial<EcardProps>> = ({
+  className,
+  style,
+  chooseText,
+  suffix = '¥',
+  otherValueText,
+  dataList = [],
+  cardAmountMin = 1,
+  cardAmountMax = 9999,
+  inputNumberProps,
+  placeholder,
+  rowNum = 2,
+  handleMoney = identity,
+  onChange,
+  onChangeInput,
+  onChangeStep,
+}) => {
+  const { locale } = useConfig()
+  const b = bem('ecard')
+  const stepperProps = { ...defaultInputNumberProps, ...inputNumberProps }
+
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [customValue, setCustomValue] = useState<number | ''>('')
+  const [inputFocus, setInputFocus] = useState(false)
+  const [cardAmount, setCardAmount] = useState(() =>
+    Number(stepperProps.value ?? stepperProps.defaultValue ?? stepperProps.min ?? 1)
+  )
+
+  const currentPrice = getEcardPrice(dataList, currentIndex, customValue)
+  const money = useMemo(
+    () => handleMoney(calcEcardMoney(currentPrice, cardAmount)),
+    [currentPrice, cardAmount, handleMoney]
+  )
+  const itemWidth = getEcardItemWidth(rowNum)
 
   const handleClick = (item: DataListItem, index: number) => {
-    const { price } = item
     setCurrentIndex(index)
-    setCurrentPrice(price)
     setCustomValue('')
-    onChange && onChange(item, handleMoney?.(accurateMultiply(price, cardAmount)));
-  };
+    setInputFocus(false)
+    onChange?.(item, handleMoney(calcEcardMoney(item.price, cardAmount)))
+  }
 
   const handleInputClick = () => {
-    inputRef && inputRef.current && inputRef.current.focus()
     setCurrentIndex(-1)
-  };
+    setInputFocus(true)
+  }
 
-  const handleChangeInput = (value: any) => {
-    let inputValueCache = (value.replace(/[^\d]/g, ""));
-    if (inputValueCache > cardAmountMax) {
-      inputValueCache = cardAmountMax;
-    } else if (inputValueCache < cardAmountMin) {
-      inputValueCache = cardAmountMin;
-    }
-    setCurrentPrice(0)
-    setCustomValue(inputValueCache)
-    onChangeInput && onChangeInput(inputValueCache, handleMoney?.(accurateMultiply(inputValueCache, cardAmount)));
-  };
+  const handleInput = (raw: string) => {
+    const value = normalizeEcardCustomValue(raw, cardAmountMin, cardAmountMax)
+    setCurrentIndex(-1)
+    setCustomValue(value)
+    onChangeInput?.(value, handleMoney(calcEcardMoney(value, cardAmount)))
+  }
 
-  const handleChangeStep = (
-    param: numericProp,
-  ) => {
-    setCardAmount(Number(param))
-    onChangeStep && onChangeStep(+param, currentPrice || Number(customValue), handleMoney?.(accurateMultiply(param, currentPrice || Number(customValue))));
-  };
+  const handleChangeStep: InputNumberProps['onChange'] = (param, e) => {
+    const num = Number(param)
+    setCardAmount(num)
+    inputNumberProps?.onChange?.(param, e)
+    onChangeStep?.(num, currentPrice, handleMoney(calcEcardMoney(currentPrice, num)))
+  }
 
   return (
-    <div className={classNames([b(), className])} {...rest}>
-      <div className={b("title")}>{chooseText || locale.ecard.chooseText}</div>
-      <div className={b("list")}>
-        <>
-          {dataList.map((item, index) => {
-            return (
-              <div
-                className={classNames([b("list__item"), currentIndex === index && "active"])}
-                style={{ width: `${listItemWidth}%` }}
-                key={index}
-                onClick={() => {
-                  handleClick(item, index);
-                }}
-              >
-                {item.price}
-              </div>
-            );
-          })}
-          <div
-            className={`${b("list__input")} ${currentIndex === -1 && "active"
-              }`}
-            onClick={
-              handleInputClick
-            }
+    <View className={classNames(b(), className)} style={style}>
+      <View className={b('title')}>{chooseText || locale.ecard.chooseText}</View>
+      <View className={b('list')}>
+        {dataList.map((item, index) => (
+          <View
+            className={b('item', { active: currentIndex === index })}
+            style={{ width: `${itemWidth}%` }}
+            key={index}
+            onClick={() => handleClick(item, index)}
           >
-            <div>{otherValueText || locale.ecard.otherValueText}</div>
-            <div className={b("list__input--con")}>
-              <input
-                className={b("list__input--input")}
-                type="number"
-                ref={inputRef}
-                value={customValue}
-                onChange={(e: any) => {
-                  handleChangeInput(e.target.value);
-                }}
-                placeholder={placeholder || locale.ecard.placeholder}
-              />
-              <span>{suffix}</span>
-            </div>
-          </div>
-          <div className={b("list__step")}>
-            <div className={b("list__step--price")}>
-              {suffix}
-              {money}
-            </div>
-            <InputNumber
-              modelValue={cardAmount}
-              {...inputNumberProps}
-              onChangeFuc={handleChangeStep}
+            {item.price}
+          </View>
+        ))}
+        <View
+          className={b('input', { active: currentIndex === -1 })}
+          onClick={handleInputClick}
+        >
+          <View className={b('input-label')}>
+            {otherValueText || locale.ecard.otherValueText}
+          </View>
+          <View className={b('input-con')}>
+            <Input
+              className={b('input-field')}
+              type="number"
+              value={customValue === '' ? '' : String(customValue)}
+              focus={inputFocus}
+              placeholder={placeholder || locale.ecard.placeholder}
+              placeholderClass={b('input-placeholder')}
+              onInput={(e) => handleInput(e.detail.value)}
+              onBlur={() => setInputFocus(false)}
             />
-          </div>
-        </>
-      </div>
-    </div>
-  );
-};
+            <Text className={b('input-suffix')}>{suffix}</Text>
+          </View>
+        </View>
+        <View className={b('step')}>
+          <Text className={b('money')}>
+            {suffix}
+            {money}
+          </Text>
+          <InputNumber {...stepperProps} value={cardAmount} onChange={handleChangeStep} />
+        </View>
+      </View>
+    </View>
+  )
+}
 
-Ecard.defaultProps = defaultProps;
-Ecard.displayName = "NutEcard";
+Ecard.displayName = 'NbEcard'

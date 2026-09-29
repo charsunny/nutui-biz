@@ -1,166 +1,189 @@
-@import '../../styles/mixins/text-ellipsis.scss';
+@import '../../styles/variables';
 
-.nut-sku {
-  height: 100%;
+$nb-sku-background: var(--nb-sku-background, $nb-color-surface);
+$nb-sku-padding: var(--nb-sku-padding, 18px);
+$nb-sku-content-max-height: var(--nb-sku-content-max-height, 50vh);
+$nb-sku-image-size: var(--nb-sku-image-size, 100px);
+$nb-sku-image-radius: var(--nb-sku-image-radius, $nb-radius-base);
+$nb-sku-extra-color: var(--nb-sku-extra-color, $nb-color-text-help);
+$nb-sku-title-color: var(--nb-sku-title-color, $nb-color-title);
+$nb-sku-title-font-size: var(--nb-sku-title-font-size, 13px);
+$nb-sku-item-height: var(--nb-sku-item-height, 30px);
+$nb-sku-item-font-size: var(--nb-sku-item-font-size, $nb-font-size-s);
+$nb-sku-item-color: var(--nb-sku-item-color, $nb-color-title);
+$nb-sku-item-background: var(--nb-sku-item-background, $nb-color-background);
+$nb-sku-item-active-color: var(--nb-sku-item-active-color, $nb-color-primary);
+$nb-sku-item-active-background: var(--nb-sku-item-active-background, $nb-color-primary-light);
+$nb-sku-item-active-border-color: var(--nb-sku-item-active-border-color, $nb-color-primary);
+$nb-sku-item-disable-color: var(--nb-sku-item-disable-color, $nb-color-text-disabled);
+$nb-sku-desc-color: var(--nb-sku-desc-color, $nb-color-warning);
+$nb-sku-desc-background: var(--nb-sku-desc-background, $nb-color-surface-variant);
+$nb-sku-btn-height: var(--nb-sku-btn-height, 40px);
+$nb-sku-btn-color: var(--nb-sku-btn-color, $nb-color-primary-text);
+$nb-sku-btn-font-size: var(--nb-sku-btn-font-size, 15px);
+$nb-sku-btn-background: var(--nb-sku-btn-background, $nb-color-primary-gradient);
+$nb-sku-btn-cart-background: var(--nb-sku-btn-cart-background, $nb-color-warning);
+
+.nb-sku {
   display: flex;
   flex-direction: column;
-  padding: 0px;
-  background: #fff;
-  &-header {
-    height: 100px;
+  background: $nb-sku-background;
+
+  &__header {
     display: flex;
     flex-shrink: 0;
-    margin-top: 18px;
-    padding: 0 18px;
-    > img {
-      width: 100px;
-      height: 100px;
-      flex-shrink: 0;
-      margin-right: 12px;
-      border-radius: 0;
-    }
-    &-right {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      overflow: hidden;
-      .nut-price {
-        display: flex;
-        align-items: baseline;
-      }
-      &-extra {
-        font-size: 12px;
-        color: #808080;
-      }
-    }
+    margin-top: $nb-sku-padding;
+    padding: 0 $nb-sku-padding;
   }
-  &-content {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    &::-webkit-scrollbar {
-      display: none;
-    }
-    margin-top: 24px;
-    padding: 0 18px;
-  }
-  &-select {
-    &-item {
-      display: flex;
-      flex-direction: column;
-      &-title {
-        height: 13px;
-        font-weight: bold;
-        font-size: 13px;
-        color: #000;
-        margin-bottom: 18px;
-      }
-      &-skus {
-        display: flex;
-        flex-wrap: wrap;
-        &-sku {
-          margin-right: 12px;
-          height: 30px;
-          line-height: 30px;
-          padding: 0 18px;
-          border-radius: 15px;
-          font-size: 11px;
-          color: #000;
-          flex-shrink: 0;
-          margin-bottom: 12px;
-          background: rgba(242, 242, 242, 1);
-          border: 1px solid rgba(242, 242, 242, 1);
 
-          &.active {
-            background: rgba(#fa2c19, 0.15);
-            border: 1px solid #fa2c19;
-            color: #fa2c19;
-          }
-          &.disable {
-            color: #808080;
-            text-decoration: line-through;
-          }
-        }
-      }
-    }
+  &__header-image {
+    flex-shrink: 0;
+    width: $nb-sku-image-size;
+    height: $nb-sku-image-size;
+    margin-right: $nb-spacing-base;
+    border-radius: $nb-sku-image-radius;
+    background: $nb-color-background;
   }
-  &-stepper {
+
+  &__header-right {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 10px 0 30px;
-    &-title {
-      font-weight: bold;
-      font-size: 13px;
-      color: #000;
-      margin-right: 12px;
-      @include oneline-ellipsis(calc(100% - 175px))
-    }
-    &-limit {
-      flex: 1;
-      display: flex;
-      align-items: center;
+    flex: 1;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-width: 0;
+    overflow: hidden;
+  }
 
-      font-size: 12px;
-      color: #808080;
+  &__header-extra {
+    @include text-ellipsis();
+    margin-top: $nb-spacing-xxs;
+    color: $nb-sku-extra-color;
+    font-size: $nb-font-size-s;
+  }
+
+  &__content {
+    max-height: $nb-sku-content-max-height;
+    margin-top: 24px;
+    padding: 0 $nb-sku-padding;
+    box-sizing: border-box;
+  }
+
+  &__select-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__select-title {
+    margin-bottom: $nb-spacing-base;
+    color: $nb-sku-title-color;
+    font-size: $nb-sku-title-font-size;
+    font-weight: $nb-font-weight-bold;
+    line-height: 1.2;
+  }
+
+  &__select-list {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  &__select-sku {
+    flex-shrink: 0;
+    height: $nb-sku-item-height;
+    margin: 0 $nb-spacing-base $nb-spacing-base 0;
+    padding: 0 $nb-sku-padding;
+    border: 1px solid transparent;
+    border-radius: $nb-radius-pill;
+    background: $nb-sku-item-background;
+    color: $nb-sku-item-color;
+    font-size: $nb-sku-item-font-size;
+    line-height: calc(#{$nb-sku-item-height} - 2px);
+    box-sizing: border-box;
+
+    &--active {
+      border-color: $nb-sku-item-active-border-color;
+      background: $nb-sku-item-active-background;
+      color: $nb-sku-item-active-color;
     }
-    &-count {
-      display: flex;
-      align-items: center;
-      &-lowestBuy {
-        font-size: 12px;
-        color: #fa2c19;
-      }
+
+    &--disable {
+      color: $nb-sku-item-disable-color;
+      text-decoration: line-through;
     }
   }
-  &-operate {
-    width: 100%;
-    &-desc {
-      display: block;
-      width: 100%;
-      max-height: 94px;
-      padding: 10px;
-      text-align: center;
-      background: #fbf9da;
-      color: #de6a1c;
-      font-size: 12px;
-      @include text-ellipsis
-    }
-    &-btn {
-      height: 54px;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #fff;
-      text-align: center;
-      padding: 0 18px;
-      box-sizing: border-box;
-      border-top: 0;
-      &-item {
-        width: 100%;
-        height: 40px;
-        line-height: 40px;
-        margin-right: 18px;
-        background: linear-gradient(90deg, #fa2c19, #fa6419 100%);
-        border-radius: 21px;
-        font-size: 15px;
-        font-weight: normal;
-        color: #fff;
-        &:last-child {
-          margin-right: 0;
-        }
-      }
 
-      &-buy {
-        background: linear-gradient(
-          135deg,
-          rgba(255, 186, 13, 1) 0%,
-          rgba(255, 195, 13, 1) 69%,
-          rgba(255, 207, 13, 1) 100%
-        );
-      }
+  &__stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0 30px;
+  }
+
+  &__stepper-title {
+    @include text-ellipsis();
+    flex-shrink: 0;
+    max-width: 40%;
+    margin-right: $nb-spacing-base;
+    color: $nb-sku-title-color;
+    font-size: $nb-sku-title-font-size;
+    font-weight: $nb-font-weight-bold;
+  }
+
+  &__stepper-limit {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    min-width: 0;
+    color: $nb-sku-extra-color;
+    font-size: $nb-font-size-s;
+  }
+
+  &__stepper-count {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  &__operate {
+    width: 100%;
+    padding-bottom: constant(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  &__operate-desc {
+    @include text-ellipsis();
+    padding: 10px;
+    background: $nb-sku-desc-background;
+    color: $nb-sku-desc-color;
+    font-size: $nb-font-size-s;
+    text-align: center;
+  }
+
+  &__operate-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 54px;
+    padding: 0 $nb-sku-padding;
+    box-sizing: border-box;
+  }
+
+  &__operate-btn-item {
+    flex: 1;
+    height: $nb-sku-btn-height;
+    margin-right: $nb-sku-padding;
+    border-radius: $nb-radius-pill;
+    background: $nb-sku-btn-background;
+    color: $nb-sku-btn-color;
+    font-size: $nb-sku-btn-font-size;
+    line-height: $nb-sku-btn-height;
+    text-align: center;
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    &--cart {
+      background: $nb-sku-btn-cart-background;
     }
   }
 }
