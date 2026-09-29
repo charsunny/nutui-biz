@@ -77,6 +77,7 @@ const App = () => (
 | -------- | ------------------------------------------------------------------------------------ | ------------------- |
 | onSubmit | 点击提交按钮。校验通过时参数为表单值对象; 校验失败时参数为错误数组 (`Array.isArray` 可区分) | `arg: any`          |
 | onInput  | 发票抬头输入                                                                         | `value: string`     |
+| onTitleTypeChange | 切换抬头类型 (仅电子普通发票), 可据此切换 `fields`                          | `titleType: string` |
 
 ### Idata (导出名 `InvoiceTitleEditData`)
 

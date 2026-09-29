@@ -41,6 +41,8 @@ export interface InvoiceTitleEditProps extends IComponent {
   onSubmit: (arg: any) => void
   /** 发票抬头输入 */
   onInput: (value: string) => void
+  /** 切换抬头类型 (仅电子普通发票) —— 业务方可据此切换 `fields` */
+  onTitleTypeChange: (titleType: string) => void
 }
 
 const toValues = (data: Partial<Idata> | undefined, type: invoiceType) => {
@@ -64,6 +66,7 @@ export const InvoiceTitleEdit: FunctionComponent<Partial<InvoiceTitleEditProps>>
   fields = INVOICE_TITLE_FIELDS,
   onSubmit,
   onInput,
+  onTitleTypeChange,
 }) => {
   const { locale } = useConfig()
   const t = locale.invoiceTitleEdit
@@ -104,9 +107,13 @@ export const InvoiceTitleEdit: FunctionComponent<Partial<InvoiceTitleEditProps>>
         {invoiceType === 'normal' ? (
           <Form.Item label={t.titleTypeText} name="titleType">
             <Radio.Group
+              className={b('title-type')}
               direction="horizontal"
               shape="button"
-              onChange={(v) => setTitleType(String(v))}
+              onChange={(v) => {
+                setTitleType(String(v))
+                onTitleTypeChange?.(String(v))
+              }}
             >
               <Radio shape="button" value="personal">
                 {t.personalText}

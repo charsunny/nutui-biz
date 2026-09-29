@@ -86,6 +86,7 @@ const invoiceInfo: InvoiceInfo = {
 | data | 文案、必填项等设置 | InvoiceData | `{}` |
 | invoiceInfo | 表单初始值 | InvoiceInfo | `{}` |
 | buttonProps | 保存按钮的 props | [ButtonProps](https://nutui.jd.com/taro/react/3x/#/zh-CN/component/button) | - |
+| bottom | 表单与保存按钮之间的自定义内容 | ReactNode | - |
 
 ### InvoiceAddressResult
 
@@ -135,7 +136,7 @@ const invoiceInfo: InvoiceInfo = {
 | 字段 | 说明 | 回调参数 |
 | --- | --- | --- |
 | onChange | 输入框内容变化 | `(value: string, tag: 'name' \| 'tel' \| 'address')` |
-| onAddressChange | 地址弹层中选中地区时触发; 下一级没有数据时自动关闭弹层 | 同 Address 的 onChange |
+| onAddressChange | 地址弹层中选中地区时触发; 选到最后一级 (未提供 `town` 时为县) 自动关闭弹层。下一级列表可在此回调里按本次选择换上 | 同 Address 的 onChange |
 | onAddressClose | 地址弹层关闭时触发 | 同 Address 的 onClose |
 | onSave | 点击保存且校验通过时触发 | `(formData: InvoiceInfo)` |
 

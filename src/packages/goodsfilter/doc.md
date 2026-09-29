@@ -109,6 +109,7 @@ const [selectData, setSelectData] = useState({})
 | priceRangeTitle | 价格区间标题 | ReactNode | `locale.goodsfilter.priceRangeTitle` (价格区间) |
 | addressTitle | 配送地址标题 | ReactNode | `locale.goodsfilter.addressTitle` (配送地址) |
 | selectedAddress | 选中的地址, 为空时展示 `locale.goodsfilter.noAddress` (您还没有选中的地址) | string | `''` |
+| showAddress | 是否展示配送地址区块; 业务不支持按地址筛选时关闭 | boolean | `true` |
 | resetDisable | 重置按钮是否禁用 | boolean | `false` |
 | priceRanges | 推荐价格区间 | GoodsFilterPriceRange[] | - |
 | filterAttrs | 地址下方的筛选项 (多选) | GoodsFilterValue[] | - |

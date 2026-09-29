@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { FunctionComponent } from 'react'
+import type { FunctionComponent, ReactNode } from 'react'
 import { View, Text } from '@tarojs/components'
 import { Button, Input } from '@nutui/nutui-react-taro'
 import type { ButtonProps } from '@nutui/nutui-react-taro'
@@ -10,7 +10,7 @@ import type { numericProp } from '../../utils/props'
 import type { IComponent } from '../../utils/typings'
 import { useConfig } from '../configprovider'
 import { Address } from '../address/address'
-import { parseRegionIds } from '../address/region'
+import { REGION_KEYS, canAdvance, getLevels, parseRegionIds } from '../address/region'
 import type {
   ChangeCallBack,
   CloseCallBack,
@@ -70,6 +70,8 @@ export interface ReceiveInvoiceEditProps extends IComponent {
   data: InvoiceData
   address: InvoiceAddressResult
   buttonProps?: Partial<ButtonProps>
+  /** 表单与保存按钮之间的自定义内容 (如「设为默认」) */
+  bottom?: ReactNode
   onChange?: (val: string, tag: string) => void
   onAddressChange?: (data: ChangeCallBack) => void
   /** 地址弹窗关闭时触发 */
@@ -102,6 +104,7 @@ export const ReceiveInvoiceEdit: FunctionComponent<Partial<ReceiveInvoiceEditPro
     data = EMPTY_DATA,
     address = EMPTY_ADDRESS,
     buttonProps,
+    bottom,
     onChange,
     onSave,
     onAddressChange,
@@ -143,8 +146,11 @@ export const ReceiveInvoiceEdit: FunctionComponent<Partial<ReceiveInvoiceEditPro
 
   const handleAddressChange = (cal: ChangeCallBack) => {
     setErrors((prev) => prev.filter((key) => key !== 'region'))
-    const nextList = cal.next ? address[cal.next] : undefined
-    if (!nextList || nextList.length < 1) setVisible(false)
+    // 选到最后一级才关。不能按「下一级列表是否为空」判断: 业务方常在
+    // onAddressChange 里按本次选择换上下一级列表, 此刻 props 里还是旧的 (首次为空),
+    // 那样选完省就被关掉, 所在地区只剩一个省名。
+    const levels = getLevels({ town: address.town ?? [] })
+    if (!canAdvance(REGION_KEYS.indexOf(cal.custom), levels)) setVisible(false)
     onAddressChange?.(cal)
   }
 
@@ -215,6 +221,7 @@ export const ReceiveInvoiceEdit: FunctionComponent<Partial<ReceiveInvoiceEditPro
         onChange={handleAddressChange}
         onClose={handleAddressClose}
       />
+      {bottom}
       {showSaveBtn && (
         <View className={b('bottom')}>
           <Button block type="primary" onClick={save} {...buttonProps}>

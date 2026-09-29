@@ -30,6 +30,8 @@ export interface ReceiveInvoiceListProps extends IComponent {
   defaultValue: numericProp
   list: Array<ReceiveInvoiceItem>
   enableDelete: boolean
+  /** 再次点击已选中项是否取消选中, 默认 true。选中态代表业务状态 (如默认地址) 时传 false */
+  deselectable?: boolean
   customEdit?: ReactNode
   onEdit?: (item: ReceiveInvoiceItem, index: number) => void
   onSelected?: (item: ReceiveInvoiceItem, index: number) => void
@@ -47,6 +49,7 @@ export const ReceiveInvoiceList: FunctionComponent<Partial<ReceiveInvoiceListPro
   defaultValue = '',
   list = EMPTY,
   enableDelete = false,
+  deselectable = true,
   customEdit,
   onSelected,
   onEdit,
@@ -60,7 +63,7 @@ export const ReceiveInvoiceList: FunctionComponent<Partial<ReceiveInvoiceListPro
 
   const handleSelect = (item: ReceiveInvoiceItem, index: number) => {
     if (sameId(current, item.id)) {
-      setCurrent('')
+      if (deselectable) setCurrent('')
       return
     }
     setCurrent(item.id)

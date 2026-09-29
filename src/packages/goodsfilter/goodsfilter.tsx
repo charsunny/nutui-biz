@@ -49,6 +49,8 @@ export interface GoodsFilterProps extends IComponent {
   addressTitle: ReactNode
   /** 选中的地址, 为空时展示"您还没有选中的地址" */
   selectedAddress: string
+  /** 是否展示配送地址区块 (业务不支持按地址筛选时应关闭) */
+  showAddress: boolean
   /** 重置按钮是否禁用 */
   resetDisable: boolean
   /** 推荐价格区间 */
@@ -97,6 +99,7 @@ export const GoodsFilter: FunctionComponent<Partial<GoodsFilterProps>> = ({
   priceRangeTitle,
   addressTitle,
   selectedAddress = '',
+  showAddress = true,
   resetDisable = false,
   priceRanges,
   filterAttrs,
@@ -353,7 +356,7 @@ export const GoodsFilter: FunctionComponent<Partial<GoodsFilterProps>> = ({
     >
       <View className={classNames(b(), className)} style={style}>
         <ScrollView className={b('body')} scrollY enhanced showScrollbar={false}>
-          {renderAddress()}
+          {showAddress && renderAddress()}
           {renderFilterAttrs()}
           {renderPrice()}
           <View className={b('gap')} />
