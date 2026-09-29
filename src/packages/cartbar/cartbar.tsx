@@ -1,6 +1,6 @@
 import { Children, Fragment, cloneElement, isValidElement, useEffect, useState } from 'react'
 import type { FunctionComponent, ReactElement, ReactNode } from 'react'
-import Taro from '@tarojs/taro'
+import { nextTick } from '@tarojs/taro'
 import { View } from '@tarojs/components'
 import classNames from 'classnames'
 import bem from '../../utils/bem'
@@ -73,7 +73,7 @@ export const CartBar: FunctionComponent<Partial<CartBarProps>> = ({
   useEffect(() => {
     if (!needPlaceholder) return
     let alive = true
-    Taro.nextTick(() => {
+    nextTick(() => {
       getRect(`#${id}`).then((rect) => {
         if (alive) setHeight(rect.height)
       })

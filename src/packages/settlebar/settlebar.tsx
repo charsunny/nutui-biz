@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FunctionComponent, ReactNode } from 'react'
-import Taro from '@tarojs/taro'
+import { nextTick } from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { Checkbox } from '@nutui/nutui-react-taro'
 import { Loading } from '@nutui/icons-react-taro'
@@ -82,7 +82,7 @@ export const SettleBar: FunctionComponent<Partial<SettleBarProps>> = (props) => 
   useEffect(() => {
     if (!needPlaceholder) return
     let alive = true
-    Taro.nextTick(() => {
+    nextTick(() => {
       getRect(`#${id}`).then((rect) => {
         if (alive) setHeight(rect.height)
       })
