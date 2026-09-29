@@ -1,101 +1,122 @@
-@import "../../styles/mixins/text-ellipsis.scss";
+@import '../../styles/variables';
+
+$nb-ordercancel-padding: var(--nb-ordercancel-padding, $nb-spacing-xl);
+$nb-ordercancel-title-color: var(--nb-ordercancel-title-color, $nb-color-title);
+$nb-ordercancel-title-font-size: var(--nb-ordercancel-title-font-size, $nb-font-size-xl);
+$nb-ordercancel-tips-color: var(--nb-ordercancel-tips-color, $nb-color-text);
+$nb-ordercancel-tips-background: var(--nb-ordercancel-tips-background, $nb-color-surface-variant);
+$nb-ordercancel-tips-radius: var(--nb-ordercancel-tips-radius, $nb-radius-base);
+$nb-ordercancel-reason-color: var(--nb-ordercancel-reason-color, $nb-color-title);
+$nb-ordercancel-area-border: var(--nb-ordercancel-area-border, $nb-color-border);
+$nb-ordercancel-btns-background: var(--nb-ordercancel-btns-background, $nb-color-surface);
+
 .nb-ordercancel {
-  font-weight: normal;
   &__main {
-    padding: 0px 20px;
+    padding: 0 $nb-ordercancel-padding;
   }
-  &__reason-header {
-    margin-top: 10px;
-    width: 90%;
-    font-size: 18px;
-    @include text-ellipsis;
-  }
+
   &__header {
     width: 90%;
-    text-align: left;
-    font-size: 18px;
     height: 50px;
     line-height: 50px;
+    font-size: $nb-ordercancel-title-font-size;
+    font-weight: $nb-font-weight-medium;
+    color: $nb-ordercancel-title-color;
     @include text-ellipsis;
   }
+
   &__tips {
-    font-size: 14px;
-    color: #000000a6;
-    padding: 14px;
-    background-color: #f7f7f7ff;
-    line-height: 25px;
-    border-radius: 10px;
     max-height: 160px;
-    overflow: auto;
     margin-bottom: 10px;
-    &-header {
-      font-size: 14px;
-      text-align: left;
-      font-weight: normal;
-    }
+    padding: 14px;
+    overflow-y: auto;
+    font-size: $nb-font-size-base;
+    line-height: 25px;
+    color: $nb-ordercancel-tips-color;
+    background-color: $nb-ordercancel-tips-background;
+    border-radius: $nb-ordercancel-tips-radius;
   }
+
+  &__tips-header {
+    color: $nb-ordercancel-title-color;
+  }
+
+  &__reason-header {
+    width: 90%;
+    margin-top: 10px;
+    font-size: $nb-ordercancel-title-font-size;
+    font-weight: $nb-font-weight-medium;
+    color: $nb-ordercancel-title-color;
+    @include text-ellipsis;
+  }
+
   &__reason {
-    font-size: 14px;
     max-height: 280px;
-    overflow: auto;
-    &--list {
-      display: flex;
-      height: 35px;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-      &__label {
-        // height: 35px;
-        // line-height: 35px;
-        width: 100%;
-        @include text-ellipsis;
-      }
-      &__checkbox {
-        &--post-front {
-          margin-right: 10px;
-        }
-        .nut-checkbox {
-          display: flex;
-          justify-content: right;
-          .nut-checkbox__label {
-            display: none;
-          }
-        }
-      }
-      &__overlay {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        height: 35px;
-        width: 100%;
-        opacity: 0;
-      }
+    overflow-y: auto;
+    font-size: $nb-font-size-base;
+    color: $nb-ordercancel-reason-color;
+  }
+
+  &__reason-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 40px;
+  }
+
+  &__reason-label {
+    flex: 1;
+    min-width: 0;
+    @include text-ellipsis;
+  }
+
+  &__reason-checkbox {
+    display: flex;
+    flex-shrink: 0;
+    margin-left: 10px;
+
+    &--front {
+      margin-left: 0;
+      margin-right: 10px;
     }
   }
+
   &__area {
-    border: 1px solid #eee;
+    margin: 4px 0 10px;
+    border: 1px solid $nb-ordercancel-area-border;
+    border-radius: $nb-radius-s;
+    overflow: hidden;
   }
+
   &__btns {
     margin-top: 10px;
     width: 100%;
-    box-shadow: 1px 14px 43px -7px rgb(0 0 0 / 50%);
-    &--tips {
-      font-size: 14px;
-      display: flex;
-      padding: 20px 20px 0px 20px;
-      justify-content: space-between;
-    }
-    &--button {
-      height: 75px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    &--tap {
-      height: 30px;
+    background: $nb-ordercancel-btns-background;
+    box-shadow: 0 -4px 12px 0 rgba(0, 0, 0, 0.05);
+
+    &--safe {
+      padding-bottom: env(safe-area-inset-bottom);
     }
   }
-  .cancel-btn {
-    width: 80%;
+
+  &__btns-tips {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px $nb-ordercancel-padding 0;
+    font-size: $nb-font-size-base;
+    color: $nb-ordercancel-reason-color;
+  }
+
+  &__btns-tips-text {
+    flex: 1;
+    min-width: 0;
+    margin-right: 10px;
+  }
+
+  &__btns-button {
+    display: flex;
+    align-items: center;
+    padding: 16px $nb-ordercancel-padding;
   }
 }

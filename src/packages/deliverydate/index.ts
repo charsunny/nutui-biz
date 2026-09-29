@@ -1,3 +1,5 @@
-import { DeliveryDate } from './deliverydate'
+import './deliverydate.scss'
 
-export default DeliveryDate
+export { DeliveryDate } from './deliverydate'
+export type { DeliveryDateProps } from './deliverydate'
+export { DeliveryDate as default } from './deliverydate'

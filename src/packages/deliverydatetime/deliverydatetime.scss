@@ -1,67 +1,97 @@
+@import '../../styles/variables';
+
+$nb-delivery-date-time-pannel-width: var(--nb-delivery-date-time-pannel-width, 140px);
+$nb-delivery-date-time-pannel-background: var(--nb-delivery-date-time-pannel-background, $nb-color-surface-variant);
+$nb-delivery-date-time-pannel-color: var(--nb-delivery-date-time-pannel-color, $nb-color-text);
+$nb-delivery-date-time-pannel-active-background: var(--nb-delivery-date-time-pannel-active-background, $nb-color-surface);
+$nb-delivery-date-time-pannel-active-color: var(--nb-delivery-date-time-pannel-active-color, $nb-color-title);
+$nb-delivery-date-time-item-background: var(--nb-delivery-date-item-background, $nb-color-surface-variant);
+$nb-delivery-date-time-item-color: var(--nb-delivery-date-item-color, $nb-color-title);
+$nb-delivery-date-time-item-height: var(--nb-delivery-date-item-height, 50px);
+$nb-delivery-date-time-item-radius: var(--nb-delivery-date-item-radius, $nb-radius-xs);
+$nb-delivery-date-time-active-background: var(--nb-delivery-date-active-background, $nb-color-primary-light);
+$nb-delivery-date-time-active-color: var(--nb-delivery-date-active-color, $nb-color-primary);
+$nb-delivery-date-time-disabled-background: var(--nb-delivery-date-disabled-background, $nb-color-background);
+$nb-delivery-date-time-disabled-color: var(--nb-delivery-date-disabled-color, $nb-color-text-disabled);
+
 .nb-delivery-date-time {
-    width: 100%;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding-top: 15px;
+  box-sizing: border-box;
+
+  &__pannel {
+    flex-shrink: 0;
+    width: $nb-delivery-date-time-pannel-width;
     height: 100%;
+    background-color: $nb-delivery-date-time-pannel-background;
+  }
+
+  &__pannel-title {
     display: flex;
-    margin-top: 15px;
+    align-items: center;
+    min-height: 45px;
+    padding: 12px $nb-spacing-xl;
+    box-sizing: border-box;
+    color: $nb-delivery-date-time-pannel-color;
+    font-size: $nb-font-size-base;
+    overflow: hidden;
 
-    &__pannel {
-        width: 140px;
-        height: 100%;
-        overflow: auto;
-        overflow-x: hidden;
-        background-color: #f6f7f9;
+    &--current {
+      background-color: $nb-delivery-date-time-pannel-active-background;
+      color: $nb-delivery-date-time-pannel-active-color;
+      font-weight: $nb-font-weight-bold;
+    }
+  }
 
-        &-title {
-            display: flex;
-            width: 150px;
-            height: 45px;
-            padding: 15px 20px;
-            align-items: center;
-            color: #666666;
-            font-size: 14px;
-            box-sizing: border-box;
-            @include text-ellipsis();
+  &__pannel-title-text {
+    @include text-ellipsis;
+    max-width: 100%;
+  }
 
-            &--current {
-                background-color: #fff;
-                color: #333333;
-                font-weight: bold;
-            }
-        }
+  &__detail {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+  }
+
+  &__detail-list {
+    padding: 0 10px;
+  }
+
+  &__detail-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: $nb-delivery-date-time-item-height;
+    padding: 0 10px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    background-color: $nb-delivery-date-time-item-background;
+    border: 1px solid transparent;
+    border-radius: $nb-delivery-date-time-item-radius;
+    color: $nb-delivery-date-time-item-color;
+    font-size: $nb-font-size-base;
+    text-align: center;
+    overflow: hidden;
+
+    &--current {
+      background-color: $nb-delivery-date-time-active-background;
+      border-color: $nb-delivery-date-time-active-color;
+      color: $nb-delivery-date-time-active-color;
     }
 
-    &__detail {
-        flex: 1;
-        height: 100%;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 0 10px;
-
-        &-item {
-            width: 100%;
-            height: 50px;
-            line-height: 50px;
-            text-align: center;
-            padding: 0 10px;
-            margin-bottom: 10px;
-            background-color: #f6f7f9;
-            border-radius: 5px;
-            color: #333333;
-            font-size: 14px;
-            border: 1px solid transparent;
-            @include text-ellipsis();
-
-            &--current {
-                background-color: #fce0df;
-                border: 1px solid #fa2c19;
-                color: #fa2c19;
-            }
-
-            &--disable {
-                background-color: #cecece;
-                border: 1px solid #cecece;
-                color: #999;
-            }
-        }
+    &--disable {
+      background-color: $nb-delivery-date-time-disabled-background;
+      border-color: $nb-delivery-date-time-disabled-background;
+      color: $nb-delivery-date-time-disabled-color;
     }
+  }
+
+  &__detail-item-text {
+    @include text-ellipsis;
+    max-width: 100%;
+  }
 }

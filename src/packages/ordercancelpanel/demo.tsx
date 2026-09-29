@@ -1,285 +1,128 @@
-import React, { useState, CSSProperties } from "react";
-import { OrderCancelPanel, IreasonsObject } from "./ordercancelpanel";
-import { Cell, Button, ButtonProps, TextAreaProps } from "@nutui/nutui-react";
-import { useTranslate } from "../../sites/assets/locale";
+import { useState } from 'react'
+import { View } from '@tarojs/components'
+import { Cell, Toast } from '@nutui/nutui-react-taro'
+import type { ButtonProps, TextAreaProps } from '@nutui/nutui-react-taro'
+import '@nutui/nutui-react-taro/dist/es/packages/cell/style/css'
+import '@nutui/nutui-react-taro/dist/es/packages/toast/style/css'
+import { OrderCancelPanel } from './index'
+import type { IreasonsObject } from './index'
+import { DemoBlock, DemoPage } from '../../../demo/components/DemoBlock'
 
-interface T {
-  basic: string;
-  tipsText: string;
-  otherText: string;
-  cellTitle: string;
-  submitText: string;
-  checkboxText: string;
-  cancelText: string;
-  cancelReasonTitle: string;
-  reasonTitle: string;
-  tipsTitle: string;
-  textareaPlaceholder: string;
-  warmTips: Array<string>;
-  cancelReason: Array<IreasonsObject>;
-  otherReason: Array<IreasonsObject>;
+const warmTips = [
+  '1. 限时特价、预约资格等购买优惠可能一并取消',
+  '2. 如遇订单拆分，京券将换成同价值京豆返还',
+  '3. 支付券不予返还；支付优惠一并取消',
+  '4. 订单一旦取消，无法恢复',
+]
+
+const cancelReason: IreasonsObject[] = [
+  { key: 'reasons1', value: '商品无货' },
+  { key: 'reasons2', value: '发货时间问题' },
+  { key: 'reasons3', value: '不想要了' },
+  { key: 'reasons4', value: '商品选错/多选' },
+  { key: 'reasons5', value: '地址信息填写错误' },
+  { key: 'reasons6', value: '商品降价' },
+]
+
+const otherReasonList: IreasonsObject[] = [...cancelReason, { key: 'other', value: '其它' }]
+
+const buttonProps: Partial<ButtonProps> = { type: 'primary' }
+
+const textAreaProps: Partial<TextAreaProps> = {
+  placeholder: '请输入内容',
+  maxLength: 100,
+  showCount: true,
 }
 
-const CouponDemo = () => {
-  const [translated] = useTranslate<T>({
-    "zh-CN": {
-      basic: "基本用法",
-      tipsText: "带有温馨提示的组件",
-      otherText: "带有其它原因选项的组件",
-      cancelText: "可取消已选中的原因",
-      checkboxText: "checkbox框选择在前面",
-      cellTitle: "显示弹窗",
-      submitText: "确认",
-      cancelReasonTitle: "退款原因",
-      reasonTitle: "请选择取消订单原因",
-      tipsTitle: "温馨提示",
-      textareaPlaceholder: "请输入内容",
-      warmTips: [
-        "1. 限时特价、预约资格等购买优惠可能一并取消",
-        "2. 如遇订单拆分，京券将换成同价值京豆返还",
-        "3. 支付券不予返还；支付优惠一并取消",
-        "4. 订单一旦取消，无法恢复",
-      ],
-      cancelReason: [
-        {
-          key: "reasons1",
-          value: "商品无货",
-        },
-        {
-          key: "reasons2",
-          value: "发货时间问题",
-        },
-        {
-          key: "reasons3",
-          value: "不想要了",
-        },
-        {
-          key: "reasons4",
-          value: "商品选错/多选",
-        },
-        {
-          key: "reasons5",
-          value: "地址信息填写错误",
-        },
-        {
-          key: "reasons6",
-          value: "商品降价",
-        },
-      ],
-      otherReason: [
-        {
-          key: "other",
-          value: "其它",
-        },
-      ],
-    },
-    "en-US": {
-      basic: "Basic Usage",
-      tipsText: "Components with warm tips",
-      otherText: "Components with other reason options",
-      cellTitle: "Show Dialog",
-      checkboxText: "",
-      cancelText: "",
-      tipsTitle: "reminder",
-      reasonTitle: "Please select the reason for canceling the order",
-      cancelReasonTitle: "Refund reason",
-      submitText: "confirm",
-      textareaPlaceholder: "Please enter content",
-      warmTips: [
-        "1. Limited time special offers, reservation qualifications and other purchase privileges may be cancelled at the same time",
-        "2. In case of order splitting, coupons will be exchanged for beans of the same value and returned",
-        "3. The payment voucher will not be returned; Cancellation of payment preference",
-        "4. Once the order is cancelled, it cannot be recovered",
-      ],
-      cancelReason: [
-        {
-          key: "reasons1",
-          value: "No goods",
-        },
-        {
-          key: "reasons2",
-          value: "Delivery time problem",
-        },
-        {
-          key: "reasons3",
-          value: "do not want goods",
-        },
-        {
-          key: "reasons4",
-          value: "Wrong goods selected",
-        },
-        {
-          key: "reasons5",
-          value: "Incorrect address information",
-        },
-        {
-          key: "reasons6",
-          value: "Commodity price reduction",
-        },
-      ],
-      otherReason: [
-        {
-          key: "other",
-          value: "other",
-        },
-      ],
-    },
-  });
+const popupTitle = '退款原因'
+const reasonTitle = <View>请选择取消订单原因</View>
 
-  //合并other其它原因
-  const otherReasonList = React.useMemo(() => {
-    return [...translated.cancelReason, ...translated.otherReason];
-  }, []);
-  //公共参数
-  const buttonProps: Partial<ButtonProps> = React.useMemo(() => {
-    return {
-      type: "primary",
-      className: "cancel-btn",
-    };
-  }, []);
-  const textareaProps: Partial<TextAreaProps> = React.useMemo(() => {
-    return {
-      placeholder: translated.textareaPlaceholder,
-      rows: "3",
-      limitshow: true,
-      maxlength: 100,
-    };
-  }, []);
-  const popupTitleMemo = React.useMemo(() => {
-    return translated.cancelReasonTitle;
-  }, []);
-  const reasonTitleMemo = React.useMemo(() => {
-    return <div>{translated.reasonTitle}</div>;
-  }, []);
+type PanelKey = 'basic' | 'tips' | 'other' | 'cancel' | 'front'
 
-  //基本使用
-  const [showPanel, setShowPanel] = useState(false);
-  //关闭弹窗触发的事件
-  const clickClosePopUp = React.useCallback(() => {
-    setShowPanel(false);
-  }, [showPanel]);
+const OrderCancelPanelDemo = () => {
+  const [open, setOpen] = useState<PanelKey | ''>('')
+  const close = () => setOpen('')
 
-  //带有温馨提示的组件
-  const [showCancelPanel, setShowCancelPanel] = useState(false);
-  const clickClosePopUpSec = React.useCallback(() => {
-    setShowCancelPanel(false);
-  }, [showCancelPanel]);
-
-  //带有其它原因选项的组件
-  const [showOtherCancelPanel, setShowOtherCancelPanel] = useState(false);
-  const clickClosePopUpThree = React.useCallback(() => {
-    setShowOtherCancelPanel(false);
-  }, [showOtherCancelPanel]);
-
-  //可以取消已选择原因选项的组件
-  const [showCancelCancelPanel, setShowCancelCancelPanel] = useState(false);
-  const clickClosePopUpCancel = React.useCallback(() => {
-    setShowCancelCancelPanel(false);
-  }, [showCancelCancelPanel]);
-
-  // checkbox在前面
-  const [showCheckboxCancelPanel, setShowcheckboxCancelPanel] = useState(false);
-  const clickClosePopUpCheckbox = React.useCallback(() => {
-    setShowcheckboxCancelPanel(false);
-  }, [showCheckboxCancelPanel]);
-  //提交事件
-  const submitBtn = React.useCallback(
-    (
-      selectedReason: IreasonsObject,
-      textAreaValue: string,
-      switchStatus: boolean
-    ) => {
-      console.log(
-        `selectedReason:${JSON.stringify(
-          selectedReason
-        )}, textAreaValue:${textAreaValue},switchStatus:${switchStatus}`
-      );
-      clickClosePopUp();
-      clickClosePopUpSec();
-      clickClosePopUpThree();
-      clickClosePopUpCancel();
-      clickClosePopUpCheckbox();
-    },
-    []
-  );
+  const submit = (reason: IreasonsObject, text: string, switchStatus: boolean) => {
+    const content = `原因: ${reason ? reason.value : '未选择'}${text ? `, 补充: ${text}` : ''}, 放回购物车: ${switchStatus}`
+    console.log(content)
+    Toast.show('ordercancelpanel-toast', { content })
+    close()
+  }
 
   return (
-    <>
-      <div className="demo">
-        <h2>{translated.basic}</h2>
-        <Cell title={translated.cellTitle} onClick={() => setShowPanel(true)} />
+    <DemoPage>
+      <DemoBlock title="基本用法">
+        <Cell title="显示弹窗" clickable onClick={() => setOpen('basic')} />
         <OrderCancelPanel
-          showCancelPanel={showPanel}
-          popupTitle={popupTitleMemo}
-          cancelReason={translated.cancelReason}
+          showCancelPanel={open === 'basic'}
+          popupTitle={popupTitle}
+          cancelReason={cancelReason}
           buttonProps={buttonProps}
-          onClose={clickClosePopUp}
-          onSubmitBtn={submitBtn}
+          onClose={close}
+          onSubmitBtn={submit}
         />
-        <h2>{translated.tipsText}</h2>
-        <Cell
-          title={translated.cellTitle}
-          onClick={() => setShowCancelPanel(true)}
-        />
+      </DemoBlock>
+
+      <DemoBlock title="带有温馨提示的组件">
+        <Cell title="显示弹窗" clickable onClick={() => setOpen('tips')} />
         <OrderCancelPanel
-          showCancelPanel={showCancelPanel}
-          popupTitle={popupTitleMemo}
-          reasonTitle={reasonTitleMemo}
-          cancelReason={translated.cancelReason}
-          warmTips={translated.warmTips}
-          tipsTitle={translated.tipsTitle}
-          submitText={translated.submitText}
+          showCancelPanel={open === 'tips'}
+          popupTitle={popupTitle}
+          reasonTitle={reasonTitle}
+          cancelReason={cancelReason}
+          warmTips={warmTips}
+          tipsTitle="温馨提示"
+          submitText="确认"
           buttonProps={buttonProps}
-          onClose={clickClosePopUpSec}
-          onSubmitBtn={submitBtn}
+          onClose={close}
+          onSubmitBtn={submit}
         />
-        <h2>{translated.otherText}</h2>
-        <Cell
-          title={translated.cellTitle}
-          onClick={() => setShowOtherCancelPanel(true)}
-        />
+      </DemoBlock>
+
+      <DemoBlock title="带有其它原因选项的组件">
+        <Cell title="显示弹窗" clickable onClick={() => setOpen('other')} />
         <OrderCancelPanel
-          showCancelPanel={showOtherCancelPanel}
-          popupTitle={popupTitleMemo}
-          submitText={translated.submitText}
+          showCancelPanel={open === 'other'}
+          popupTitle={popupTitle}
+          submitText="确认"
           cancelReason={otherReasonList}
           buttonProps={buttonProps}
-          textAreaProps={textareaProps}
-          onClose={clickClosePopUpThree}
-          onSubmitBtn={submitBtn}
+          textAreaProps={textAreaProps}
+          onClose={close}
+          onSubmitBtn={submit}
         />
-        <h2>{translated.cancelText}</h2>
-        <Cell
-          title={translated.cellTitle}
-          onClick={() => setShowCancelCancelPanel(true)}
-        />
-        <OrderCancelPanel
-          showCancelPanel={showCancelCancelPanel}
-          popupTitle={popupTitleMemo}
-          canCancelReason={true}
-          cancelReason={translated.cancelReason}
-          buttonProps={buttonProps}
-          onClose={clickClosePopUpCancel}
-          onSubmitBtn={submitBtn}
-        />
-        <h2>{translated.checkboxText}</h2>
-        <Cell
-          title={translated.cellTitle}
-          onClick={() => setShowcheckboxCancelPanel(true)}
-        />
-        <OrderCancelPanel
-          showCancelPanel={showCheckboxCancelPanel}
-          checkboxType="front"
-          showBtntips={true}
-          popupTitle={popupTitleMemo}
-          cancelReason={translated.cancelReason}
-          buttonProps={buttonProps}
-          onClose={clickClosePopUpCheckbox}
-          onSubmitBtn={submitBtn}
-        />
-      </div>
-    </>
-  );
-};
+      </DemoBlock>
 
-export default CouponDemo;
+      <DemoBlock title="可取消已选中的原因">
+        <Cell title="显示弹窗" clickable onClick={() => setOpen('cancel')} />
+        <OrderCancelPanel
+          showCancelPanel={open === 'cancel'}
+          popupTitle={popupTitle}
+          canCancelReason
+          cancelReason={cancelReason}
+          buttonProps={buttonProps}
+          onClose={close}
+          onSubmitBtn={submit}
+        />
+      </DemoBlock>
+
+      <DemoBlock title="checkbox 选择框在前面">
+        <Cell title="显示弹窗" clickable onClick={() => setOpen('front')} />
+        <OrderCancelPanel
+          showCancelPanel={open === 'front'}
+          checkboxType="front"
+          showBtntips
+          popupTitle={popupTitle}
+          cancelReason={cancelReason}
+          buttonProps={buttonProps}
+          onClose={close}
+          onSubmitBtn={submit}
+        />
+      </DemoBlock>
+      <Toast id="ordercancelpanel-toast" />
+    </DemoPage>
+  )
+}
+
+export default OrderCancelPanelDemo

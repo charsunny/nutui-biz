@@ -1,124 +1,103 @@
-import React, {
-  FunctionComponent,
-  useState,
-  useEffect
-} from 'react'
-import classNames from "classnames";
-import bem from '@/utils/bem'
-
-import { IComponent } from '@/utils/typings'
-import { numericProp } from '@/utils/props';
-
-import { DateType, DateTimeType, DateTimeAccurateType, ACTIVEKEY } from '../delivery/type';
+import { useEffect, useState } from 'react'
+import type { FunctionComponent } from 'react'
+import { ScrollView, View } from '@tarojs/components'
+import classNames from 'classnames'
+import bem from '../../utils/bem'
+import type { IComponent } from '../../utils/typings'
+import type { numericProp } from '../../utils/props'
+import type { DateTimeAccurateType, DateTimeType, DateType } from '../delivery/types'
+import { resolveAccurateItem, resolvePanel, toAccurateSelection } from '../delivery/utils'
+import { renderDeliveryText } from '../deliverydate/deliverydate'
 
 export interface DeliveryDateTimeAccurateProps extends IComponent {
-  data: DateTimeAccurateType[];
-  activeKey?: numericProp;
-  onSelect?: (item: DateTimeAccurateType) => void;
+  data: DateTimeAccurateType[]
+  /** 默认展示的左侧日期 label; 不传 / 9999 时取含 selected 项的日期, 否则第一个 */
+  activeKey: numericProp
+  /** 选中时间段后触发, 回调数据为所在日期 → 所在分组 → 选中的时间段 */
+  onSelect: (item: DateTimeAccurateType) => void
 }
 
-const defaultProps = {
-  data: [],
-  activeKey: ACTIVEKEY,
-  onSelect: (item: DateTimeAccurateType) => { }
-} as DeliveryDateTimeAccurateProps
+interface Picked {
+  panel?: string
+  group?: string
+  item?: string
+}
+
+const EMPTY: DateTimeAccurateType[] = []
+
+const init = (data: DateTimeAccurateType[], activeKey?: numericProp) => {
+  const panel = resolvePanel(data, activeKey)
+  const hit = resolveAccurateItem(panel)
+  return {
+    panel: panel?.label,
+    picked: { panel: panel?.label, group: hit?.group.label, item: hit?.item.label },
+  }
+}
 
 export const DeliveryDateTimeAccurate: FunctionComponent<
-  Partial<DeliveryDateTimeAccurateProps> & Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect'>
-> = (props) => {
-
-  const {
-    data,
-    activeKey,
-    className,
-    style,
-    onSelect
-  } = {
-    ...defaultProps,
-    ...props,
-  }
-
+  Partial<DeliveryDateTimeAccurateProps>
+> = ({ data = EMPTY, activeKey, className, style, onSelect }) => {
   const b = bem('delivery-date-time-accurate')
-
-  const [accurateTimeDate, setAccurateTimeDate] = useState(activeKey);
-  const [date, setDate] = useState<DateType>({ label: '', text: '' });
-  const [list, setList] = useState<DateTimeType[]>([]);
-
-  const handleDate = (item: DateTimeType, subitem: DateType, accurateTimeDate: string) => {
-    if(subitem.disabled) return;
-    const list = (data.find((value: DateTimeAccurateType) => value.label == accurateTimeDate)) as DateTimeAccurateType;
-    setDate(subitem);
-    onSelect?.({ ...list, children: [{ ...item ,children: [{...subitem}] }] });
-  }
-
-  const handleTimeDateAccurateTypeLeft = (item: DateTimeAccurateType, date: string) => {
-    if (date === item.label) return;
-    setAccurateTimeDate(item.label);
-    const list = (data.find((value: DateTimeAccurateType) => value.label == item.label)?.children) as DateTimeType[]
-    setList(list);
-  }
-
-  const initData = () => {
-    const list = ((activeKey == ACTIVEKEY || !activeKey) ? data[0] : data.find((item: DateTimeAccurateType) => item.label == activeKey)) as DateTimeAccurateType;
-    let date = list.children[0].children[0];
-    for(let i = 0; i < list?.children.length; i++) {
-      const item = list?.children[i].children;
-      date = item.find((subitem: DateType) => subitem.selected) as DateType;
-      if(date) break;
-    }
-    setDate(!date ? list.children[0].children[0] : date);
-    setList(list?.children as DateTimeType[]);
-  }
+  const [panelKey, setPanelKey] = useState(() => init(data, activeKey).panel)
+  const [picked, setPicked] = useState<Picked>(() => init(data, activeKey).picked)
 
   useEffect(() => {
-    if(data && data.length) {
-      initData();
-    }
-  }, [data]);
+    const next = init(data, activeKey)
+    setPanelKey(next.panel)
+    setPicked(next.picked)
+  }, [data, activeKey])
+
+  const panel = data.find((item) => item.label === panelKey)
+
+  const handleSelect = (group: DateTimeType, item: DateType) => {
+    if (item.disabled || !panel) return
+    setPicked({ panel: panel.label, group: group.label, item: item.label })
+    onSelect?.(toAccurateSelection(panel, group, item))
+  }
 
   return (
-    <div className={classNames([b(''), className])} style={style}>
-      <div className={`${b('pannel')}`}>
-        {
-          data && data.map((item: DateTimeAccurateType) => (
-            <div
-              className={classNames([
-                `${b('pannel-title')}`,
-                `${item.label === accurateTimeDate ? b('pannel-title--current') : ''}`,
-              ])}
-              key={item.label}
-              onClick={() => { handleTimeDateAccurateTypeLeft(item, accurateTimeDate as string) }}
-            >{item.title}</div>
-          ))
-        }
-      </div>
-      <div className={`${b('detail')}`}>
-        {
-          list && list.map((item: DateTimeType) => (
-            <div className={`${b('detail-item')}`} key={item.label}>
-              <div className={`${b('detail-item-title')}`}>{item.title}</div>
-              <div className={`${b('detail-item-times')}`}>
-                {
-                  item?.children.map((subitem: DateType) => (
-                    <div
-                      className={classNames([
-                        `${b('detail-item-times-time')}`,
-                        `${(subitem.text === date.text && subitem.label === date.label) ? b('detail-item-times-time--current') : ''}`,
-                        `${subitem.disabled ? b('detail-item-times-time--disable') : ''}`
-                      ])}
-                      key={subitem.label}
-                      onClick={() => { handleDate(item, subitem, accurateTimeDate as string) }}
-                    >{subitem.text}</div>
-                  ))
-                }
-              </div>
-            </div>
-          ))
-        }
-      </div>
-    </div>
+    <View className={classNames(b(), className)} style={style}>
+      <ScrollView scrollY className={b('pannel')}>
+        {data.map((item) => (
+          <View
+            key={item.label}
+            className={b('pannel-title', { current: item.label === panelKey })}
+            onClick={() => setPanelKey(item.label)}
+          >
+            {renderDeliveryText(item.title, b('pannel-title-text'))}
+          </View>
+        ))}
+      </ScrollView>
+      <ScrollView scrollY className={b('detail')}>
+        <View className={b('detail-list')}>
+          {(panel?.children ?? []).map((group) => (
+            <View key={group.label} className={b('detail-item')}>
+              <View className={b('detail-item-title')}>
+                {renderDeliveryText(group.title, b('detail-item-title-text'))}
+              </View>
+              <View className={b('detail-item-times')}>
+                {(group.children ?? []).map((item) => (
+                  <View
+                    key={item.label}
+                    className={b('detail-item-time', {
+                      current:
+                        picked.panel === panel?.label &&
+                        picked.group === group.label &&
+                        picked.item === item.label,
+                      disable: !!item.disabled,
+                    })}
+                    onClick={() => handleSelect(group, item)}
+                  >
+                    {renderDeliveryText(item.text, b('detail-item-time-text'))}
+                  </View>
+                ))}
+              </View>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   )
 }
 
-DeliveryDateTimeAccurate.defaultProps = defaultProps
-DeliveryDateTimeAccurate.displayName = 'NutDeliveryDateTimeAccurate'
+DeliveryDateTimeAccurate.displayName = 'NbDeliveryDateTimeAccurate'

@@ -1,159 +1,147 @@
-import React, { FunctionComponent, useEffect, useState, ReactNode } from 'react';
-
-import { Popup, TextArea, Button } from '@nutui/nutui-react';
-import bem from '@/utils/bem';
-import { useConfig } from '@/packages/configprovider';
-import { IComponent } from '@/utils/typings';
+import { useEffect, useState } from 'react'
+import type { FunctionComponent, ReactNode } from 'react'
+import { Textarea, View } from '@tarojs/components'
+import { Button, Popup } from '@nutui/nutui-react-taro'
+import classNames from 'classnames'
+import bem from '../../utils/bem'
+import type { IComponent } from '../../utils/typings'
+import { useConfig } from '../configprovider'
+import { appendTag } from './utils'
 
 export interface OrderRemarkProps extends IComponent {
-  visible: boolean;
-  closeOnClickOverlay: boolean;
-  maxLength: number;
-  placeholderText: string;
-  title: ReactNode;
-  tagTitle: ReactNode;
-  remark: string;
-  submitText: string;
-  recommendTags: string[];
-  onClickOverlay?: (val: string) => void;
-  onClose?: (val: string) => void;
-  onOpen?: () => void;
-  onChange?: (val: string) => void;
-  onClickTag?: (tag: string, index: number, remark: string) => void;
-  onSubmit?: (val: string) => void;
+  visible: boolean
+  /** 点击遮罩是否关闭弹窗 */
+  closeOnClickOverlay: boolean
+  maxLength: number
+  placeholderText: string
+  title: ReactNode
+  tagTitle: ReactNode
+  remark: string
+  submitText: ReactNode
+  recommendTags: string[]
+  onClickOverlay: (val: string) => void
+  onClose: (val: string) => void
+  onOpen: () => void
+  onChange: (val: string) => void
+  onClickTag: (tag: string, index: number, remark: string) => void
+  onSubmit: (val: string) => void
 }
 
-const defaultProps = {
-  visible: false,
-  closeOnClickOverlay: true,
-  maxLength: 50,
-  placeholderText: '',
-  title: '',
-  tagTitle: '',
-  remark: '',
-  submitText: '',
-  recommendTags: []
-} as OrderRemarkProps;
+const EMPTY_TAGS: string[] = []
 
-export const OrderRemark: FunctionComponent<Partial<OrderRemarkProps>> = (props) => {
-  const { locale } = useConfig();
-  const {
-    visible,
-    closeOnClickOverlay,
-    maxLength,
-    placeholderText,
-    title,
-    tagTitle,
-    remark,
-    submitText,
-    recommendTags,
-    style,
-    className,
-    onClickOverlay,
-    onClose,
-    onOpen,
-    onChange,
-    onClickTag,
-    onSubmit,
-    ...rest
-  } = {
-    ...defaultProps,
-    ...props
-  };
-  const [innerVisible, setInnerVisible] = useState(visible);
-  const [innerMark, setInnerMark] = useState(remark);
-
-  const b = bem('orderRemark');
-
-  const clickOverlay = () => {
-    onClickOverlay?.(innerMark);
-  };
-  const closeFun = () => {
-    onClose?.(innerMark);
-  };
-  const onOpenFun = () => {
-    setInnerMark(remark);
-    onOpen?.();
-  };
-
-  const clickTag = (tag: string, index: number) => {
-    let innerMarkStr = innerMark;
-    if (innerMarkStr.length > 0) {
-      innerMarkStr = innerMarkStr + '，' + tag;
-    } else {
-      innerMarkStr = tag;
-    }
-    onClickTag?.(tag, index, innerMarkStr);
-
-    if (innerMarkStr.length > maxLength) {
-      innerMarkStr = innerMarkStr.slice(0, maxLength);
-    }
-    setInnerMark(innerMarkStr);
-    onChange?.(innerMarkStr);
-  };
-  const textareaChange = (val: string) => {
-    setInnerMark(val);
-    onChange?.(val);
-  };
-  const onBtnSubmit = () => {
-    onSubmit?.(innerMark);
-    setInnerVisible(false);
-  };
-  useEffect(() => {
-    setInnerVisible(visible);
-  }, [visible]);
+export const OrderRemark: FunctionComponent<Partial<OrderRemarkProps>> = ({
+  visible = false,
+  closeOnClickOverlay = true,
+  maxLength = 50,
+  placeholderText,
+  title,
+  tagTitle,
+  remark = '',
+  submitText,
+  recommendTags = EMPTY_TAGS,
+  className,
+  style,
+  onClickOverlay,
+  onClose,
+  onOpen,
+  onChange,
+  onClickTag,
+  onSubmit,
+}) => {
+  const { locale } = useConfig()
+  const b = bem('orderRemark')
+  const [innerVisible, setInnerVisible] = useState(visible)
+  const [innerMark, setInnerMark] = useState(remark)
 
   useEffect(() => {
-    setInnerMark(remark);
-  }, [remark]);
+    setInnerVisible(visible)
+  }, [visible])
+
+  useEffect(() => {
+    setInnerMark(remark)
+  }, [remark])
+
+  const handleOpen = () => {
+    setInnerMark(remark)
+    onOpen?.()
+  }
+
+  const handleClose = () => {
+    setInnerVisible(false)
+    onClose?.(innerMark)
+  }
+
+  const handleOverlayClick = () => {
+    onClickOverlay?.(innerMark)
+    return true
+  }
+
+  const handleTagClick = (tag: string, index: number) => {
+    const { full, value } = appendTag(innerMark, tag, maxLength)
+    onClickTag?.(tag, index, full)
+    setInnerMark(value)
+    onChange?.(value)
+  }
+
+  const handleChange = (val: string) => {
+    setInnerMark(val)
+    onChange?.(val)
+  }
+
+  const handleSubmit = () => {
+    onSubmit?.(innerMark)
+    setInnerVisible(false)
+  }
+
   return (
     <Popup
       visible={innerVisible}
       position="bottom"
-      popClass={`${b('popup')}`}
+      round
       closeable
-      overlay={true}
-      closeOnClickOverlay={closeOnClickOverlay}
-      onClickOverlay={clickOverlay}
-      onClose={() => {
-        closeFun();
-      }}
-      onOpen={() => {
-        onOpenFun();
-      }}>
-      <div className={`${b()} ${className || ''}`} style={style} {...rest}>
-        <div className={b('title')}>{title || locale.orderRemark.title}</div>
-        <div className={b('textarea-container')}>
-          <TextArea
-            placeholder={placeholderText || locale.orderRemark.placeholderText}
-            maxlength={maxLength}
-            limitshow
-            defaultValue={innerMark}
-            onChange={textareaChange}></TextArea>
-        </div>
-        {recommendTags?.length > 0 && (
-          <div className={b('tag-container')}>
-            <div className={b('tag-title')}>{tagTitle || locale.orderRemark.tagTitle}</div>
-            <div className={b('tag-content')}>
-              {recommendTags.map((item: string, index: number) => {
-                return (
-                  <div key={index} className={b('tag')} onClick={() => clickTag(item, index)}>
-                    {item}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-        <div className={b('opt-container')}>
-          <Button onClick={() => onBtnSubmit()} type="primary">
+      className={b('popup')}
+      closeOnOverlayClick={closeOnClickOverlay}
+      onOverlayClick={handleOverlayClick}
+      onOpen={handleOpen}
+      onClose={handleClose}
+    >
+      <View className={classNames(b(), className)} style={style}>
+        <View className={b('title')}>{title || locale.orderRemark.title}</View>
+        <View className={b('textarea-container')}>
+          <View className={b('textarea-box')}>
+            <Textarea
+              className={b('textarea')}
+              placeholderClass={b('placeholder')}
+              placeholder={placeholderText || locale.orderRemark.placeholderText}
+              maxlength={maxLength}
+              value={innerMark}
+              onInput={(e) => handleChange(e.detail.value)}
+            />
+            <View className={b('count')}>
+              {innerMark.length}/{maxLength}
+            </View>
+          </View>
+        </View>
+        {recommendTags.length > 0 ? (
+          <View className={b('tag-container')}>
+            <View className={b('tag-title')}>{tagTitle || locale.orderRemark.tagTitle}</View>
+            <View className={b('tag-content')}>
+              {recommendTags.map((item, index) => (
+                <View key={index} className={b('tag')} onClick={() => handleTagClick(item, index)}>
+                  {item}
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
+        <View className={b('opt-container')}>
+          <Button type="primary" block onClick={handleSubmit}>
             {submitText || locale.orderRemark.submitText}
           </Button>
-        </div>
-      </div>
+        </View>
+      </View>
     </Popup>
-  );
-};
+  )
+}
 
-OrderRemark.defaultProps = defaultProps;
-OrderRemark.displayName = 'NutOrderRemark';
+OrderRemark.displayName = 'NbOrderRemark'
