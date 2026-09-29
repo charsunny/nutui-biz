@@ -1,88 +1,55 @@
-import React, { useState, useEffect } from "react";
-import { Category } from "./category";
-import { useTranslate } from "../../sites/assets/locale";
-import { Tabbar, TabbarItem } from "@nutui/nutui-react";
+import { useState } from 'react'
+import { View, Text } from '@tarojs/components'
+import { Category } from './index'
+import type { CategoryData, CategoryPaneItem } from './index'
+import { categoryInfo } from './data'
+import { DemoBlock, DemoPage } from '../../../demo/components/DemoBlock'
 
-interface T {
-  [props: string]: string;
-}
+const category = categoryInfo as CategoryData[]
+const boxStyle = { height: '480px' }
 
-const CommentDemo = () => {
-  const [translated] = useTranslate<T>({
-    "zh-CN": {
-      basic: "经典用法",
-      hideImage: "隐藏图片",
-      quicknav: "横向快捷导航",
-    },
-    "en-US": {
-      basic: "Basic Usage",
-      hideImage: "Hide Image",
-      quicknav: "Quick Nav",
-    },
-  });
+const CategoryDemo = () => {
+  const [log, setLog] = useState('')
 
-  const [category, setCategory] = useState();
-  const [switchIdx, setSwitchIdx] = useState(0);
+  const onChange = (item: CategoryData) => setLog(`一级分类: ${item.catName}`)
+  const onPanelThirdClick = (sku: CategoryPaneItem) => setLog(`三级分类: ${sku.catName}`)
+  const onPanelNavClick = (index: number) => setLog(`快捷导航: ${index}`)
 
-  const getData = () => {
-    fetch("https://storage.360buyimg.com/nutui/3x/new-categoryData.js")
-      .then((response) => response.json())
-      .then((res) => {
-        setCategory(res.categoryInfo.category);
-      })
-      .catch((err) => console.log("Oh, error", err));
-  };
-
-  useEffect(() => {
-    getData();
-  }, []);
-
-  const onTabSwitch = (child: any, idx: any) => {
-    setSwitchIdx(idx);
-  };
-
-  const onClassifyClick = (index: any) => {
-    console.log("一级分类", index);
-  };
-
-  const onPanelThirdClick = (sku: any) => {
-    console.log("三级分类跳转", sku);
-  };
   return (
-    <>
-      {switchIdx == 0 && (
-        <div className="demo nut-category-demo" style={{ padding: "57px 0 0" }}>
+    <DemoPage>
+      <View style={{ padding: '8px 12px 0', minHeight: '20px' }}>
+        <Text className="category-demo-log" style={{ fontSize: '12px', color: '#999' }}>
+          {log}
+        </Text>
+      </View>
+      <DemoBlock title="经典用法">
+        <View style={boxStyle} className="category-demo-basic">
           <Category
             category={category}
             isLazy={false}
-            onClick={onClassifyClick}
+            showPullUp
+            onChange={onChange}
             onPanelThirdClick={onPanelThirdClick}
-          ></Category>
-        </div>
-      )}
-
-      {switchIdx == 1 && (
-        <div className="demo nut-category-demo" style={{ padding: "57px 0 0" }}>
-          <Category category={category} showSkuImg={false}></Category>
-        </div>
-      )}
-
-      {switchIdx == 2 && (
-        <div className="demo nut-category-demo" style={{ padding: "57px 0 0" }}>
+          />
+        </View>
+      </DemoBlock>
+      <DemoBlock title="隐藏图片">
+        <View style={boxStyle} className="category-demo-noimg">
+          <Category category={category} showSkuImg={false} onPanelThirdClick={onPanelThirdClick} />
+        </View>
+      </DemoBlock>
+      <DemoBlock title="横向快捷导航">
+        <View style={boxStyle} className="category-demo-quick">
           <Category
             category={category}
-            showSecondLevelQuickNav={true}
-          ></Category>
-        </div>
-      )}
+            showSecondLevelQuickNav
+            onPanelNavClick={onPanelNavClick}
+            onPanelThirdClick={onPanelThirdClick}
+          />
+        </View>
+      </DemoBlock>
+    </DemoPage>
+  )
+}
 
-      <Tabbar onSwitch={(child, idx) => onTabSwitch(child, idx)}>
-        <TabbarItem tabTitle={translated.basic} icon="category" />
-        <TabbarItem tabTitle={translated.hideImage} icon="image" />
-        <TabbarItem tabTitle={translated.quicknav} icon="horizontal" />
-      </Tabbar>
-    </>
-  );
-};
-
-export default CommentDemo;
+export default CategoryDemo

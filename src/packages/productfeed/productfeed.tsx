@@ -1,173 +1,140 @@
-import React, {
-  FunctionComponent, ReactNode, useEffect, useState
-} from "react"
-import { Infiniteloading, InfiniteloadingProps } from "@nutui/nutui-react";
-import { IComponent } from "@/utils/typings"
+import { useMemo } from 'react'
+import type { FunctionComponent, ReactNode } from 'react'
+import { View } from '@tarojs/components'
+import { InfiniteLoading } from '@nutui/nutui-react-taro'
+import type { InfiniteLoadingProps } from '@nutui/nutui-react-taro'
+import classNames from 'classnames'
+import bem from '../../utils/bem'
+import { errorImg as defaultErrorImg } from '../../utils'
+import type { numericProp } from '../../utils/props'
+import type { IComponent } from '../../utils/typings'
+import { ProductFeedItem } from './productfeeditem'
+import { getItemKey, splitColumns } from './utils'
 
-import classNames from "classnames"
-import bem from '@/utils/bem'
-import { ProductFeedItem } from "./productfeeditem"
-import { numericProp } from '@/utils/props'
+export type colType = 1 | 2 | '1' | '2'
 
-export type colType = 1 | 2 | '1' | '2';
+// NutUI 的声明把 ScrollView props 与 HTMLAttributes<HTMLDivElement> 取交集, 事件类型互相冲突,
+// 直接展开 Partial<InfiniteLoadingProps> 会报错; 这里收窄成 Taro 端真实接受的 props。
+const Infinite = InfiniteLoading as unknown as FunctionComponent<
+  Partial<InfiniteLoadingProps> & { children?: ReactNode }
+>
 
 export interface ProductFeedProps extends IComponent {
-  data: Array<any>
+  /** 商品数据 */
+  data: any[]
+  /** 商品唯一 key 的字段名 */
   itemKey: string
+  /** 商品图片下方区域内容 */
   customProduct: (item: any) => ReactNode
+  /** 是否开启上拉加载 (内部使用 NutUI 3 InfiniteLoading, 需要给组件一个固定高度) */
   openInfiniteloading: boolean
-  infiniteloadingProps?: Partial<InfiniteloadingProps>
+  /** 透传给 NutUI 3 InfiniteLoading 的 props (hasMore / onLoadMore / pullRefresh / onRefresh ...) */
+  infiniteloadingProps: Partial<InfiniteLoadingProps>
+  /**
+   * @deprecated 1.x 中用于"每次 data 变化时最多追加展示的数量", 行为不可预期, 已不再生效;
+   * 现在 data 里的商品全部展示。
+   */
   initProductNum: number
+  /** 每行商品数量 */
   col: colType
+  /** 商品内边距, 数字默认单位 px */
   padding: numericProp
+  /** 商品圆角, 数字默认单位 px */
   borderRadius: numericProp
+  /** 商品图片地址所在的字段名 */
   imgUrl: string
-  imgWidth: string
-  imgHeight: string
-  imgTag?: ReactNode
+  /** 商品图片宽度, 数字默认单位 px */
+  imgWidth: numericProp
+  /** 商品图片高度, 数字默认单位 px */
+  imgHeight: numericProp
+  /** 商品图片左上角标签 */
+  imgTag: ReactNode
+  /** 商品图片是否懒加载 */
   isImageLazy: boolean
+  /** 图片加载中占位图 */
   loadingImg: string
+  /** 图片加载失败占位图 */
   errorImg: string
-  onClick: (item: object, number: number) => void
-  onImageClick: (item: object, number: number) => void
+  onClick: (item: any, index: number) => void
+  onImageClick: (item: any, index: number) => void
 }
 
-const defaultProps = {
-  data: [],
-  itemKey: 'id',
-  customProduct: () => {},
-  openInfiniteloading: true,
-  initProductNum: 6,
-  col: 2,
-  padding: '10px',
-  borderRadius: '8px',
-  imgUrl: '',
-  imgWidth: '150px',
-  imgHeight: '150px',
-  isImageLazy: true,
-  loadingImg: '//img12.360buyimg.com/imagetools/jfs/t1/180776/26/8319/4587/60c094a8E1ef2ec9d/940780b87700b1d3.png',
-  errorImg: '//img12.360buyimg.com/imagetools/jfs/t1/180776/26/8319/4587/60c094a8E1ef2ec9d/940780b87700b1d3.png',
-  onClick: () => { },
-  onImageClick: () => { }
-} as ProductFeedProps
-
-export const ProductFeed: FunctionComponent<
-  Partial<ProductFeedProps> & Omit<React.HTMLAttributes<HTMLDivElement>, 'onClick'>
-> = (props) => {
-  const {
-    className,
-    style,
-    children,
-    data,
-    itemKey,
-    customProduct,
-    openInfiniteloading,
-    infiniteloadingProps,
-    initProductNum,
-    col,
-    padding,
-    borderRadius,
-    imgUrl,
-    imgWidth,
-    imgHeight,
-    imgTag,
-    isImageLazy,
-    loadingImg,
-    errorImg,
-    onClick,
-    onImageClick,
-    ...rest
-  } = {
-    ...defaultProps,
-    ...props,
-  }
-
+export const ProductFeed: FunctionComponent<Partial<ProductFeedProps>> = ({
+  className,
+  style,
+  data = [],
+  itemKey = 'id',
+  customProduct,
+  openInfiniteloading = true,
+  infiniteloadingProps,
+  col = 2,
+  padding = '10px',
+  borderRadius = '8px',
+  imgUrl = '',
+  imgWidth = '150px',
+  imgHeight = '150px',
+  imgTag,
+  isImageLazy = true,
+  loadingImg = defaultErrorImg,
+  errorImg = defaultErrorImg,
+  onClick,
+  onImageClick,
+}) => {
   const b = bem('productfeed')
+  const single = Number(col) === 1
+  const columns = useMemo(() => splitColumns(data), [data])
 
-  const  [listLeft, setListLeft] = useState([] as any)
-  const  [listRight, setListRight] = useState([] as any)
+  const renderItem = (item: any, index: number) => (
+    <ProductFeedItem
+      key={getItemKey(item, itemKey, index)}
+      index={index}
+      data={item}
+      single={single}
+      padding={padding}
+      borderRadius={borderRadius}
+      imgUrl={item?.[imgUrl]}
+      imgWidth={imgWidth}
+      imgHeight={imgHeight}
+      imgTag={imgTag}
+      isImageLazy={isImageLazy}
+      loadingImg={loadingImg}
+      errorImg={errorImg}
+      onClick={onClick}
+      onImageClick={onImageClick}
+    >
+      {customProduct?.(item)}
+    </ProductFeedItem>
+  )
 
-  useEffect(() => {
-    col == 2 && init();
-  }, [data])
-
-  const init = () => {
-    const leftLen = listLeft.length
-    const rightLen = listRight.length
-
-    if (listLeft.length >= data.length/2 && listRight.length >= data.length/2) {
-    } else {
-      for (let i = leftLen + rightLen; i < (leftLen + rightLen + initProductNum > data.length ? data.length : leftLen + rightLen + initProductNum) ; i++) {
-        i % 2 == 0 ? listLeft.push(data[i]) : listRight.push(data[i])
-      }
-      setListLeft([...listLeft])
-      setListRight([...listRight])
-    }
-  }
-
-  const productItem = (item: any, index: number)=>{
-    return (
-      <ProductFeedItem
-        key={item[itemKey]}
-        index={index}
-        data={item}
-        col={col}
-        imgUrl={item[imgUrl]}
-        imgWidth={imgWidth}
-        imgHeight={imgHeight}
-        imgTag={imgTag}
-        onClick={onClick}
-        onImageClick={onImageClick}
-      >
-        {customProduct(item)}
-      </ProductFeedItem>
-    )
-  }
-
-  const product = ()=>{
-    return (
-      <div className={b("main")}>
-        { col == 1 ? 
-          data.map((item: any, index: number)=> {
-            return (
-              productItem(item, index)
-            )
-          }) 
-        :
-          <>
-            <div className={b("left")}>
-              { listLeft.map((item: any, index: number)=> {
-                return (
-                  productItem(item, index * 2)
-                )
-              }) }
-            </div>
-            <div className={b("right")}>
-              { listRight.map((item: any, index: number)=> {
-                return (
-                  productItem(item, index * 2 + 1)
-                )
-              }) }
-            </div>
-          </>
-        }
-      </div>
-    )
-  }
+  const product = (
+    <View className={b('main', { single })}>
+      {single ? (
+        data.map(renderItem)
+      ) : (
+        <>
+          <View className={b('left')}>
+            {columns.left.map(({ item, index }) => renderItem(item, index))}
+          </View>
+          <View className={b('right')}>
+            {columns.right.map(({ item, index }) => renderItem(item, index))}
+          </View>
+        </>
+      )}
+    </View>
+  )
 
   return (
-    <div className={classNames([b(), className])} style={style} {...rest}>
-      {openInfiniteloading ? 
-        <Infiniteloading
-          {...infiniteloadingProps}
-        >
-          {product()}
-        </Infiniteloading> :
-        product()
-      }
-    </div>
+    <View
+      className={classNames(b({ infinite: openInfiniteloading }), className)}
+      style={style}
+    >
+      {openInfiniteloading ? (
+        <Infinite {...infiniteloadingProps}>{product}</Infinite>
+      ) : (
+        product
+      )}
+    </View>
   )
 }
 
-ProductFeed.defaultProps = defaultProps
-ProductFeed.displayName = "NutProductFeed"
+ProductFeed.displayName = 'NbProductFeed'

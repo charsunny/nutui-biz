@@ -1,59 +1,42 @@
-import React, { FunctionComponent, HTMLAttributes, useEffect, useState } from 'react'
-import { IComponent } from '@/utils/typings'
-import { numericProp } from '@/utils/props'
+import type { FunctionComponent } from 'react'
+import { Input } from '@tarojs/components'
+import type { BaseEventOrig, InputProps } from '@tarojs/components'
+import type { numericProp } from '../../../utils/props'
+import { sanitizePriceInput } from '../utils'
 
-export interface InputNumProps extends IComponent {
+export interface InputNumProps {
+  className?: string
+  placeholderClass?: string
+  placeholder?: string
   value: numericProp
   onNumInput: (val: string) => void
 }
 
-const defaultProps = {
-  value: ''
-} as InputNumProps
-
-export const InputNum: FunctionComponent<
-  Partial<InputNumProps> & HTMLAttributes<HTMLDivElement>
-> = (props) => {
-  const { value, onNumInput } = {
-    ...defaultProps,
-    ...props
+/** 只能输入数字的价格输入框 */
+export const InputNum: FunctionComponent<InputNumProps> = ({
+  className,
+  placeholderClass,
+  placeholder,
+  value,
+  onNumInput,
+}) => {
+  const handleInput = (e: BaseEventOrig<InputProps.inputEventDetail>) => {
+    const next = sanitizePriceInput(e.detail.value)
+    onNumInput(next)
+    // 小程序端: 返回值会替换输入框内容, 过滤掉非数字
+    return next
   }
 
-  const [inputVal, setInputVal] = useState<numericProp>('')
-
-  const handleInput = (e: any) => {
-    if(e.target.value<0){
-      return
-    }
-    const value = e.target.value.replace(/\D+/, '')
-    var retVal = ''
-    if (value === '') {
-      e.target.value = ''
-      retVal = ''
-    } else {
-      setInputVal(e.target.value)
-      retVal = e.target.value
-    }
-    console.log(value);
-    
-    onNumInput?.(retVal)
-  };
-
-  useEffect(() => {
-    if(value != inputVal){
-      setInputVal(value)
-    }
-  }, [value]);
-
   return (
-    <input
-      className="input-num"
+    <Input
+      className={className}
+      placeholderClass={placeholderClass}
+      placeholder={placeholder}
       type="number"
+      value={value === undefined || value === null ? '' : String(value)}
       onInput={handleInput}
-      value={inputVal}
     />
   )
 }
 
-InputNum.defaultProps = defaultProps
-InputNum.displayName = "NutInputNum"
+InputNum.displayName = 'NbGoodsFilterInputNum'

@@ -172,5 +172,15 @@ const enUS: BaseLang = {
   category: {
     pullUpText: "Scroll up to continue browsing",
   },
+  goodsfilter: {
+    confirm: "Confirm",
+    reset: "Reset",
+    priceRangeTitle: "Price Range",
+    addressTitle: "Delivery Address",
+    noAddress: "No address selected",
+    modify: "Change",
+    lowPrice: "Min",
+    highPrice: "Max",
+  },
 };
 export default enUS;

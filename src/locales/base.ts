@@ -168,4 +168,14 @@ export interface BaseLang {
   category: {
     pullUpText: string;
   };
+  goodsfilter: {
+    confirm: string;
+    reset: string;
+    priceRangeTitle: string;
+    addressTitle: string;
+    noAddress: string;
+    modify: string;
+    lowPrice: string;
+    highPrice: string;
+  };
 }

@@ -170,5 +170,15 @@ const zhCN: BaseLang = {
   category: {
     pullUpText: "向上拉继续浏览",
   },
+  goodsfilter: {
+    confirm: "确定",
+    reset: "重置",
+    priceRangeTitle: "价格区间",
+    addressTitle: "配送地址",
+    noAddress: "您还没有选中的地址",
+    modify: "修改",
+    lowPrice: "最低价",
+    highPrice: "最高价",
+  },
 };
 export default zhCN;
