@@ -13,12 +13,12 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "types": ["node", "webpack-env"],
+    "types": ["node", "webpack-env", "bun"],
     "paths": {
       "nutui-biz-taro": ["./src/index.ts"],
       "nutui-biz-taro/*": ["./src/*"]
     }
   },
-  "include": ["src", "demo", "types", "config"],
+  "include": ["src", "demo", "types", "config", "tests"],
   "exclude": ["node_modules", "dist"]
 }
