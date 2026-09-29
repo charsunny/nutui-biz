@@ -1,58 +1,96 @@
-.nb-receive-invoice-list {
-    &__item {
-        &-header {
-            font-size: 14px;
-            font-weight: 600;
-            color: rgba(51, 51, 51, 1);
-            .nut-cell__title {
-                overflow: hidden;
-            }
-            &-title {
-                display: flex;
-                align-items: center;
-                .nut-tag--danger {
-                    flex-shrink: 0;
-                }
-                > p {
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-            }
-        }
+@import '../../styles/variables';
 
-        &-footer {
-            display: flex;
-            &.infobox {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-            }
-            &-info {
-                display: flex;
-                align-items: flex-start;
-                margin-bottom: 10px;
-                &:last-child {
-                    margin-bottom: 0;
-                }
-                span {
-                    width: 44px;
-                    font-size: 12px;
-                    font-weight: normal;
-                    color: #999999;
-                }
-                p {
-                    flex: 1;
-                    font-size: 12px;
-                    color: #333333;
-                    word-break: break-word;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    -webkit-box-orient:vertical; 
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                }
-            }
-        }
+$nb-receive-invoice-list-name-color: var(--nb-receive-invoice-list-name-color, $nb-color-title);
+$nb-receive-invoice-list-name-font-size: var(--nb-receive-invoice-list-name-font-size, $nb-font-size-base);
+$nb-receive-invoice-list-label-color: var(--nb-receive-invoice-list-label-color, $nb-color-text-help);
+$nb-receive-invoice-list-value-color: var(--nb-receive-invoice-list-value-color, $nb-color-title);
+$nb-receive-invoice-list-row-font-size: var(--nb-receive-invoice-list-row-font-size, $nb-font-size-s);
+$nb-receive-invoice-list-edit-color: var(--nb-receive-invoice-list-edit-color, $nb-color-text);
+$nb-receive-invoice-list-gap: var(--nb-receive-invoice-list-gap, $nb-spacing-s);
+
+.nb-receive-invoice-list {
+  &__item {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: $nb-receive-invoice-list-gap;
+  }
+
+  &__swipe {
+    width: 100%;
+  }
+
+  &__delete {
+    height: 100%;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    color: $nb-receive-invoice-list-name-color;
+    font-size: $nb-receive-invoice-list-name-font-size;
+    font-weight: $nb-font-weight-bold;
+  }
+
+  &__tag {
+    flex-shrink: 0;
+    margin-right: 4px;
+  }
+
+  &__name {
+    flex: 1;
+    min-width: 0;
+    @include text-ellipsis;
+  }
+
+  &__edit {
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    color: $nb-receive-invoice-list-edit-color;
+    --nut-icon-color: #{$nb-receive-invoice-list-edit-color};
+  }
+
+  &__footer {
+    display: flex;
+  }
+
+  &__check {
+    flex-shrink: 0;
+    margin-right: 8px;
+  }
+
+  &__info {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+  }
+
+  &__row {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    font-size: $nb-receive-invoice-list-row-font-size;
+    line-height: 18px;
+
+    &:last-child {
+      margin-bottom: 0;
     }
+  }
+
+  &__row-label {
+    flex-shrink: 0;
+    width: 44px;
+    color: $nb-receive-invoice-list-label-color;
+  }
+
+  &__row-value {
+    flex: 1;
+    min-width: 0;
+    color: $nb-receive-invoice-list-value-color;
+    word-break: break-word;
+    @include moreline-ellipsis(2);
+  }
 }

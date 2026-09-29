@@ -1,249 +1,193 @@
-.nut-theme-dark {
-  .nb-address {
-    &__header {
-      color: $dark-color;
+@import '../../styles/variables';
 
-      &__title {
-        color: $dark-color;
-      }
-    }
-
-    .custom-address {
-      .region-tab {
-        color: $dark-color;
-      }
-      .region-con {
-        .region-group {
-          .region-item {
-            color: $dark-color;
-          }
-        }
-      }
-    }
-
-    .exist-address {
-      .exist-address-group {
-        .exist-ul {
-          .exist-item {
-            color: $dark-color;
-          }
-        }
-      }
-
-      .choose-other {
-        border-top: 1px solid $dark-background;
-      }
-    }
-    &-custom-buttom {
-      border-top: 1px solid $dark-background;
-    }
-  }
-}
+$nb-address-background: var(--nb-address-background, $nb-color-surface);
+$nb-address-header-title-color: var(--nb-address-header-title-color, $nb-color-title);
+$nb-address-header-title-font-size: var(--nb-address-header-title-font-size, $nb-font-size-xl);
+$nb-address-header-icon-color: var(--nb-address-header-icon-color, $nb-color-text-disabled);
+$nb-address-region-tab-color: var(--nb-address-region-tab-color, $nb-color-title);
+$nb-address-region-tab-font-size: var(--nb-address-region-tab-font-size, 13px);
+$nb-address-region-tab-line: var(--nb-address-region-tab-line, $nb-color-primary-gradient);
+$nb-address-region-item-color: var(--nb-address-region-item-color, $nb-color-title);
+$nb-address-region-item-font-size: var(--nb-address-region-item-font-size, $nb-font-size-base);
+$nb-address-icon-color: var(--nb-address-icon-color, $nb-color-primary);
+$nb-address-list-height: var(--nb-address-list-height, 270px);
+$nb-address-exist-height: var(--nb-address-exist-height, 279px);
+$nb-address-border-color: var(--nb-address-border-color, $nb-color-border);
 
 .nb-address {
   display: block;
+  background-color: $nb-address-background;
+
   &__header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-top: 24px;
-    margin-bottom: 17px;
-    padding: 0 20px;
-    text-align: center;
-    font-weight: bold;
-    color: #333;
+    justify-content: space-between;
+    padding: 24px 20px 17px;
     line-height: 20px;
-    &__title {
-      display: block;
-      color: #262626;
-      font-size: 18px;
-    }
   }
 
-  // 请选择
-  .nb-address__custom {
+  &__header-left,
+  &__header-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    color: $nb-address-header-icon-color;
+    --nut-icon-color: #{$nb-address-header-icon-color};
+  }
+
+  &__header-title {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    color: $nb-address-header-title-color;
+    font-size: $nb-address-header-title-font-size;
+    font-weight: $nb-font-weight-bold;
+    @include text-ellipsis;
+  }
+
+  // ---- 自定义地址 ----
+  &__custom {
     display: block;
-    .nb-address__region-tab {
-      position: relative;
-      margin-top: 32px;
-      padding: 0 20px;
-      display: flex;
-      font-size: 13px;
-      color: #1d1e1e;
+  }
 
-      .nb-address__tab-item {
-        min-width: 2px;
-        margin-right: 30px;
-        display: block;
-        &.active {
-          font-weight: bold;
-        }
+  &__region-tab {
+    display: flex;
+    margin-top: 15px;
+    padding: 0 20px 10px;
+    color: $nb-address-region-tab-color;
+    font-size: $nb-address-region-tab-font-size;
+    line-height: 18px;
+  }
 
-        span {
-          display: inline-block;
-          max-width: 100px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-      }
+  &__tab-item {
+    position: relative;
+    flex: 0 1 auto;
+    min-width: 2px;
+    margin-right: 24px;
 
-      .nb-address__tab-line {
-        position: absolute;
-        bottom: -10px;
-        left: 20px;
-        display: inline-block;
-        margin-top: 5px;
-        width: 26px;
-        height: 3px;
-        background: $address-region-tab-line;
-        transition: 0.2s all linear;
-      }
-    }
-
-    .nb-address__region-con {
-      display: block;
-      margin: 20px 20px 0;
-      .nb-address__region-group {
-        padding-top: 15px;
-        height: 270px;
-        overflow-y: auto;
-        box-sizing: border-box;
-        padding: 0;
-        .nb-address__region-item {
-          display: flex;
-          align-items: center;
-          margin-bottom: 20px;
-          font-size: $font-size-1;
-          color: #333;
-         
-          .nb-address__region-item--icon {
-            margin-right: 6px;
-          }
-          .nb-address__region-item--loading{
-            margin-right: 6px;
-
-          }
-        }
-        .active {
-          font-weight: bold;
-        }
-        .loading_box {
-          height: 70%;
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          .nut-icon-loading {
-            color: $primary-color;
-          }
-        }
-      }
-    }
-
-    .hot-title {
-      font-size: 12px;
-      color: #999;
-      margin: 20px 0 0 20px;
-    }
-
-    .hot-citys {
-      display: flex;
-      flex-wrap: wrap;
-      margin-left: 20px;
-
-      li {
-        height: 25px;
-        padding: 0 15px;
-        line-height: 25px;
-        border-radius: 25px;
-        margin: 10px 10px 0 0;
-        text-align: center;
-        background: #f7f7f7;
-        font-size: 12px;
-        color: #333;
-      }
-    }
-
-    .nb-address__elevator-group {
-      display: flex;
-      margin-top: 20px;
-      .active {
-        font-weight: bold;
-      }
-      .nut-elevator__list__item__name--highcolor {
-        color: #333;
-      }
-
-      .nb-address__region-item {
-        display: flex;
-        align-items: center;
-        font-size: $font-size-1;
-        color: #333;
-        .nb-address__region-item--icon {
-          margin-right: 6px;
-        }
-        .nb-address__region-item--loading{
-          margin-right: 6px;
-
-        }
-      }
+    &--active {
+      font-weight: $nb-font-weight-bold;
     }
   }
 
-  // 配送至
-  .nb-address__exist {
+  &__tab-item-text {
+    display: block;
+    max-width: 100px;
+    @include text-ellipsis;
+  }
+
+  // 当前 tab 下方的指示线
+  &__tab-line {
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 26px;
+    height: 3px;
+    background: $nb-address-region-tab-line;
+  }
+
+  &__region-con {
+    height: $nb-address-list-height;
+    margin-top: 20px;
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+
+  &__region-cell {
+    padding-bottom: 20px;
+  }
+
+  &__region-item {
+    display: flex;
+    align-items: center;
+    color: $nb-address-region-item-color;
+    font-size: $nb-address-region-item-font-size;
+    line-height: 16px;
+
+    &--active {
+      font-weight: $nb-font-weight-bold;
+    }
+  }
+
+  &__region-item-icon,
+  &__region-item-loading {
+    flex-shrink: 0;
+    margin-right: 6px;
+    color: $nb-address-icon-color;
+    --nut-icon-color: #{$nb-address-icon-color};
+  }
+
+  &__elevator-group {
+    display: flex;
+    margin-top: 20px;
+  }
+
+  &__elevator {
+    flex: 1;
+    --nutui-elevator-list-bg-color: #{$nb-address-background};
+  }
+
+  // ---- 已有地址 ----
+  &__exist {
     display: block;
     margin-top: 15px;
+  }
 
-    .nb-address__exist-group {
-      padding: 15px 20px 0;
-      height: 279px;
-      overflow-y: scroll;
+  &__exist-group {
+    height: $nb-address-exist-height;
+    padding: 15px 20px 0;
+    box-sizing: border-box;
+  }
 
-      .nb-address__exist-ul {
-        box-sizing: border-box;
-        padding: 0;
-        .nb-address__exist-item {
-          margin-bottom: 20px;
-          font-size: $font-size-1;
-          line-height: 14px;
-          color: $black;
-          &.active {
-            font-weight: bold;
-          }
+  &__exist-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    color: $nb-color-title;
+    font-size: $nb-font-size-base;
+    line-height: 16px;
 
-          > div {
-            display: flex;
-            align-items: center;
-          }
-          .nb-address__exist-item-icon {
-            margin-right: 9px;
-          }
-          span {
-            display: inline-block;
-            flex: 1;
-          }
-        }
-      }
+    &--active {
+      font-weight: $nb-font-weight-bold;
     }
+  }
 
-    .nb-address__choose-other {
-      width: 100%;
-      height: 54px;
-      padding: 6px 0px 0;
-      border-top: 1px solid #f2f2f2;
-      &-btn {
-        width: 90%;
-        height: 42px;
-        line-height: 42px;
-        margin: auto;
-        text-align: center;
-        background: $button-primary-background-color;
-        border-radius: 21px;
-        font-size: 15px;
-        color: $white;
-      }
+  &__exist-item-icon {
+    display: flex;
+    flex-shrink: 0;
+    margin-right: 9px;
+    color: $nb-color-text;
+    --nut-icon-color: #{$nb-color-text};
+
+    &--active {
+      color: $nb-address-icon-color;
+      --nut-icon-color: #{$nb-address-icon-color};
     }
+  }
+
+  &__exist-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__exist-item-top {
+    display: flex;
+    margin-bottom: 4px;
+  }
+
+  &__exist-item-name {
+    margin-right: 8px;
+  }
+
+  &__exist-item-address {
+    display: block;
+    word-break: break-all;
+  }
+
+  &__choose-other {
+    padding: 6px 18px 12px;
+    border-top: 1px solid $nb-address-border-color;
   }
 }
